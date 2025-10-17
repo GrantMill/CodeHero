@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="CodeHero.ApiService/CodeHero.ApiService.csproj" />
+  <Project Path="CodeHero.AppHost/CodeHero.AppHost.csproj" />
+  <Project Path="CodeHero.ServiceDefaults/CodeHero.ServiceDefaults.csproj" />
+  <Project Path="CodeHero.Tests/CodeHero.Tests.csproj" />
+  <Project Path="CodeHero.Web/CodeHero.Web.csproj" />
+</Solution>
