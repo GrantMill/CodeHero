@@ -72,4 +72,46 @@ public class FileStoreTests
             temp.Delete(recursive: true);
         }
     }
+
+    [TestMethod]
+    public void WriteText_CreatesDirectory_WhenMissing()
+    {
+        var temp = Directory.CreateTempSubdirectory();
+        try
+        {
+            var reqDir = Path.Combine(temp.FullName, "req");
+            // Intentionally do not create reqDir
+            var store = CreateStore(temp.FullName);
+
+            store.WriteText(StoreRoot.Requirements, "NEW-REQ.md", "content", ".md");
+
+            Assert.IsTrue(File.Exists(Path.Combine(reqDir, "NEW-REQ.md")));
+        }
+        finally
+        {
+            temp.Delete(recursive: true);
+        }
+    }
+
+    [TestMethod]
+    public void SaveArtifact_WritesFile_And_Sidecar()
+    {
+        var temp = Directory.CreateTempSubdirectory();
+        try
+        {
+            var artDir = Path.Combine(temp.FullName, "art");
+            Directory.CreateDirectory(artDir);
+            var store = CreateStore(temp.FullName);
+
+            using var ms = new MemoryStream(System.Text.Encoding.UTF8.GetBytes("hello"));
+            var (path, meta) = store.SaveArtifact(ms, "hello.txt", "note");
+
+            Assert.IsTrue(File.Exists(path));
+            Assert.IsTrue(File.Exists(meta));
+        }
+        finally
+        {
+            temp.Delete(recursive: true);
+        }
+    }
 }
