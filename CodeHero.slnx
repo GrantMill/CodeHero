@@ -1,4 +1,7 @@
 <Solution>
+  <Folder Name="/docs/">
+    <File Path="Initial Context.md" />
+  </Folder>
   <Project Path="CodeHero.ApiService/CodeHero.ApiService.csproj" />
   <Project Path="CodeHero.AppHost/CodeHero.AppHost.csproj" />
   <Project Path="CodeHero.ServiceDefaults/CodeHero.ServiceDefaults.csproj" />
