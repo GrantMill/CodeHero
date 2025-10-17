@@ -1,14 +1,23 @@
 @page "/architecture"
 @rendermode InteractiveServer
 @using CodeHero.Web.Services
+@using Microsoft.AspNetCore.Components
 @inject FileStore Store
 
 <h3>Architecture</h3>
 
+<div class="card mb-3">
+    <div class="card-header">Tech choices</div>
+    <div class="card-body">
+        <pre class="mb-0" style="white-space:pre-wrap">@techChoices</pre>
+    </div>
+    <div class="card-footer text-muted">docs/architecture/TechChoices.md</div>
+    </div>
+
 @if (selected is null)
 {
     <ul>
-        @foreach (var f in Store.List(StoreRoot.Architecture, ".md", ".dsl", ".txt"))
+        @foreach (var f in Store.List(StoreRoot.Architecture, ".md", ".dsl", ".txt", ".mmd", ".html"))
         {
             <li>
                 <button type="button" class="btn btn-link p-0 align-baseline" @onclick="() => Load(f)">@f</button>
@@ -27,6 +36,20 @@ else
             <button class="btn btn-secondary ms-2" @onclick="Back">Back</button>
         </div>
     }
+    else if (selected.EndsWith(".mmd", StringComparison.OrdinalIgnoreCase))
+    {
+        <div class="mermaid">@text</div>
+        <div class="mt-2">
+            <button class="btn btn-secondary" @onclick="Back">Back</button>
+        </div>
+    }
+    else if (selected.EndsWith(".html", StringComparison.OrdinalIgnoreCase))
+    {
+        <div>@((MarkupString)(text ?? string.Empty))</div>
+        <div class="mt-2">
+            <button class="btn btn-secondary" @onclick="Back">Back</button>
+        </div>
+    }
     else
     {
         <pre>@text</pre>
@@ -39,11 +62,24 @@ else
 @code {
     string? selected;
     string? text;
+    string? techChoices;
+
+    protected override void OnInitialized()
+    {
+        try
+        {
+            techChoices = Store.ReadText(StoreRoot.Architecture, "TechChoices.md", ".md");
+        }
+        catch
+        {
+            techChoices = "(TechChoices.md not found)";
+        }
+    }
 
     void Load(string f)
     {
         selected = f;
-        text = Store.ReadText(StoreRoot.Architecture, f, ".md", ".dsl", ".txt");
+        text = Store.ReadText(StoreRoot.Architecture, f, ".md", ".dsl", ".txt", ".mmd", ".html");
     }
 
     void Save()

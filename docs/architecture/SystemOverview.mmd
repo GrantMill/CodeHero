@@ -1,0 +1,9 @@
+flowchart TD
+    A[Browser UI - Blazor Server] -->|SignalR| B[ASP.NET Core Host]
+    B --> C[FileStore]
+    C --> D[(docs/requirements)]
+    C --> E[(docs/architecture)]
+    C --> F[(artifacts)]
+    B --> G[Agents Runtime]
+    G --> H[MCP Server]
+    B --> I[Azure AI later via DI]
