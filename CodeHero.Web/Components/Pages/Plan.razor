@@ -1,0 +1,78 @@
+@page "/plan"
+@using System.Text.RegularExpressions
+@using CodeHero.Web.Services
+@inject FileStore Store
+
+<h3>Plan</h3>
+<div class="row">
+    <div class="col">
+        <h5>Human</h5>
+        @foreach (var item in humanItems.Select((v,i) => (v,i)))
+        {
+            <div>
+                <input type="checkbox" checked="@item.v.Checked" @onchange="(e)=>ToggleHuman(item.i, e.Value)" />
+                <span>@item.v.Text</span>
+            </div>
+        }
+        <button class="btn btn-primary mt-2" @onclick="SaveHuman">Save Human Plan</button>
+    </div>
+    <div class="col">
+        <h5>Agent</h5>
+        @foreach (var item in agentItems.Select((v,i) => (v,i)))
+        {
+            <div>
+                <input type="checkbox" checked="@item.v.Checked" @onchange="(e)=>ToggleAgent(item.i, e.Value)" />
+                <span>@item.v.Text</span>
+            </div>
+        }
+        <button class="btn btn-primary mt-2" @onclick="SaveAgent">Save Agent Plan</button>
+    </div>
+</div>
+
+@code {
+    record TaskItem(string Text, bool Checked);
+    List<TaskItem> humanItems = new();
+    List<TaskItem> agentItems = new();
+
+    protected override void OnInitialized()
+    {
+        humanItems = ParseTasks(Store.ReadHumanPlan());
+        agentItems = ParseTasks(Store.ReadAgentPlan());
+    }
+
+    static List<TaskItem> ParseTasks(string md)
+    {
+        var list = new List<TaskItem>();
+        foreach (var line in md.Split('\n'))
+        {
+            var m = Regex.Match(line, @"^\s*\- \[( |x|X)\] (.*)$");
+            if (m.Success)
+            {
+                list.Add(new TaskItem(m.Groups[2].Value, m.Groups[1].Value.Equals("x", StringComparison.OrdinalIgnoreCase)));
+            }
+        }
+        return list;
+    }
+
+    static string SerializeTasks(IEnumerable<TaskItem> items)
+    {
+        return string.Join("\n", items.Select(i => $"- [{(i.Checked ? "x" : " ")}] {i.Text}")) + "\n";
+    }
+
+    void ToggleHuman(int index, object? value)
+    {
+        var current = humanItems[index];
+        var isChecked = value is bool b && b;
+        humanItems[index] = current with { Checked = isChecked };
+    }
+
+    void ToggleAgent(int index, object? value)
+    {
+        var current = agentItems[index];
+        var isChecked = value is bool b && b;
+        agentItems[index] = current with { Checked = isChecked };
+    }
+
+    void SaveHuman() => Store.WriteHumanPlan(SerializeTasks(humanItems));
+    void SaveAgent() => Store.WriteAgentPlan(SerializeTasks(agentItems));
+}

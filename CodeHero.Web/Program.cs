@@ -1,5 +1,5 @@
 using CodeHero.Web;
-using CodeHero.Web.Components;
+using CodeHero.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,6 +11,9 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 builder.Services.AddOutputCache();
+
+// Repo file I/O service (whitelisted roots configured in appsettings)
+builder.Services.AddSingleton<FileStore>();
 
 builder.Services.AddHttpClient<WeatherApiClient>(client =>
     {
@@ -36,7 +39,7 @@ app.UseOutputCache();
 
 app.MapStaticAssets();
 
-app.MapRazorComponents<App>()
+app.MapRazorComponents<CodeHero.Web.Components.App>()
     .AddInteractiveServerRenderMode();
 
 app.MapDefaultEndpoints();
