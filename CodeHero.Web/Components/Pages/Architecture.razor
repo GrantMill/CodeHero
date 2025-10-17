@@ -1,4 +1,5 @@
 @page "/architecture"
+@rendermode InteractiveServer
 @using CodeHero.Web.Services
 @inject FileStore Store
 
@@ -9,7 +10,9 @@
     <ul>
         @foreach (var f in Store.List(StoreRoot.Architecture, ".md", ".dsl", ".txt"))
         {
-            <li><a href="#" @onclick:preventDefault="true" @onclick="() => Load(f)">@f</a></li>
+            <li>
+                <button type="button" class="btn btn-link p-0 align-baseline" @onclick="() => Load(f)">@f</button>
+            </li>
         }
     </ul>
 }
