@@ -9,7 +9,7 @@
     <ul>
         @foreach (var f in Store.List(StoreRoot.Architecture, ".md", ".dsl", ".txt"))
         {
-            <li><a href="#" @onclick="() => Load(f)">@f</a></li>
+            <li><a href="#" @onclick:preventDefault="true" @onclick="() => Load(f)">@f</a></li>
         }
     </ul>
 }

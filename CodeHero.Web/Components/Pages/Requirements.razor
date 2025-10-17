@@ -6,10 +6,11 @@
 
 @if (selected is null)
 {
+    <button class="btn btn-sm btn-outline-primary mb-2" @onclick="CreateNew">New requirement (REQ-001)</button>
     <ul>
         @foreach (var f in Store.List(StoreRoot.Requirements, ".md"))
         {
-            <li><a href="#" @onclick="() => Load(f)">@f</a></li>
+            <li><a href="#" @onclick:preventDefault="true" @onclick="() => Load(f)">@f</a></li>
         }
     </ul>
 }
@@ -44,5 +45,16 @@ else
     void Back()
     {
         selected = null; text = null;
+    }
+
+    void CreateNew()
+    {
+        const string file = "REQ-001.md";
+        var existing = Store.List(StoreRoot.Requirements, ".md").Any(f => string.Equals(f, file, StringComparison.OrdinalIgnoreCase));
+        if (!existing)
+        {
+            var content = "---\nid: REQ-001\ntitle: New Requirement\nstatus: draft\n---\nShort description.\n";
+            Store.WriteText(StoreRoot.Requirements, file, content, ".md");
+        }
     }
 }

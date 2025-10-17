@@ -20,6 +20,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CodeHero.AppHost\CodeHero.AppHost.csproj" />
+    <ProjectReference Include="..\CodeHero.Web\CodeHero.Web.csproj" />
   </ItemGroup>
 
   <ItemGroup>

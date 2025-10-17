@@ -66,7 +66,15 @@ public sealed class FileStore
         => File.ReadAllText(Guard(root, name, exts));
 
     public void WriteText(StoreRoot root, string name, string content, params string[] exts)
-        => File.WriteAllText(Guard(root, name, exts), content ?? string.Empty, new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
+    {
+        var full = Guard(root, name, exts);
+        var dir = Path.GetDirectoryName(full);
+        if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
+        {
+            Directory.CreateDirectory(dir);
+        }
+        File.WriteAllText(full, content ?? string.Empty, new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
+    }
 
     public (string SavedPath, string MetaPath) SaveArtifact(Stream file, string filename, string? note)
     {

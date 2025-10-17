@@ -15,12 +15,7 @@ builder.Services.AddOutputCache();
 // Repo file I/O service (whitelisted roots configured in appsettings)
 builder.Services.AddSingleton<FileStore>();
 
-builder.Services.AddHttpClient<WeatherApiClient>(client =>
-    {
-        // This URL uses "https+http://" to indicate HTTPS is preferred over HTTP.
-        // Learn more about service discovery scheme resolution at https://aka.ms/dotnet/sdschemes.
-        client.BaseAddress = new("https+http://apiservice");
-    });
+// Remove default sample HttpClient (Weather)
 
 var app = builder.Build();
 
