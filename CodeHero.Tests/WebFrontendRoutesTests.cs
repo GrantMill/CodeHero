@@ -30,6 +30,7 @@ public class WebFrontendRoutesTests
     }
 
     [TestMethod]
+    [TestCategory("Integration")]
     public async Task RequirementsRoute_Renders()
     {
         using var cts = new CancellationTokenSource(DefaultTimeout);
@@ -42,6 +43,7 @@ public class WebFrontendRoutesTests
     }
 
     [TestMethod]
+    [TestCategory("Integration")]
     public async Task ArchitectureRoute_Renders()
     {
         using var cts = new CancellationTokenSource(DefaultTimeout);
@@ -54,6 +56,7 @@ public class WebFrontendRoutesTests
     }
 
     [TestMethod]
+    [TestCategory("Integration")]
     public async Task PlanRoute_Renders()
     {
         using var cts = new CancellationTokenSource(DefaultTimeout);
