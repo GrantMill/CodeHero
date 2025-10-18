@@ -1,0 +1,29 @@
+name: .NET CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'  # or your version
+
+      - name: Restore dependencies
+        run: dotnet restore CodeHero.sln
+
+      - name: Build
+        run: dotnet build CodeHero.sln --no-restore --configuration Release
+
+      - name: Run tests
+        run: dotnet test CodeHero.sln --no-build --verbosity normal

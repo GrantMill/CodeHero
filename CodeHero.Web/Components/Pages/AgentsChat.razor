@@ -1,0 +1,113 @@
+@page "/agents/chat"
+@rendermode InteractiveServer
+@using CodeHero.Web.Services
+@inject IMcpClient Client
+
+<h3>Scribe Chat (MVP)</h3>
+
+<div class="border rounded p-2" style="height:50vh; overflow:auto; background:#fafafa">
+    @if (messages.Count == 0)
+    {
+        <div class="text-muted">Try: "ping", "list req", "read REQ-000.md", or "create REQ-123 A helpful title"</div>
+    }
+    @foreach (var m in messages)
+    {
+        <div class="mb-2">
+            <strong>@m.Role:</strong>
+            <pre class="mb-0" style="white-space:pre-wrap">@m.Text</pre>
+        </div>
+    }
+    <div @ref="bottom"></div>
+    </div>
+
+<div class="input-group mt-2">
+    <input class="form-control" placeholder="Type a command…" @bind="input" @bind:event="oninput" @onkeydown="OnKey" />
+    <button class="btn btn-primary" @onclick="Send" disabled="@busy">Send</button>
+</div>
+<div class="small text-muted mt-1">@status</div>
+
+@code {
+    record Msg(string Role, string Text);
+    List<Msg> messages = new();
+    string input = string.Empty;
+    string status = string.Empty;
+    bool busy = false;
+    ElementReference bottom;
+
+    async Task Send()
+    {
+        if (string.IsNullOrWhiteSpace(input)) return;
+        var text = input;
+        input = string.Empty;
+        messages.Add(new Msg("you", text));
+        status = string.Empty; busy = true;
+        StateHasChanged();
+        try
+        {
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(8));
+            if (!await Client.InitializeAsync(cts.Token))
+            {
+                messages.Add(new Msg("scribe", "Initialization failed."));
+                return;
+            }
+
+            var reply = await HandleIntent(text, cts.Token);
+            messages.Add(new Msg("scribe", reply));
+        }
+        catch (Exception ex)
+        {
+            messages.Add(new Msg("scribe", $"Error: {ex.Message}"));
+        }
+        finally
+        {
+            busy = false; await ScrollToBottom();
+        }
+    }
+
+    async Task<string> HandleIntent(string text, CancellationToken ct)
+    {
+        var t = text.Trim();
+        if (string.Equals(t, "ping", StringComparison.OrdinalIgnoreCase))
+        {
+            var ok = await Client.PingAsync(ct);
+            return ok ? "pong" : "no pong";
+        }
+        if (t.StartsWith("list req", StringComparison.OrdinalIgnoreCase))
+        {
+            var files = await Client.ListAsync(StoreRoot.Requirements, new[] { ".md" }, ct);
+            return files.Count == 0 ? "No requirements found." : string.Join("\n", files);
+        }
+        if (t.StartsWith("read ", StringComparison.OrdinalIgnoreCase))
+        {
+            var name = t.Substring(5).Trim();
+            if (string.IsNullOrEmpty(name)) return "Please provide a filename, e.g. read REQ-000.md";
+            var body = await Client.ReadTextAsync(StoreRoot.Requirements, name, new[] { ".md" }, ct);
+            return $"--- {name} ---\n" + body;
+        }
+        if (t.StartsWith("create ", StringComparison.OrdinalIgnoreCase))
+        {
+            // create <id> <title>
+            var rest = t.Substring(7).Trim();
+            var space = rest.IndexOf(' ');
+            if (space <= 0) return "Usage: create REQ-123 Title here";
+            var id = rest.Substring(0, space);
+            var title = rest.Substring(space + 1).Trim();
+            var created = await Client.ScribeCreateRequirementAsync(id, title, ct);
+            return $"Created: {created}";
+        }
+        return "Sorry, try: ping | list req | read REQ-xxx.md | create REQ-xxx Title";
+    }
+
+    async Task OnKey(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" && !busy)
+        {
+            await Send();
+        }
+    }
+
+    async Task ScrollToBottom()
+    {
+        await Task.Yield();
+    }
+}
