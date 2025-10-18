@@ -9,3 +9,9 @@
 - [ ] Add chat-style Agents UI (conversation with scribe, map intents to tools)
 - [ ] Add client/server timeouts + resilient lifecycle management
 
+## Speech/Audio integration
+- [x] Implement `ISpeechService` with Azure + Null implementations
+- [x] Feature-flag endpoints and CI secret wiring
+- [ ] Add UI capture/playback and endpoint tests
+- [ ] Define `IAgentService` and stub Azure Foundry Agent integration
+

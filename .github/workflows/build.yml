@@ -18,6 +18,9 @@ jobs:
     env:
       ASPNETCORE_FORWARDEDHEADERS_ENABLED: true
       Server__DisableHttpsRedirection: true
+      Features__EnableSpeechApi: false
+      AzureAI__Speech__Key: ${{ secrets.AZURE_SPEECH_KEY }}
+      AzureAI__Speech__Region: ${{ secrets.AZURE_SPEECH_REGION }}
 
     steps:
       - name: Checkout repository

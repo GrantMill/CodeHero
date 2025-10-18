@@ -15,7 +15,17 @@ builder.Services.AddOutputCache();
 // Repo file I/O service (whitelisted roots configured in appsettings)
 builder.Services.AddSingleton<FileStore>();
 builder.Services.AddSingleton<IMcpClient, McpClient>();
-builder.Services.AddSingleton<ISpeechService, AzureSpeechService>();
+// Conditionally wire up speech service based on configuration presence
+var speechKey = builder.Configuration["AzureAI:Speech:Key"];
+var speechRegion = builder.Configuration["AzureAI:Speech:Region"];
+if (!string.IsNullOrWhiteSpace(speechKey) && !string.IsNullOrWhiteSpace(speechRegion))
+{
+    builder.Services.AddSingleton<ISpeechService, AzureSpeechService>();
+}
+else
+{
+    builder.Services.AddSingleton<ISpeechService, NullSpeechService>();
+}
 
 // Remove default sample HttpClient (Weather)
 
@@ -44,22 +54,26 @@ app.MapStaticAssets();
 app.MapRazorComponents<CodeHero.Web.Components.App>()
     .AddInteractiveServerRenderMode();
 
-// Minimal TTS/STT endpoints (dev only)
-app.MapPost("/api/tts", async (ISpeechService speech, HttpContext ctx) =>
+// Minimal TTS/STT endpoints (optional)
+var enableSpeechApi = builder.Configuration.GetValue("Features:EnableSpeechApi", app.Environment.IsDevelopment());
+if (enableSpeechApi)
 {
-    var text = await new StreamReader(ctx.Request.Body).ReadToEndAsync();
-    var voice = ctx.Request.Query["voice"].FirstOrDefault() ?? "en-US-JennyNeural";
-    var audio = await speech.SynthesizeAsync(text, voice, ct: ctx.RequestAborted);
-    return Results.File(audio, "audio/wav");
-});
+    app.MapPost("/api/tts", async (ISpeechService speech, HttpContext ctx) =>
+    {
+        var text = await new StreamReader(ctx.Request.Body).ReadToEndAsync();
+        var voice = ctx.Request.Query["voice"].FirstOrDefault() ?? "en-US-JennyNeural";
+        var audio = await speech.SynthesizeAsync(text, voice, ct: ctx.RequestAborted);
+        return Results.File(audio, "audio/wav");
+    });
 
-app.MapPost("/api/stt", async (ISpeechService speech, HttpContext ctx) =>
-{
-    using var ms = new MemoryStream();
-    await ctx.Request.Body.CopyToAsync(ms, ctx.RequestAborted);
-    var text = await speech.TranscribeAsync(ms.ToArray(), ct: ctx.RequestAborted);
-    return Results.Text(text);
-});
+    app.MapPost("/api/stt", async (ISpeechService speech, HttpContext ctx) =>
+    {
+        using var ms = new MemoryStream();
+        await ctx.Request.Body.CopyToAsync(ms, ctx.RequestAborted);
+        var text = await speech.TranscribeAsync(ms.ToArray(), ct: ctx.RequestAborted);
+        return Results.Text(text);
+    });
+}
 
 app.MapDefaultEndpoints();
 
