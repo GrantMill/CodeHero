@@ -15,6 +15,8 @@ builder.Services.AddOutputCache();
 // Repo file I/O service (whitelisted roots configured in appsettings)
 builder.Services.AddSingleton<FileStore>();
 builder.Services.AddSingleton<IMcpClient, McpClient>();
+builder.Services.AddHttpClient();
+
 // Conditionally wire up speech service based on configuration presence
 var speechKey = builder.Configuration["AzureAI:Speech:Key"];
 var speechRegion = builder.Configuration["AzureAI:Speech:Region"];
@@ -25,6 +27,18 @@ if (!string.IsNullOrWhiteSpace(speechKey) && !string.IsNullOrWhiteSpace(speechRe
 else
 {
     builder.Services.AddSingleton<ISpeechService, NullSpeechService>();
+}
+
+// Conditionally wire up agent service based on configuration presence
+var foundryKey = builder.Configuration["AzureAI:Foundry:Key"];
+var foundryEndpoint = builder.Configuration["AzureAI:Foundry:Endpoint"];
+if (!string.IsNullOrWhiteSpace(foundryKey) && !string.IsNullOrWhiteSpace(foundryEndpoint))
+{
+    builder.Services.AddSingleton<IAgentService, AzureFoundryAgentService>();
+}
+else
+{
+    builder.Services.AddSingleton<IAgentService, NullAgentService>();
 }
 
 // Remove default sample HttpClient (Weather)
@@ -72,6 +86,18 @@ if (enableSpeechApi)
         await ctx.Request.Body.CopyToAsync(ms, ctx.RequestAborted);
         var text = await speech.TranscribeAsync(ms.ToArray(), ct: ctx.RequestAborted);
         return Results.Text(text);
+    });
+}
+
+// Minimal Agent chat endpoint (dev/demo)
+var enableAgentApi = builder.Configuration.GetValue("Features:EnableAgentApi", app.Environment.IsDevelopment());
+if (enableAgentApi)
+{
+    app.MapPost("/api/agent/chat", async (IAgentService agent, HttpContext ctx) =>
+    {
+        var text = await new StreamReader(ctx.Request.Body).ReadToEndAsync();
+        var reply = await agent.ChatAsync(text, ctx.RequestAborted);
+        return Results.Text(reply);
     });
 }
 

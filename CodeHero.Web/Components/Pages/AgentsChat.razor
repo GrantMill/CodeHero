@@ -1,7 +1,12 @@
 @page "/agents/chat"
 @rendermode InteractiveServer
 @using CodeHero.Web.Services
+@using Microsoft.JSInterop
 @inject IMcpClient Client
+@inject IHttpClientFactory HttpFactory
+@inject ILogger<AgentsChat> Log
+@inject IJSRuntime JS
+@inject NavigationManager Nav
 
 <h3>Scribe Chat (MVP)</h3>
 
@@ -26,6 +31,27 @@
 </div>
 <div class="small text-muted mt-1">@status</div>
 
+<div class="card mt-3">
+    <div class="card-header">Speech (local capture + optional Azure STT/TTS)</div>
+    <div class="card-body">
+        <div class="btn-group" role="group">
+            <button class="btn btn-outline-primary" @onclick="StartRecording" disabled="@recording">Start</button>
+            <button class="btn btn-outline-danger" @onclick="StopRecording" disabled="@(!recording)">Stop</button>
+            <button class="btn btn-outline-secondary" @onclick="Transcribe" disabled="@(!hasAudio)">Transcribe</button>
+            <button class="btn btn-outline-secondary" @onclick="SpeakLast" disabled="@string.IsNullOrWhiteSpace(lastTranscript)">Speak last</button>
+            <button class="btn btn-outline-secondary" @onclick="SendToAgent" disabled="@string.IsNullOrWhiteSpace(lastTranscript)">Ask agent</button>
+            <button class="btn btn-outline-secondary" @onclick="SpeakAgent" disabled="@string.IsNullOrWhiteSpace(agentReply)">Speak agent</button>
+        </div>
+        <div class="mt-2 small text-muted">@recStatus</div>
+        @if (!string.IsNullOrWhiteSpace(supportStatus))
+        {
+            <div class="small text-muted">@supportStatus</div>
+        }
+        <audio class="mt-2 w-100" controls @ref="audioRef"></audio>
+    </div>
+    <div class="card-footer text-muted">Your browser audio never leaves the page until you click Transcribe or TTS.</div>
+</div>
+
 @code {
     record Msg(string Role, string Text);
     List<Msg> messages = new();
@@ -33,6 +59,14 @@
     string status = string.Empty;
     bool busy = false;
     ElementReference bottom;
+    ElementReference audioRef;
+    bool recording = false;
+    bool hasAudio = false;
+    string recStatus = string.Empty;
+    string supportStatus = string.Empty;
+    byte[]? audioBytes;
+    string lastTranscript = string.Empty;
+    string agentReply = string.Empty;
 
     async Task Send()
     {
@@ -109,5 +143,168 @@
     async Task ScrollToBottom()
     {
         await Task.Yield();
+    }
+
+    // Speech UI handlers
+    async Task StartRecording()
+    {
+        try
+        {
+            // Basic capabilities check to help user
+            var caps = await JS.InvokeAsync<Capabilities>("codeheroAudio.support");
+            supportStatus = $"secure={caps.secure}, mediaDevices={caps.hasMediaDevices}, getUserMedia={caps.hasGetUserMedia}, mediaRecorder={caps.hasMediaRecorder}, pref={caps.preferred ?? "n/a"}, mic={caps.micPerm}";
+            if (!caps.hasGetUserMedia || !caps.hasMediaRecorder)
+            {
+                recStatus = "Browser does not support microphone capture (getUserMedia/MediaRecorder).";
+                return;
+            }
+            await JS.InvokeVoidAsync("codeheroAudio.start");
+            recording = true; recStatus = "Recording... (allow mic if prompted)"; hasAudio = false; audioBytes = null; lastTranscript = string.Empty; agentReply = string.Empty;
+        }
+        catch (Exception ex)
+        {
+            recStatus = ex.Message;
+        }
+    }
+
+    async Task StopRecording()
+    {
+        try
+        {
+            // Prefer streamed interop to avoid SignalR payload limits
+            var streamRef = await JS.InvokeAsync<IJSStreamReference>("codeheroAudio.stopAsBlob");
+            if (streamRef is not null)
+            {
+                await using var stream = await streamRef.OpenReadStreamAsync(10 * 1024 * 1024); // 10MB cap
+                using var ms = new MemoryStream();
+                await stream.CopyToAsync(ms);
+                audioBytes = ms.ToArray();
+                hasAudio = audioBytes.Length > 0;
+                recStatus = hasAudio ? $"Audio captured: {audioBytes!.Length} bytes" : "No audio";
+                await LoadAudioTag(audioBytes);
+            }
+            else
+            {
+                // Fallback to base64 path if stream is unavailable
+                var base64 = await JS.InvokeAsync<string>("codeheroAudio.stop");
+                if (!string.IsNullOrEmpty(base64))
+                {
+                    audioBytes = Convert.FromBase64String(base64);
+                    hasAudio = audioBytes?.Length > 0;
+                    recStatus = hasAudio ? $"Audio captured: {audioBytes!.Length} bytes" : "No audio";
+                    await LoadAudioTag(audioBytes);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            recStatus = ex.Message;
+        }
+        finally { recording = false; }
+    }
+
+    async Task LoadAudioTag(byte[]? bytes)
+    {
+        if (bytes is null) return;
+        var b64 = Convert.ToBase64String(bytes);
+        await JS.InvokeVoidAsync("codeheroAudio.load", audioRef, "data:audio/wav;base64," + b64);
+    }
+
+    async Task Transcribe()
+    {
+        if (audioBytes is null) return;
+        try
+        {
+            var http = CreateLocalClient();
+            using var content = new ByteArrayContent(audioBytes);
+            content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("audio/wav");
+            var resp = await http.PostAsync("api/stt", content);
+            if (!resp.IsSuccessStatusCode)
+            {
+                var body = await resp.Content.ReadAsStringAsync();
+                messages.Add(new Msg("stt", $"Error {(int)resp.StatusCode}: {body}"));
+                return;
+            }
+            lastTranscript = await resp.Content.ReadAsStringAsync();
+            if (string.IsNullOrWhiteSpace(lastTranscript))
+            {
+                messages.Add(new Msg("stt", "(No transcription. Speech not configured or silence detected.)"));
+                return;
+            }
+            messages.Add(new Msg("stt", lastTranscript));
+        }
+        catch (Exception ex) { messages.Add(new Msg("stt", "Error: " + ex.Message)); }
+    }
+
+    async Task SpeakLast()
+    {
+        if (string.IsNullOrWhiteSpace(lastTranscript)) return;
+        try
+        {
+            var http = CreateLocalClient();
+            var resp = await http.PostAsync("api/tts?voice=en-US-JennyNeural", new StringContent(lastTranscript));
+            if (!resp.IsSuccessStatusCode)
+            {
+                var body = await resp.Content.ReadAsStringAsync();
+                messages.Add(new Msg("tts", $"Error {(int)resp.StatusCode}: {body}"));
+                return;
+            }
+            var wav = await resp.Content.ReadAsByteArrayAsync();
+            await LoadAudioTag(wav);
+        }
+        catch (Exception ex) { messages.Add(new Msg("tts", "Error: " + ex.Message)); }
+    }
+
+    async Task SendToAgent()
+    {
+        if (string.IsNullOrWhiteSpace(lastTranscript)) return;
+        try
+        {
+            var http = CreateLocalClient();
+            var resp = await http.PostAsync("api/agent/chat", new StringContent(lastTranscript));
+            if (!resp.IsSuccessStatusCode)
+            {
+                var body = await resp.Content.ReadAsStringAsync();
+                messages.Add(new Msg("agent", $"Error {(int)resp.StatusCode}: {body}"));
+                return;
+            }
+            agentReply = await resp.Content.ReadAsStringAsync();
+            messages.Add(new Msg("agent", agentReply));
+        }
+        catch (Exception ex) { messages.Add(new Msg("agent", "Error: " + ex.Message)); }
+    }
+
+    async Task SpeakAgent()
+    {
+        if (string.IsNullOrWhiteSpace(agentReply)) return;
+        try
+        {
+            var http = CreateLocalClient();
+            var resp = await http.PostAsync("api/tts?voice=en-US-JennyNeural", new StringContent(agentReply));
+            var wav = await resp.Content.ReadAsByteArrayAsync();
+            await LoadAudioTag(wav);
+        }
+        catch (Exception ex) { messages.Add(new Msg("tts", "Error: " + ex.Message)); }
+    }
+
+    // DTO for JS capability report
+    private sealed class Capabilities
+    {
+        public bool secure { get; set; }
+        public bool hasMediaDevices { get; set; }
+        public bool hasGetUserMedia { get; set; }
+        public bool hasMediaRecorder { get; set; }
+        public string? preferred { get; set; }
+        public string? micPerm { get; set; }
+    }
+
+    HttpClient CreateLocalClient()
+    {
+        var http = HttpFactory.CreateClient();
+        if (http.BaseAddress is null)
+        {
+            http.BaseAddress = new Uri(Nav.BaseUri, UriKind.Absolute);
+        }
+        return http;
     }
 }
