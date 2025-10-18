@@ -87,3 +87,10 @@ jobs:
             apphost.log
             **/TestResults/*.trx
             **/TestResults/**/*.xml
+
+      - name: Stop AppHost
+        if: always()
+        run: |
+          if [ -f apphost.pid ]; then
+            kill $(cat apphost.pid) || true
+          fi
