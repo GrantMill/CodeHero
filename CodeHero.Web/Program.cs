@@ -27,7 +27,12 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
+// Allow disabling HTTPS redirection via config/env (e.g., in CI test runs)
+var disableHttpsRedirect = builder.Configuration.GetValue<bool>("Server:DisableHttpsRedirection");
+if (!disableHttpsRedirect)
+{
+    app.UseHttpsRedirection();
+}
 
 app.UseAntiforgery();
 

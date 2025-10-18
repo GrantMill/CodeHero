@@ -9,6 +9,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      ASPNETCORE_FORWARDEDHEADERS_ENABLED: true
+      Server__DisableHttpsRedirection: true
 
     steps:
       - name: Checkout repository
