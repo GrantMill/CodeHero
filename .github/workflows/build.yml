@@ -39,3 +39,51 @@ jobs:
           path: |
             **/TestResults/*.trx
             **/TestResults/**/*.xml
+
+  integration-tests:
+    needs: build
+    runs-on: ubuntu-latest
+    env:
+      ASPNETCORE_FORWARDEDHEADERS_ENABLED: true
+      Server__DisableHttpsRedirection: true
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore CodeHero.sln
+
+      - name: Build (Release)
+        run: dotnet build CodeHero.sln --no-restore --configuration Release
+
+      - name: Start AppHost (background)
+        run: |
+          set -e
+          nohup dotnet run --project CodeHero.AppHost/CodeHero.AppHost.csproj --no-build > apphost.log 2>&1 &
+          echo $! > apphost.pid
+
+      - name: Wait for AppHost readiness
+        run: |
+          for i in {1..60}; do
+            if grep -q "Distributed application started" apphost.log; then echo "AppHost ready"; break; fi
+            sleep 2
+          done
+          tail -n 200 apphost.log || true
+
+      - name: Run Integration tests
+        run: dotnet test CodeHero.sln --no-build --configuration Release --verbosity normal --logger "trx;LogFileName=itest-results.trx" --filter "TestCategory=Integration"
+
+      - name: Upload integration logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-logs
+          path: |
+            apphost.log
+            **/TestResults/*.trx
+            **/TestResults/**/*.xml
