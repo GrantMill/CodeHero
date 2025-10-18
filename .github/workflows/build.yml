@@ -28,27 +28,6 @@ jobs:
       - name: Build
         run: dotnet build CodeHero.sln --no-restore --configuration Release
 
-      - name: Start AppHost (background)
-        run: |
-          set -e
-          nohup dotnet run --project CodeHero.AppHost/CodeHero.AppHost.csproj --configuration Release --no-build > apphost.log 2>&1 &
-          echo $! > apphost.pid
-
-      - name: Wait for AppHost readiness
-        run: |
-          for i in {1..60}; do
-            if grep -q "Distributed application started" apphost.log; then echo "AppHost ready"; break; fi
-            sleep 2
-          done
-          tail -n 200 apphost.log || true
-
-      - name: Probe AppHost dashboard (TLS-ignoring)
-        run: |
-          for i in {1..60}; do
-            if curl -k -fsS https://localhost:17187/login >/dev/null 2>&1; then echo "Dashboard healthy"; break; fi
-            sleep 2
-          done
-
       - name: Run tests
         run: dotnet test CodeHero.sln --no-build --configuration Release --verbosity normal --logger "trx;LogFileName=test-results.trx" --filter "TestCategory!=Integration"
 
@@ -60,20 +39,6 @@ jobs:
           path: |
             **/TestResults/*.trx
             **/TestResults/**/*.xml
-
-      - name: Upload apphost log (unit)
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: unit-apphost-log
-          path: apphost.log
-
-      - name: Stop AppHost
-        if: always()
-        run: |
-          if [ -f apphost.pid ]; then
-            kill $(cat apphost.pid) || true
-          fi
 
   integration-tests:
     needs: build
