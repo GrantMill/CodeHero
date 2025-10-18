@@ -29,7 +29,7 @@ public sealed class AzureSpeechService : ISpeechService
         using var result = await synthesizer.SpeakTextAsync(text).ConfigureAwait(false);
         if (result.Reason != ResultReason.SynthesizingAudioCompleted)
         {
-            throw new InvalidOperationException($"Synthesis failed: {result.Reason} {result.ErrorDetails}");
+            throw new InvalidOperationException($"Synthesis failed: {result.Reason}");
         }
         // The SDK writes to the underlying stream; we can instead use the built-in GetAudioData (not present), so re-run with pull
         using var mem = new MemoryStream();
@@ -52,6 +52,6 @@ public sealed class AzureSpeechService : ISpeechService
         var result = await rec.RecognizeOnceAsync().ConfigureAwait(false);
         if (result.Reason == ResultReason.RecognizedSpeech)
             return result.Text;
-        throw new InvalidOperationException($"Transcription failed: {result.Reason} {result.NoMatchDetails}");
+        throw new InvalidOperationException($"Transcription failed: {result.Reason}");
     }
 }
