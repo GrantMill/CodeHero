@@ -39,7 +39,10 @@ public sealed class FileStore
     private string Guard(StoreRoot root, string name, params string[] allowedExts)
     {
         if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException("Filename required", nameof(name));
-        if (name.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0 || name.Contains(Path.DirectorySeparatorChar) || name.Contains(Path.AltDirectorySeparatorChar))
+        // Cross-platform guard: reject any directory separators or traversal tokens regardless of OS
+        if (name.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0 || name.Contains('/') || name.Contains('\\'))
+            throw new InvalidOperationException("Invalid filename");
+        if (name.Contains("..", StringComparison.Ordinal))
             throw new InvalidOperationException("Invalid filename");
 
         var full = Normalize(Path.Combine(_roots[root], name));
