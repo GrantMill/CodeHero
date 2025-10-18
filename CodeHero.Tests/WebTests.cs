@@ -7,8 +7,9 @@ public class WebTests
 {
     private static readonly TimeSpan DefaultTimeout = TimeSpan.FromSeconds(30);
 
-    [TestMethod]
-    public async Task GetWebResourceRootReturnsOkStatusCode()
+[TestMethod]
+[TestCategory("Integration")]
+public async Task GetWebResourceRootReturnsOkStatusCode()
     {
         // Arrange
         var cancellationToken = new CancellationTokenSource(DefaultTimeout).Token;
