@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CodeHero.ApiService\CodeHero.ApiService.csproj" />
+    <ProjectReference Include="..\CodeHero.McpServer\CodeHero.McpServer.csproj" />
     <ProjectReference Include="..\CodeHero.Web\CodeHero.Web.csproj" />
   </ItemGroup>
 
