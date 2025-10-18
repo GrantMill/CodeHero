@@ -1,6 +1,9 @@
 @page "/agents"
 @rendermode InteractiveServer
 
+@using CodeHero.Web.Services
+@inject IMcpClient Client
+
 <h3>Agents</h3>
 
 <div class="mb-3">
@@ -22,15 +25,52 @@
     <div class="card-footer text-muted">Experimental stdio client (process-based)</div>
     </div>
 
+<div class="card mt-3">
+    <div class="card-header">Agents</div>
+    <div class="card-body">
+        <button class="btn btn-outline-secondary" @onclick="ListAgents">List Agents</button>
+        <ul>
+            @foreach (var a in agents)
+            {
+                <li>@a <button class="btn btn-link" @onclick="() => ShowCaps(a)">capabilities</button></li>
+            }
+        </ul>
+        @if (!string.IsNullOrEmpty(capsJson))
+        {
+            <pre>@capsJson</pre>
+        }
+
+        <h6 class="mt-3">Scribe: Create Requirement</h6>
+        <div class="row g-2">
+            <div class="col"><input class="form-control" placeholder="REQ-002" @bind="newId" /></div>
+            <div class="col"><input class="form-control" placeholder="Title" @bind="newTitle" /></div>
+            <div class="col-auto"><button class="btn btn-success" @onclick="CreateReq">Create</button></div>
+        </div>
+        @if (!string.IsNullOrEmpty(createdFile))
+        {
+            <div class="alert alert-info mt-2">Created: @createdFile</div>
+        }
+    </div>
+</div>
+
 @code {
     string status = string.Empty;
     List<string> files = new();
+    List<string> agents = new();
+    string capsJson = string.Empty;
+    string newId = "REQ-002";
+    string newTitle = "New Requirement";
+    string createdFile = string.Empty;
 
     async Task Ping()
     {
         try
         {
-            status = "pong"; // placeholder; will be wired to MCP client
+            if (await Client.InitializeAsync())
+            {
+                status = await Client.PingAsync() ? "pong" : "no pong";
+            }
+            else status = "init failed";
         }
         catch (Exception ex)
         {
@@ -42,7 +82,56 @@
     {
         try
         {
-            files = new() { "(wired later)" };
+            if (await Client.InitializeAsync())
+            {
+                files = (await Client.ListAsync(StoreRoot.Requirements, new[] { ".md" })).ToList();
+            }
+        }
+        catch (Exception ex)
+        {
+            status = ex.Message;
+        }
+    }
+
+    async Task ListAgents()
+    {
+        try
+        {
+            if (await Client.InitializeAsync())
+            {
+                agents = (await Client.ListAgentsAsync()).ToList();
+            }
+        }
+        catch (Exception ex)
+        {
+            status = ex.Message;
+        }
+    }
+
+    async Task ShowCaps(string agent)
+    {
+        try
+        {
+            if (await Client.InitializeAsync())
+            {
+                var caps = await Client.GetAgentCapabilitiesAsync(agent);
+                capsJson = caps.GetRawText();
+            }
+        }
+        catch (Exception ex)
+        {
+            status = ex.Message;
+        }
+    }
+
+    async Task CreateReq()
+    {
+        try
+        {
+            if (await Client.InitializeAsync())
+            {
+                createdFile = await Client.ScribeCreateRequirementAsync(newId, newTitle);
+            }
         }
         catch (Exception ex)
         {

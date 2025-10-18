@@ -71,12 +71,6 @@ static async Task RunAsync(IServiceProvider services, ILogger logger)
                 // Invalid request; ignore and continue
                 continue;
             }
-
-static string SerializeShutdown(string? id)
-{
-    ServerState.Shutdown = true;
-    return Serialize(Ok(id, new { ok = true }));
-}
         }
 
         // Read body
@@ -116,6 +110,33 @@ static string ShutdownResponse(string? id)
     return Serialize(Ok(id, new { ok = true }));
 }
 
+static object DescribeAgent(JsonElement? @params)
+{
+    var name = @params.HasValue && @params.Value.TryGetProperty("agent", out var a) ? (a.GetString() ?? string.Empty) : "scribe";
+    if (!string.Equals(name, "scribe", StringComparison.OrdinalIgnoreCase))
+        throw new InvalidOperationException($"Unknown agent: {name}");
+    return new
+    {
+        agent = "scribe",
+        tools = new object[]
+        {
+            new { name = "scribe/createRequirement", description = "Create a new requirement file with frontmatter and a stub.", parameters = new { id = "REQ-###", title = "string" } }
+        }
+    };
+}
+
+static object ScribeCreateRequirement(JsonElement? @params, IServiceProvider services)
+{
+    var p = @params ?? throw new InvalidOperationException("params required");
+    var id = p.TryGetProperty("id", out var idEl) ? (idEl.GetString() ?? "REQ-001") : "REQ-001";
+    var title = p.TryGetProperty("title", out var tEl) ? (tEl.GetString() ?? "New Requirement") : "New Requirement";
+    var file = id.EndsWith(".md", StringComparison.OrdinalIgnoreCase) ? id : id + ".md";
+    var content = $"---\nid: {id}\ntitle: {title}\nstatus: draft\n---\nShort description.\n";
+    var store = new FileStore(services.GetRequiredService<IConfiguration>(), services.GetRequiredService<IWebHostEnvironment>());
+    store.WriteText(StoreRoot.Requirements, file, content, ".md");
+    return new { created = file };
+}
+
 static string Handle(string json, IServiceProvider services)
 {
     var req = JsonSerializer.Deserialize<RpcRequest>(json, JsonOpts.Options) ?? new RpcRequest { Id = "0", Method = "" };
@@ -126,6 +147,11 @@ static string Handle(string json, IServiceProvider services)
             "mcp/initialize" => Serialize(Ok(req.Id, new { capabilities = new { } })),
             "mcp/shutdown" => ShutdownResponse(req.Id),
             "ping" => Serialize(Ok(req.Id, new { ok = true, message = "pong" })),
+            // Agents discovery and capabilities
+            "agents/list" => Serialize(Ok(req.Id, new { agents = new[] { "scribe" } })),
+            "agents/capabilities" => Serialize(Ok(req.Id, DescribeAgent(req.Params))),
+            // Scribe tools
+            "scribe/createRequirement" => Serialize(Ok(req.Id, ScribeCreateRequirement(req.Params, services))),
             "fs/list" => Serialize(Ok(req.Id, new { files = FsList(req.Params, services) })),
             "fs/readText" => Serialize(Ok(req.Id, new { text = FsReadText(req.Params, services) })),
             "fs/writeText" => Serialize(Ok(req.Id, FsWriteText(req.Params, services))),

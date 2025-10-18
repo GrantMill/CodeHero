@@ -14,6 +14,7 @@ builder.Services.AddOutputCache();
 
 // Repo file I/O service (whitelisted roots configured in appsettings)
 builder.Services.AddSingleton<FileStore>();
+builder.Services.AddSingleton<IMcpClient, McpClient>();
 
 // Remove default sample HttpClient (Weather)
 
