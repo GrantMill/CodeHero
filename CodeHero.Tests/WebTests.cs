@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using System.Net.Http;
 
 namespace CodeHero.Tests;
 
@@ -25,6 +26,10 @@ public async Task GetWebResourceRootReturnsOkStatusCode()
         appHost.Services.ConfigureHttpClientDefaults(clientBuilder =>
         {
             clientBuilder.AddStandardResilienceHandler();
+            clientBuilder.ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+            {
+                ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+            });
         });
 
         await using var app = await appHost.BuildAsync(cancellationToken).WaitAsync(DefaultTimeout, cancellationToken);

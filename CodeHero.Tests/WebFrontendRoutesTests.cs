@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using System.Net.Http;
 
 namespace CodeHero.Tests;
 
@@ -19,6 +20,10 @@ public class WebFrontendRoutesTests
         appHost.Services.ConfigureHttpClientDefaults(clientBuilder =>
         {
             clientBuilder.AddStandardResilienceHandler();
+            clientBuilder.ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+            {
+                ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+            });
         });
 
         var app = await appHost.BuildAsync(ct).WaitAsync(DefaultTimeout, ct);
