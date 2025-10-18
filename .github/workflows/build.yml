@@ -42,6 +42,13 @@ jobs:
           done
           tail -n 200 apphost.log || true
 
+      - name: Probe AppHost dashboard (TLS-ignoring)
+        run: |
+          for i in {1..60}; do
+            if curl -k -fsS https://localhost:17187/login >/dev/null 2>&1; then echo "Dashboard healthy"; break; fi
+            sleep 2
+          done
+
       - name: Run tests
         run: dotnet test CodeHero.sln --no-build --configuration Release --verbosity normal --logger "trx;LogFileName=test-results.trx" --filter "TestCategory!=Integration"
 
@@ -102,6 +109,13 @@ jobs:
             sleep 2
           done
           tail -n 200 apphost.log || true
+
+      - name: Probe AppHost dashboard (TLS-ignoring)
+        run: |
+          for i in {1..60}; do
+            if curl -k -fsS https://localhost:17187/login >/dev/null 2>&1; then echo "Dashboard healthy"; break; fi
+            sleep 2
+          done
 
       - name: Run Integration tests
         run: dotnet test CodeHero.sln --no-build --configuration Release --verbosity normal --logger "trx;LogFileName=itest-results.trx" --filter "TestCategory=Integration"
