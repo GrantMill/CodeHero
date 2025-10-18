@@ -5,6 +5,12 @@ on:
     branches: [ master ]
   pull_request:
     branches: [ master ]
+  workflow_dispatch:
+    inputs:
+      run_integration:
+        description: 'Run integration tests (AppHost/Aspire)'
+        type: boolean
+        default: false
 
 jobs:
   build:
@@ -42,6 +48,7 @@ jobs:
 
   integration-tests:
     needs: build
+    if: ${{ vars.RUN_INTEGRATION == 'true' || (github.event_name == 'workflow_dispatch' && inputs.run_integration == true) }}
     runs-on: ubuntu-latest
     env:
       ASPNETCORE_FORWARDEDHEADERS_ENABLED: true
