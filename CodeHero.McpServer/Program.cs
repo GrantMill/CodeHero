@@ -71,6 +71,12 @@ static async Task RunAsync(IServiceProvider services, ILogger logger)
                 // Invalid request; ignore and continue
                 continue;
             }
+
+static string SerializeShutdown(string? id)
+{
+    ServerState.Shutdown = true;
+    return Serialize(Ok(id, new { ok = true }));
+}
         }
 
         // Read body
@@ -91,6 +97,7 @@ static async Task RunAsync(IServiceProvider services, ILogger logger)
             await stdout.WriteAsync(header, 0, header.Length);
             await stdout.WriteAsync(respBytes, 0, respBytes.Length);
             await stdout.FlushAsync();
+            if (ServerState.Shutdown) return;
         }
         catch (Exception ex)
         {
@@ -103,6 +110,12 @@ static async Task RunAsync(IServiceProvider services, ILogger logger)
     }
 }
 
+static string ShutdownResponse(string? id)
+{
+    ServerState.Shutdown = true;
+    return Serialize(Ok(id, new { ok = true }));
+}
+
 static string Handle(string json, IServiceProvider services)
 {
     var req = JsonSerializer.Deserialize<RpcRequest>(json, JsonOpts.Options) ?? new RpcRequest { Id = "0", Method = "" };
@@ -111,6 +124,7 @@ static string Handle(string json, IServiceProvider services)
         return req.Method switch
         {
             "mcp/initialize" => Serialize(Ok(req.Id, new { capabilities = new { } })),
+            "mcp/shutdown" => ShutdownResponse(req.Id),
             "ping" => Serialize(Ok(req.Id, new { ok = true, message = "pong" })),
             "fs/list" => Serialize(Ok(req.Id, new { files = FsList(req.Params, services) })),
             "fs/readText" => Serialize(Ok(req.Id, new { text = FsReadText(req.Params, services) })),

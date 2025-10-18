@@ -1,0 +1,52 @@
+@page "/agents"
+@rendermode InteractiveServer
+
+<h3>Agents</h3>
+
+<div class="mb-3">
+    <button class="btn btn-primary" @onclick="Ping">Ping MCP</button>
+    <span class="ms-2">@status</span>
+</div>
+
+<div class="card">
+    <div class="card-header">List requirements via MCP</div>
+    <div class="card-body">
+        <button class="btn btn-secondary" @onclick="ListReqs">List .md</button>
+        <ul>
+            @foreach (var f in files)
+            {
+                <li>@f</li>
+            }
+        </ul>
+    </div>
+    <div class="card-footer text-muted">Experimental stdio client (process-based)</div>
+    </div>
+
+@code {
+    string status = string.Empty;
+    List<string> files = new();
+
+    async Task Ping()
+    {
+        try
+        {
+            status = "pong"; // placeholder; will be wired to MCP client
+        }
+        catch (Exception ex)
+        {
+            status = ex.Message;
+        }
+    }
+
+    async Task ListReqs()
+    {
+        try
+        {
+            files = new() { "(wired later)" };
+        }
+        catch (Exception ex)
+        {
+            status = ex.Message;
+        }
+    }
+}
