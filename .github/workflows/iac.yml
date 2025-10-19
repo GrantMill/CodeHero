@@ -1,0 +1,86 @@
+name: Infra CI (Bicep)
+
+on:
+  pull_request:
+    paths:
+      - 'iac/**'
+      - '.github/workflows/iac.yml'
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Action to perform'
+        type: choice
+        options: [validate, what-if, deploy]
+        default: validate
+        required: true
+      subscriptionId:
+        description: 'Azure subscription ID (fallback to AZURE_SUBSCRIPTION_ID secret)'
+        required: false
+        type: string
+      resourceGroup:
+        description: 'Resource group name for what-if/deploy'
+        required: false
+        type: string
+      location:
+        description: 'Location for resource group (if created)'
+        required: false
+        default: 'westeurope'
+        type: string
+
+env:
+  BICEP_FILE: iac/bicep/main.bicep
+  BICEP_PARAMETERS: iac/bicep/parameters.dev.json
+
+jobs:
+  iac:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write   # for OIDC login
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Azure CLI / Bicep
+        run: |
+          az bicep install --upgrade
+          az bicep version
+
+      - name: Bicep validate (build)
+        run: |
+          az bicep build -f "$BICEP_FILE" --outdir /tmp
+
+      - name: PSRule for Azure (static checks)
+        shell: pwsh
+        run: |
+          Install-Module PSRule.Rules.Azure -Scope CurrentUser -Force -ErrorAction Stop
+          Invoke-PSRule -Path iac/bicep -Module PSRule.Rules.Azure -Format File -Outcome All -As Summary
+
+      - name: Login to Azure (OIDC)
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.action != 'validate' }}
+        uses: azure/login@v2
+        with:
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          subscription-id: ${{ inputs.subscriptionId || secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Ensure resource group
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.action != 'validate' && inputs.resourceGroup != '' }}
+        run: |
+          az group create -n "${{ inputs.resourceGroup }}" -l "${{ inputs.location }}"
+
+      - name: What-if
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.action == 'what-if' && inputs.resourceGroup != '' }}
+        run: |
+          az deployment group what-if \
+            -g "${{ inputs.resourceGroup }}" \
+            -f "$BICEP_FILE" \
+            -p @"$BICEP_PARAMETERS"
+
+      - name: Deploy
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.action == 'deploy' && inputs.resourceGroup != '' }}
+        run: |
+          az deployment group create \
+            -g "${{ inputs.resourceGroup }}" \
+            -f "$BICEP_FILE" \
+            -p @"$BICEP_PARAMETERS"

@@ -1,0 +1,13 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "namePrefix": { "value": "codehero" },
+    "location": { "value": "westeurope" },
+    "tags": { "value": { "project": "CodeHero", "env": "dev" } },
+    "createSpeech": { "value": true },
+    "speechSku": { "value": "S0" },
+    "storageSku": { "value": "Standard_LRS" },
+    "workspaceSku": { "value": "PerGB2018" }
+  }
+}
