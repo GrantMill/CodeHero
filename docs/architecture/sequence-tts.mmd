@@ -1,0 +1,18 @@
+sequenceDiagram
+  participant User
+  participant Browser as Browser (AgentsChat)
+  participant Web as Web (CodeHero.Web)
+  participant Speech as ISpeechService
+  participant AzureSpeech as Azure Speech
+
+  User->>Browser: Click "Speak last"
+  Browser->>Web: POST /api/tts?voice=...
+  Web->>Speech: SynthesizeAsync(text, voice)
+  alt Azure Speech configured
+    Speech->>AzureSpeech: TTS
+    AzureSpeech-->>Speech: audio/wav
+  else Not configured
+    Speech-->>Web: silent WAV
+  end
+  Web-->>Browser: audio/wav
+  Browser-->>User: play audio

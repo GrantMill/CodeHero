@@ -1,0 +1,12 @@
+stateDiagram-v2
+  [*] --> Idle
+  Idle --> Recording: Start
+  Recording --> Stopping: Stop
+  Stopping --> Ready: Audio captured
+  Ready --> Transcribing: Transcribe
+  Transcribing --> Ready: Text received
+  Ready --> AskingAgent: Ask agent
+  AskingAgent --> Ready: Reply received
+  Ready --> Speaking: Speak last / Speak agent
+  Speaking --> Ready: Playback end
+  Ready --> Idle: Clear

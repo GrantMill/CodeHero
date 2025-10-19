@@ -20,7 +20,28 @@ builder.Services.AddHttpClient();
 // Conditionally wire up speech service based on configuration presence
 var speechKey = builder.Configuration["AzureAI:Speech:Key"];
 var speechRegion = builder.Configuration["AzureAI:Speech:Region"];
-if (!string.IsNullOrWhiteSpace(speechKey) && !string.IsNullOrWhiteSpace(speechRegion))
+var foundryKey = builder.Configuration["AzureAI:Foundry:Key"];
+var foundryEndpoint = builder.Configuration["AzureAI:Foundry:Endpoint"];
+var foundryTranscribe = builder.Configuration["AzureAI:Foundry:TranscribeDeployment"];
+
+if (!string.IsNullOrWhiteSpace(speechKey) && !string.IsNullOrWhiteSpace(speechRegion) &&
+    !string.IsNullOrWhiteSpace(foundryKey) && !string.IsNullOrWhiteSpace(foundryEndpoint))
+{
+    // Use Azure Speech for TTS and Foundry gpt-4o-transcribe-diarize for STT
+    builder.Services.AddHttpClient();
+    builder.Services.AddSingleton<AzureSpeechService>();
+    builder.Services.AddSingleton<FoundryTranscribeService>();
+    builder.Services.AddSingleton<ISpeechService, CombinedSpeechService>();
+}
+else if (!string.IsNullOrWhiteSpace(foundryKey) && !string.IsNullOrWhiteSpace(foundryEndpoint))
+{
+    // Foundry-only: use Foundry for STT and silent WAV for TTS
+    builder.Services.AddHttpClient();
+    builder.Services.AddSingleton<FoundryTranscribeService>();
+    builder.Services.AddSingleton<NullSpeechService>();
+    builder.Services.AddSingleton<ISpeechService, FoundrySpeechService>();
+}
+else if (!string.IsNullOrWhiteSpace(speechKey) && !string.IsNullOrWhiteSpace(speechRegion))
 {
     builder.Services.AddSingleton<ISpeechService, AzureSpeechService>();
 }
@@ -30,8 +51,6 @@ else
 }
 
 // Conditionally wire up agent service based on configuration presence
-var foundryKey = builder.Configuration["AzureAI:Foundry:Key"];
-var foundryEndpoint = builder.Configuration["AzureAI:Foundry:Endpoint"];
 if (!string.IsNullOrWhiteSpace(foundryKey) && !string.IsNullOrWhiteSpace(foundryEndpoint))
 {
     builder.Services.AddSingleton<IAgentService, AzureFoundryAgentService>();

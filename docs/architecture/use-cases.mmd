@@ -1,0 +1,29 @@
+%% Use cases illustrating user interactions
+flowchart TD
+  UC1([Record voice and transcribe])
+  UC2([Type prompt and query agent])
+  UC3([Create new requirement via Scribe])
+  UC4([Edit requirements/architecture docs])
+  UC5([Plan tasks: Human vs Agent])
+
+  subgraph UI[Blazor UI]
+    A1[AgentsChat]
+    A2[Agents]
+    A3[Plan]
+    A4[Architecture]
+  end
+
+  subgraph Services[Server]
+    S1[ISpeechService]
+    S2[IAgentService]
+    S3[FileStore]
+    S4[McpClient]
+  end
+
+  UC1 --> A1 --> S1
+  UC2 --> A1 --> S2
+  UC3 --> A2 --> S2
+  UC4 --> A4 --> S3
+  UC5 --> A3 --> S3
+
+  S2 --> S4

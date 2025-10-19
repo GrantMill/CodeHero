@@ -1,0 +1,60 @@
+%% High-level architecture (kept consistent with current code)
+flowchart LR
+  subgraph Browser
+    U[User]
+    JS[Audio JS wwwroot/js/audio.js]
+    BZ[Blazor Components<br/>AgentsChat, Agents, Plan, Architecture]
+    AU[audio element]
+  end
+
+  subgraph Server[CodeHero.Web - Blazor Server, .NET 10]
+    EP1[/POST /api/stt/]
+    EP2[/POST /api/tts/]
+    EP3[/POST /api/agent/chat/]
+    FS[FileStore - docs/requirements, docs/architecture, plan, artifacts]
+    ISP[ISpeechService]
+    AGS[IAgentService]
+    MCPCLI[McpClient - process JSON-RPC]
+  end
+
+  subgraph Services[Speech + Agents]
+    subgraph STT
+      FSTT[FoundryTranscribeService]
+    end
+    subgraph TTS
+      ASTT[AzureSpeechService]
+      NULLTTS[NullSpeechService - silent WAV]
+    end
+    AGAZ[AzureFoundryAgentService]
+    AGNULL[NullAgentService]
+  end
+
+  subgraph External
+    FOUND[Azure AI Foundry<br/>gpt-4o-transcribe-diarize]
+    AZSP[Azure AI Speech - optional]
+    MCP[CodeHero.McpServer - local process]
+    GH[GitHub Actions - build, IaC]
+    AZ[Azure RG - Storage, Logs; Speech optional]
+  end
+
+  U -->|record/speak| JS --> AU
+  U --> BZ
+
+  JS -. wav blob .-> EP1
+  JS -. text .-> EP2
+  BZ --> MCPCLI
+
+  EP1 --> ISP
+  EP2 --> ISP
+  EP3 --> AGS
+
+  ISP -->|STT| FSTT --> FOUND
+  ISP -->|TTS| ASTT --> AZSP
+  ISP -.fallback.-> NULLTTS
+
+  AGS --> AGAZ --> FOUND
+  AGS -.fallback.-> AGNULL
+
+  MCPCLI --> MCP
+  BZ --> FS
+  GH --> AZ

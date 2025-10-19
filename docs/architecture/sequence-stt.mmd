@@ -1,0 +1,21 @@
+sequenceDiagram
+  participant User
+  participant Browser as Browser (Blazor + JS)
+  participant Web as Web (CodeHero.Web)
+  participant Speech as ISpeechService
+  participant Foundry as Azure Foundry
+
+  User->>Browser: Start Recording
+  Browser->>Browser: MediaRecorder + PCM fallback
+  User->>Browser: Stop
+  Browser->>Web: POST /api/stt (audio/wav)
+  Web->>Speech: TranscribeAsync(wav)
+  alt Foundry configured
+    Speech->>Foundry: POST /openai/deployments/{gpt-4o-transcribe-diarize}/audio/transcriptions
+    Foundry-->>Speech: { text }
+  else Not configured
+    Speech-->>Web: "" (empty)
+  end
+  Speech-->>Web: transcription
+  Web-->>Browser: text/plain
+  Browser-->>User: show transcript

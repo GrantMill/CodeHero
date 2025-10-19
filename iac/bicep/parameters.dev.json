@@ -5,7 +5,7 @@
     "namePrefix": { "value": "codehero" },
     "location": { "value": "westeurope" },
     "tags": { "value": { "project": "CodeHero", "env": "dev" } },
-    "createSpeech": { "value": true },
+    "createSpeech": { "value": false },
     "speechSku": { "value": "S0" },
     "storageSku": { "value": "Standard_LRS" },
     "workspaceSku": { "value": "PerGB2018" }

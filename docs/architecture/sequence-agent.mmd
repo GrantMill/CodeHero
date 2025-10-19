@@ -1,0 +1,18 @@
+sequenceDiagram
+  participant User
+  participant Browser as Browser (AgentsChat)
+  participant Web as Web (CodeHero.Web)
+  participant Agent as IAgentService
+  participant Foundry as Azure Foundry (agent)
+
+  User->>Browser: Click "Ask agent"
+  Browser->>Web: POST /api/agent/chat (text)
+  Web->>Agent: ChatAsync(text)
+  alt Foundry configured
+    Agent->>Foundry: Chat API (stub today)
+    Foundry-->>Agent: reply
+  else Not configured
+    Agent-->>Web: "Azure Foundry Agent not configured."
+  end
+  Web-->>Browser: reply
+  Browser-->>User: show response
