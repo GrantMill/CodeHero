@@ -1,0 +1,20 @@
+services:
+  stt-whisper:
+    build: ./stt-whisper
+    image: codehero/stt-whisper:cpu
+    restart: unless-stopped
+    environment:
+      WHISPER_MODEL: "small"
+      COMPUTE_TYPE: "int8"
+      MODEL_ROOT: "/models"
+    volumes:
+      - ${WHISPER_MODEL_CACHE:-C:\\codehero\\models\\whisper}:/models
+    ports:
+      - "127.0.0.1:18000:8000"
+
+  tts-http:
+    build: ./tts-http
+    image: codehero/tts-http:cpu
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:18010:8000"

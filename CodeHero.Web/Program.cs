@@ -1,4 +1,5 @@
 using CodeHero.Web;
+using CodeHero.Web.Components;
 using CodeHero.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -102,7 +103,7 @@ app.UseOutputCache();
 
 app.MapStaticAssets();
 
-app.MapRazorComponents<CodeHero.Web.Components.App>()
+app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
 // Minimal TTS/STT endpoints (optional)
