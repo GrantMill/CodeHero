@@ -1,6 +1,8 @@
 using CodeHero.Web;
 using CodeHero.Web.Components;
 using CodeHero.Web.Services;
+using System.Net;
+using System.Net.Http;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,7 +32,23 @@ var foundryTranscribe = builder.Configuration["AzureAI:Foundry:TranscribeDeploym
 if (!string.IsNullOrWhiteSpace(whisperEndpoint) && !string.IsNullOrWhiteSpace(httpTtsEndpoint))
 {
     // Whisper (STT) + HTTP TTS
-    builder.Services.AddHttpClient();
+    builder.Services.AddHttpClient("stt", c =>
+    {
+        c.BaseAddress = new Uri(whisperEndpoint);
+        c.Timeout = TimeSpan.FromMinutes(2);
+        c.DefaultRequestVersion = HttpVersion.Version11;
+        c.DefaultVersionPolicy = HttpVersionPolicy.RequestVersionOrLower;
+        c.DefaultRequestHeaders.ExpectContinue = true;
+    });
+
+    builder.Services.AddHttpClient("tts", c =>
+    {
+        c.BaseAddress = new Uri(httpTtsEndpoint);
+        c.Timeout = TimeSpan.FromMinutes(2);
+        c.DefaultRequestVersion = HttpVersion.Version11;
+        c.DefaultVersionPolicy = HttpVersionPolicy.RequestVersionOrLower;
+        c.DefaultRequestHeaders.ExpectContinue = true;
+    });
     builder.Services.AddSingleton<NullSpeechService>();
     builder.Services.AddSingleton<ISpeechService, WhisperAndHttpTtsSpeechService>();
 }
@@ -116,7 +134,7 @@ if (enableSpeechApi)
         var voice = ctx.Request.Query["voice"].FirstOrDefault() ?? "en-US-JennyNeural";
         var audio = await speech.SynthesizeAsync(text, voice, ct: ctx.RequestAborted);
         return Results.File(audio, "audio/wav");
-    });
+    }).DisableAntiforgery();
 
     app.MapPost("/api/stt", async (ISpeechService speech, HttpContext ctx) =>
     {
@@ -124,7 +142,7 @@ if (enableSpeechApi)
         await ctx.Request.Body.CopyToAsync(ms, ctx.RequestAborted);
         var text = await speech.TranscribeAsync(ms.ToArray(), ct: ctx.RequestAborted);
         return Results.Text(text);
-    });
+    }).DisableAntiforgery();
 }
 
 // Minimal Agent chat endpoint (dev/demo)
@@ -136,7 +154,7 @@ if (enableAgentApi)
         var text = await new StreamReader(ctx.Request.Body).ReadToEndAsync();
         var reply = await agent.ChatAsync(text, ctx.RequestAborted);
         return Results.Text(reply);
-    });
+    }).DisableAntiforgery();
 }
 
 app.MapDefaultEndpoints();

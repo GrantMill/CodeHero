@@ -35,6 +35,14 @@
     <div class="card-header">Speech (local capture + optional Azure STT/TTS)</div>
     <div class="card-body">
         <div class="btn-group" role="group">
+            <button class="btn btn-success" title="Hold to talk"
+                    @onpointerdown="PushToTalkDown"
+                    @onpointerup="PushToTalkUp"
+                    @onpointercancel="PushToTalkCancel"
+                    @onpointerleave="PushToTalkCancel"
+                    disabled="@busy">
+                @(recording ? "Release to send" : "Push to talk")
+            </button>
             <button class="btn btn-outline-primary" @onclick="StartRecording" disabled="@recording">Start</button>
             <button class="btn btn-outline-danger" @onclick="StopRecording" disabled="@(!recording)">Stop</button>
             <button class="btn btn-outline-secondary" @onclick="Transcribe" disabled="@(!hasAudio)">Transcribe</button>
@@ -67,6 +75,7 @@
     byte[]? audioBytes;
     string lastTranscript = string.Empty;
     string agentReply = string.Empty;
+    bool autoSpeakAgentAfterSend = true;
 
     async Task Send()
     {
@@ -208,6 +217,38 @@
         if (bytes is null) return;
         var b64 = Convert.ToBase64String(bytes);
         await JS.InvokeVoidAsync("codeheroAudio.load", audioRef, "data:audio/wav;base64," + b64);
+    }
+
+    // Push-to-talk handlers
+    async Task PushToTalkDown()
+    {
+        if (busy || recording) return;
+        await StartRecording();
+    }
+
+    async Task PushToTalkUp()
+    {
+        // End capture, transcribe, send to agent, optionally speak
+        if (!recording) return;
+        await StopRecording();
+        if (!hasAudio) return;
+        await Transcribe();
+        if (!string.IsNullOrWhiteSpace(lastTranscript))
+        {
+            await SendToAgent();
+            if (autoSpeakAgentAfterSend && !string.IsNullOrWhiteSpace(agentReply))
+            {
+                await SpeakAgent();
+            }
+        }
+    }
+
+    async Task PushToTalkCancel()
+    {
+        // Gracefully stop without sending if pointer leaves/cancels
+        if (!recording) return;
+        await StopRecording();
+        // keep audio preview, require manual Transcribe/Send
     }
 
     async Task Transcribe()

@@ -30,8 +30,8 @@ public sealed class WhisperAndHttpTtsSpeechService : ISpeechService
             return await _nullTts.SynthesizeAsync(text, voiceName, style, role, ct);
         }
 
-        var client = _httpFactory.CreateClient();
-        client.BaseAddress = new Uri(_ttsBase);
+        // SynthesizeAsync: use named client "tts"
+        var client = _httpFactory.CreateClient("tts");
         using var content = new StringContent(text ?? string.Empty, Encoding.UTF8, "text/plain");
         using var resp = await client.PostAsync("tts", content, ct);
         resp.EnsureSuccessStatusCode();
@@ -40,16 +40,16 @@ public sealed class WhisperAndHttpTtsSpeechService : ISpeechService
 
     public async Task<string> TranscribeAsync(byte[] audioWav, string locale = "en-US", CancellationToken ct = default)
     {
-        var client = _httpFactory.CreateClient();
-        client.BaseAddress = new Uri(_sttBase);
+        // TranscribeAsync: use named client "stt" and ensure success before reading body
+        var client = _httpFactory.CreateClient("stt");
         using var form = new MultipartFormDataContent();
         var file = new ByteArrayContent(audioWav);
         file.Headers.ContentType = new MediaTypeHeaderValue("audio/wav");
         form.Add(file, "file", "audio.wav");
         form.Add(new StringContent(locale), "language");
         using var resp = await client.PostAsync("stt", form, ct);
-        var body = await resp.Content.ReadAsStringAsync(ct);
         resp.EnsureSuccessStatusCode();
+        var body = await resp.Content.ReadAsStringAsync(ct);
         try
         {
             using var doc = JsonDocument.Parse(body);
