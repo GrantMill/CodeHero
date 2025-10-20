@@ -5,7 +5,7 @@ This folder contains a minimal Azure baseline for CodeHero.
 Resources provisioned by `bicep/main.bicep`:
 - Storage account for artifacts and logs
 - Log Analytics workspace
-- Optional Azure AI Speech (Cognitive Services) (toggle via `createSpeech`)
+- Optional Azure AI Speech (Cognitive Services) (toggle via `createSpeech`, disabled in dev params). For local dev, you can run Whisper in Docker and do not need to provision Speech.
 
 ## Deploy (Azure CLI)
 
@@ -28,21 +28,17 @@ az deployment group create \
   -p @iac/bicep/parameters.dev.json
 ```
 
-Outputs include the Speech endpoint (if enabled), storage account name, and Log Analytics workspace id.
+Outputs include the storage account name and Log Analytics workspace id. Speech endpoint is only present when `createSpeech=true`.
 
 ## Wire into the app
 
-After deploying with `createSpeech=true`, set these secrets for CodeHero.Web:
-
-- AzureAI:Speech:Key ? from the Speech resource (Keys and Endpoint)
-- AzureAI:Speech:Region ? region of the Speech resource (e.g., `westeurope`)
-
-Use `dotnet user-secrets`:
+For local dev without Azure Speech, run Whisper in Docker and set `CodeHero.Web/appsettings.Development.json`:
 
 ```
-dotnet user-secrets set "AzureAI:Speech:Key" "<key>" --project CodeHero.Web
-
-dotnet user-secrets set "AzureAI:Speech:Region" "westeurope" --project CodeHero.Web
+"Speech": { "Endpoint": "http://localhost:18000" }
 ```
 
+To use Azure Speech instead, deploy with `createSpeech=true` and set:
+
+- `AzureAI:Speech:Key` and `AzureAI:Speech:Region` via `dotnet user-secrets` on `CodeHero.Web`.
 Ensure `Features:EnableSpeechApi` is true in `appsettings.Development.json`.

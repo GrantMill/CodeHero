@@ -20,11 +20,29 @@ builder.Services.AddHttpClient();
 // Conditionally wire up speech service based on configuration presence
 var speechKey = builder.Configuration["AzureAI:Speech:Key"];
 var speechRegion = builder.Configuration["AzureAI:Speech:Region"];
+var whisperEndpoint = builder.Configuration["Speech:Endpoint"]; // local Whisper container
+var httpTtsEndpoint = builder.Configuration["Tts:Endpoint"]; // local HTTP TTS container
 var foundryKey = builder.Configuration["AzureAI:Foundry:Key"];
 var foundryEndpoint = builder.Configuration["AzureAI:Foundry:Endpoint"];
 var foundryTranscribe = builder.Configuration["AzureAI:Foundry:TranscribeDeployment"];
 
-if (!string.IsNullOrWhiteSpace(speechKey) && !string.IsNullOrWhiteSpace(speechRegion) &&
+if (!string.IsNullOrWhiteSpace(whisperEndpoint) && !string.IsNullOrWhiteSpace(httpTtsEndpoint))
+{
+    // Whisper (STT) + HTTP TTS
+    builder.Services.AddHttpClient();
+    builder.Services.AddSingleton<NullSpeechService>();
+    builder.Services.AddSingleton<ISpeechService, WhisperAndHttpTtsSpeechService>();
+}
+else if (!string.IsNullOrWhiteSpace(whisperEndpoint))
+{
+    builder.Services.AddHttpClient<ISpeechService, WhisperClientSpeechService>(c =>
+    {
+        c.BaseAddress = new Uri(whisperEndpoint);
+        c.Timeout = TimeSpan.FromMinutes(2);
+    });
+    builder.Services.AddSingleton<NullSpeechService>();
+}
+else if (!string.IsNullOrWhiteSpace(speechKey) && !string.IsNullOrWhiteSpace(speechRegion) &&
     !string.IsNullOrWhiteSpace(foundryKey) && !string.IsNullOrWhiteSpace(foundryEndpoint))
 {
     // Use Azure Speech for TTS and Foundry gpt-4o-transcribe-diarize for STT

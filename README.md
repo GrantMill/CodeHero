@@ -25,7 +25,14 @@ Run locally
 3) Browse: open the shown https://localhost:xxxx
 4) Try: Plan/Requirements/Architecture pages; Agents and Scribe Chat
 
-Configure Foundry STT
+Configure STT/TTS (choose one)
+- Whisper local (recommended for dev)
+  - Run a local container exposing POST /stt (see below) and set `CodeHero.Web/appsettings.Development.json`:
+    - `"Speech": { "Endpoint": "http://localhost:18000" }`
+  - (Optional) Add a local HTTP TTS container exposing POST /tts and set:
+    - `"Tts": { "Endpoint": "http://localhost:18010" }`
+  - The app will use `WhisperAndHttpTtsSpeechService` when both endpoints are present, else `WhisperClientSpeechService` (silent TTS fallback).
+- Foundry (cloud)
 - In Azure AI Foundry create or locate a deployment `gpt-4o-transcribe-diarize`
 - Set secrets for `CodeHero.Web`:
   - `dotnet user-secrets set "AzureAI:Foundry:Endpoint" "https://<workspace>.<region>.models.ai.azure.com" --project CodeHero.Web`
@@ -60,3 +67,90 @@ Troubleshooting
 - No MediaRecorder → PCM fallback is used; use a modern Chromium/Firefox build.
 
 License: MIT
+
+Appendix: run Whisper STT locally (Docker)
+1) Create a folder (e.g., `C:\codehero\stt-whisper`) with `app.py`, `Dockerfile`, and `docker-compose.yml`:
+
+`app.py`
+```
+from faster_whisper import WhisperModel
+from fastapi import FastAPI, UploadFile, File
+from pydantic import BaseModel
+import os, tempfile
+
+model_size   = os.getenv("WHISPER_MODEL", "small")
+compute_type = os.getenv("COMPUTE_TYPE", "int8")
+download_root= os.getenv("MODEL_ROOT", "/models")
+
+model = WhisperModel(model_size, device="cpu", compute_type=compute_type, download_root=download_root)
+app = FastAPI()
+
+class STTOut(BaseModel):
+    text: str
+    segments: list[dict]
+
+@app.post("/stt", response_model=STTOut)
+async def stt(file: UploadFile = File(...), language: str | None = None):
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp:
+        tmp.write(await file.read()); tmp.flush()
+        segments, _ = model.transcribe(tmp.name, language=language, vad_filter=True)
+    segs, text = [], []
+    for s in segments:
+        segs.append({"start": s.start, "end": s.end, "text": s.text})
+        text.append(s.text)
+    return {"text": " ".join(text).strip(), "segments": segs}
+```
+
+`Dockerfile`
+```
+FROM python:3.11-slim
+RUN pip install --no-cache-dir fastapi uvicorn[standard] faster-whisper
+ENV WHISPER_MODEL=small COMPUTE_TYPE=int8 MODEL_ROOT=/models
+WORKDIR /app
+COPY app.py /app/app.py
+VOLUME ["/models"]
+EXPOSE 8000
+CMD ["uvicorn","app:app","--host","0.0.0.0","--port","8000"]
+```
+
+`docker-compose.yml`
+```
+services:
+  stt-whisper:
+    build: .
+    image: codehero/stt-whisper:cpu
+    restart: unless-stopped
+    environment:
+      WHISPER_MODEL: "small"
+      COMPUTE_TYPE: "int8"
+      MODEL_ROOT: "/models"
+    volumes:
+      - C:\\codehero\\models\\whisper:/models
+    ports:
+      - "127.0.0.1:18000:8000"
+```
+
+Start: `docker compose up -d --build`
+
+Set `"Speech": { "Endpoint": "http://localhost:18000" }` in `appsettings.Development.json` and restart the app.
+
+Appendix: add a simple HTTP TTS container (optional)
+Use any TTS you prefer that accepts text/plain and returns audio/wav on POST /tts. Example minimal Python server (edge cases omitted):
+```
+from fastapi import FastAPI, Request
+from TTS.utils.synthesizer import Synthesizer
+import io
+from starlette.responses import Response
+
+app = FastAPI()
+syn = Synthesizer(tts_checkpoint=None, tts_config=None)  # replace with a real model/config
+
+@app.post('/tts')
+async def tts(req: Request):
+    text = await req.body()
+    wav = syn.tts(text.decode('utf-8'))
+    buf = io.BytesIO()
+    # write WAV to buf ...
+    return Response(buf.getvalue(), media_type='audio/wav')
+```
+Expose it on http://localhost:18010 and set `"Tts": { "Endpoint": "http://localhost:18010" }`.

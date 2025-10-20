@@ -16,6 +16,12 @@
 - [ ] Add simple UI to record/play/push audio
 - [ ] Add Foundry Agent service and demo flow (STT -> Agent -> TTS)
 
+## Local STT with Whisper (Docker)
+- [ ] Create `stt-whisper` folder with `app.py`, `Dockerfile`, `docker-compose.yml`
+- [ ] Run container locally on `http://localhost:18000`
+- [ ] Set `CodeHero.Web/appsettings.Development.json` ? `"Speech": { "Endpoint": "http://localhost:18000" }`
+- [ ] Verify: Agents Chat ? record ? Stop ? Transcribe shows text via Whisper
+
 ## Wire Azure Foundry STT (gpt-4o-transcribe-diarize)
 - [ ] In Azure AI Foundry (project/workspace), create or locate a deployment of `gpt-4o-transcribe-diarize`.
   - Name it clearly, e.g. `gpt-4o-transcribe-diarize` (note exact deployment name).
