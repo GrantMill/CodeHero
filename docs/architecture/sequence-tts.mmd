@@ -4,6 +4,7 @@ sequenceDiagram
   participant Web as Web (CodeHero.Web)
   participant Speech as ISpeechService
   participant AzureSpeech as Azure Speech
+  participant HttpTts as tts-http (Docker)
 
   User->>Browser: Click "Speak last"
   Browser->>Web: POST /api/tts?voice=...
@@ -11,6 +12,9 @@ sequenceDiagram
   alt Azure Speech configured
     Speech->>AzureSpeech: TTS
     AzureSpeech-->>Speech: audio/wav
+  else Local HTTP TTS configured
+    Speech->>HttpTts: POST /tts (text/plain)
+    HttpTts-->>Speech: audio/wav
   else Not configured
     Speech-->>Web: silent WAV
   end

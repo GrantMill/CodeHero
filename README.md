@@ -5,7 +5,7 @@ Build software from your repo as the source of truth with human oversight and as
 Key features
 - Blazor Server UI (.NET 10) to edit requirements, architecture, and plans; drive agents.
 - Audio capture in-browser (MediaRecorder + PCM fallback) with streamed JS interop to avoid large SignalR payloads.
-- Speech-to-Text via Azure AI Foundry (gpt-4o-transcribe-diarize). Optional Text-to-Speech via Azure AI Speech.
+- Speech-to-Text via Azure AI Foundry (gpt-4o-transcribe-diarize) or local Whisper (Docker/Aspire). Optional Text-to-Speech via Azure AI Speech or local HTTP TTS.
 - Agents: process-based MCP server, Foundry agent stub; Human/Agent plan files for incremental delivery.
 - Architecture as Mermaid in `docs/architecture`. IaC with Bicep and GitHub Actions.
 
@@ -27,11 +27,11 @@ Run locally
 
 Configure STT/TTS (choose one)
 - Whisper local (recommended for dev)
-  - Run a local container exposing POST /stt (see below) and set `CodeHero.Web/appsettings.Development.json`:
+  - Use Aspire AppHost to run `stt-whisper` and `tts-http` containers; endpoints are wired as environment variables.
+  - Or run containers manually and set in `CodeHero.Web/appsettings.Development.json`:
     - `"Speech": { "Endpoint": "http://localhost:18000" }`
-  - (Optional) Add a local HTTP TTS container exposing POST /tts and set:
-    - `"Tts": { "Endpoint": "http://localhost:18010" }`
-  - The app will use `WhisperAndHttpTtsSpeechService` when both endpoints are present, else `WhisperClientSpeechService` (silent TTS fallback).
+    - `"Tts": { "Endpoint": "http://localhost:18010" }` (optional)
+  - The app uses `WhisperAndHttpTtsSpeechService` when endpoints are present; TTS falls back to silent otherwise.
 - Foundry (cloud)
 - In Azure AI Foundry create or locate a deployment `gpt-4o-transcribe-diarize`
 - Set secrets for `CodeHero.Web`:
@@ -48,6 +48,7 @@ Optional TTS (Azure Speech)
 
 Audio demo
 - Scribe Chat → Start (allow mic) → speak → Stop → Transcribe. Speak last plays TTS when configured.
+  - Local Whisper and HTTP TTS via Aspire are supported.
 
 Diagrams (Mermaid)
 - `docs/architecture/overview.mmd` — system overview

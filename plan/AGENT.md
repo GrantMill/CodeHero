@@ -12,6 +12,13 @@
 ## Speech/Audio integration
 - [x] Implement `ISpeechService` with Azure + Null implementations
 - [x] Feature-flag endpoints and CI secret wiring
+- [x] Add local Whisper STT container orchestrated by Aspire
+- [x] Add HTTP TTS container (optional) orchestrated by Aspire
 - [ ] Add UI capture/playback and endpoint tests
 - [ ] Define `IAgentService` and stub Azure Foundry Agent integration
+
+## Next agent tasks (voice chat)
+- [ ] Implement streaming transcription endpoint (server push partials)
+- [ ] Add endpoint to stream TTS audio for immediate playback
+- [ ] Wire agent chat turn-taking with STT->Agent->TTS cycle
 

@@ -13,14 +13,14 @@
 - [x] Add feature-gated endpoints `/api/tts` and `/api/stt`
 - [x] Add null fallback to keep tests green without secrets
 - [x] Add configuration keys and CI env wiring
-- [ ] Add simple UI to record/play/push audio
+- [x] Add simple UI to record/play/push audio
 - [ ] Add Foundry Agent service and demo flow (STT -> Agent -> TTS)
 
 ## Local STT with Whisper (Docker)
-- [ ] Create `stt-whisper` folder with `app.py`, `Dockerfile`, `docker-compose.yml`
-- [ ] Run container locally on `http://localhost:18000`
-- [ ] Set `CodeHero.Web/appsettings.Development.json` ? `"Speech": { "Endpoint": "http://localhost:18000" }`
-- [ ] Verify: Agents Chat ? record ? Stop ? Transcribe shows text via Whisper
+- [x] Create `stt-whisper` folder with `app.py`, `Dockerfile`, `docker-compose.yml`
+- [x] Run container in Aspire (AppHost) with bind mount for models
+- [x] Wire `Speech__Endpoint` from Aspire to Web via env
+- [x] Verify: Agents Chat ? record ? Stop ? Transcribe shows text via Whisper
 
 ## Wire Azure Foundry STT (gpt-4o-transcribe-diarize)
 - [ ] In Azure AI Foundry (project/workspace), create or locate a deployment of `gpt-4o-transcribe-diarize`.
@@ -38,3 +38,10 @@
 - [ ] Restart the app. In Agents Chat:
   - Record ? Stop ? Transcribe. Expect text from Foundry.
   - TTS will produce a short silent WAV (no Azure Speech required). If TTS is needed later, add Speech key+region.
+
+## Next steps to enable interactive voice chat
+- [ ] Add push-to-talk button to AgentsChat; integrate `codeheroAudio.start/stopAsBlob`
+- [ ] On stop, POST WAV to `/api/stt`, insert transcript into chat input, auto-send
+- [ ] After agent reply, call `/api/tts` and play audio in the UI
+- [ ] Add configuration toggle to pick STT/TTS provider (Foundry vs Whisper/Azure Speech)
+- [ ] Add diagnostics UI (permissions, codec support, endpoint health)

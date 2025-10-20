@@ -20,13 +20,21 @@ flowchart LR
   subgraph Services[Speech + Agents]
     subgraph STT
       FSTT[FoundryTranscribeService]
+      LSTT[WhisperAndHttpTtsSpeechService -> stt-whisper]
     end
     subgraph TTS
       ASTT[AzureSpeechService]
+      HTTS[WhisperAndHttpTtsSpeechService -> tts-http]
       NULLTTS[NullSpeechService - silent WAV]
     end
     AGAZ[AzureFoundryAgentService]
     AGNULL[NullAgentService]
+  end
+
+  subgraph Infra[Aspire AppHost]
+    APPHOST[Orchestrates dev resources]
+    WSTT[Container: codehero/stt-whisper:cpu\nPOST /stt]
+    WTTS[Container: codehero/tts-http:cpu\nPOST /tts]
   end
 
   subgraph External
@@ -48,8 +56,10 @@ flowchart LR
   EP2 --> ISP
   EP3 --> AGS
 
-  ISP -->|STT| FSTT --> FOUND
-  ISP -->|TTS| ASTT --> AZSP
+  ISP -->|STT - cloud| FSTT --> FOUND
+  ISP -->|STT - local| LSTT --> WSTT
+  ISP -->|TTS - cloud| ASTT --> AZSP
+  ISP -->|TTS - local| HTTS --> WTTS
   ISP -.fallback.-> NULLTTS
 
   AGS --> AGAZ --> FOUND

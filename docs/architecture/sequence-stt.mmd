@@ -4,6 +4,7 @@ sequenceDiagram
   participant Web as Web (CodeHero.Web)
   participant Speech as ISpeechService
   participant Foundry as Azure Foundry
+  participant Whisper as stt-whisper (Docker)
 
   User->>Browser: Start Recording
   Browser->>Browser: MediaRecorder + PCM fallback
@@ -13,6 +14,9 @@ sequenceDiagram
   alt Foundry configured
     Speech->>Foundry: POST /openai/deployments/{gpt-4o-transcribe-diarize}/audio/transcriptions
     Foundry-->>Speech: { text }
+  else Local Whisper configured
+    Speech->>Whisper: POST /stt (multipart/form-data)
+    Whisper-->>Speech: { text }
   else Not configured
     Speech-->>Web: "" (empty)
   end

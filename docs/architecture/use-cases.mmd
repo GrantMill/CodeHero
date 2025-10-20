@@ -5,6 +5,7 @@ flowchart TD
   UC3([Create new requirement via Scribe])
   UC4([Edit requirements/architecture docs])
   UC5([Plan tasks: Human vs Agent])
+  UC6([Speak to chat and hear replies])
 
   subgraph UI[Blazor UI]
     A1[AgentsChat]
@@ -25,5 +26,6 @@ flowchart TD
   UC3 --> A2 --> S2
   UC4 --> A4 --> S3
   UC5 --> A3 --> S3
+  UC6 --> A1 --> S1
 
   S2 --> S4
