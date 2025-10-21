@@ -49,6 +49,7 @@
             <button class="btn btn-outline-secondary" @onclick="SpeakLast" disabled="@string.IsNullOrWhiteSpace(lastTranscript)">Speak last</button>
             <button class="btn btn-outline-secondary" @onclick="SendToAgent" disabled="@string.IsNullOrWhiteSpace(lastTranscript)">Ask agent</button>
             <button class="btn btn-outline-secondary" @onclick="SpeakAgent" disabled="@string.IsNullOrWhiteSpace(agentReply)">Speak agent</button>
+            <button class="btn btn-outline-dark" data-testid="mic-toggle" @onclick="ToggleMic">@(recording ? "Mic On – Stop" : "Mic Off – Start")</button>
         </div>
         <div class="mt-2 small text-muted">@recStatus</div>
         @if (!string.IsNullOrWhiteSpace(supportStatus))
@@ -160,7 +161,7 @@
         try
         {
             // Basic capabilities check to help user
-            var caps = await JS.InvokeAsync<Capabilities>("codeheroAudio.support");
+            var caps = await JS.InvokeAsync<AudioCapabilities>("codeheroAudio.support");
             supportStatus = $"secure={caps.secure}, mediaDevices={caps.hasMediaDevices}, getUserMedia={caps.hasGetUserMedia}, mediaRecorder={caps.hasMediaRecorder}, pref={caps.preferred ?? "n/a"}, mic={caps.micPerm}";
             if (!caps.hasGetUserMedia || !caps.hasMediaRecorder)
             {
@@ -210,6 +211,11 @@
             recStatus = ex.Message;
         }
         finally { recording = false; }
+    }
+
+    async Task ToggleMic()
+    {
+        if (recording) await StopRecording(); else await StartRecording();
     }
 
     async Task LoadAudioTag(byte[]? bytes)
@@ -326,17 +332,6 @@
             await LoadAudioTag(wav);
         }
         catch (Exception ex) { messages.Add(new Msg("tts", "Error: " + ex.Message)); }
-    }
-
-    // DTO for JS capability report
-    private sealed class Capabilities
-    {
-        public bool secure { get; set; }
-        public bool hasMediaDevices { get; set; }
-        public bool hasGetUserMedia { get; set; }
-        public bool hasMediaRecorder { get; set; }
-        public string? preferred { get; set; }
-        public string? micPerm { get; set; }
     }
 
     HttpClient CreateLocalClient()
