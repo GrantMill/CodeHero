@@ -5,6 +5,8 @@ using System.Net;
 using System.Net.Http;
 using Microsoft.AspNetCore.Http.Features;
 using System.Diagnostics;
+using Polly;
+using Polly.Extensions.Http;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,6 +25,16 @@ builder.Services.AddSingleton<IMcpClient, McpClient>();
 builder.Services.AddHttpClient();
 // Diagnostics monitor to show last call status
 builder.Services.AddSingleton<SpeechDiagnosticsMonitor>();
+
+// Resilience policies for outbound STT/TTS HTTP
+static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy() => HttpPolicyExtensions
+ .HandleTransientHttpError() //5xx + HttpRequestException +408
+ .OrResult(r => (int)r.StatusCode ==429)
+ .WaitAndRetryAsync(3, attempt => TimeSpan.FromMilliseconds(200 * Math.Pow(2, attempt))); // exp backoff200ms,400ms,800ms
+
+static IAsyncPolicy<HttpResponseMessage> GetCircuitBreakerPolicy() => HttpPolicyExtensions
+ .HandleTransientHttpError()
+ .CircuitBreakerAsync(5, TimeSpan.FromSeconds(60));
 
 // Conditionally wire up speech service based on configuration presence
 var speechKey = builder.Configuration["AzureAI:Speech:Key"];
@@ -43,7 +55,9 @@ if (!string.IsNullOrWhiteSpace(whisperEndpoint) && !string.IsNullOrWhiteSpace(ht
  c.DefaultRequestVersion = HttpVersion.Version11;
  c.DefaultVersionPolicy = HttpVersionPolicy.RequestVersionOrLower;
  c.DefaultRequestHeaders.ExpectContinue = true;
- });
+ })
+ .AddPolicyHandler(GetRetryPolicy())
+ .AddPolicyHandler(GetCircuitBreakerPolicy());
 
  builder.Services.AddHttpClient("tts", c =>
  {
@@ -52,7 +66,9 @@ if (!string.IsNullOrWhiteSpace(whisperEndpoint) && !string.IsNullOrWhiteSpace(ht
  c.DefaultRequestVersion = HttpVersion.Version11;
  c.DefaultVersionPolicy = HttpVersionPolicy.RequestVersionOrLower;
  c.DefaultRequestHeaders.ExpectContinue = true;
- });
+ })
+ .AddPolicyHandler(GetRetryPolicy())
+ .AddPolicyHandler(GetCircuitBreakerPolicy());
  builder.Services.AddSingleton<NullSpeechService>();
  builder.Services.AddSingleton<ISpeechService, WhisperAndHttpTtsSpeechService>();
 }
@@ -62,7 +78,9 @@ else if (!string.IsNullOrWhiteSpace(whisperEndpoint))
  {
  c.BaseAddress = new Uri(whisperEndpoint);
  c.Timeout = TimeSpan.FromMinutes(2);
- });
+ })
+ .AddPolicyHandler(GetRetryPolicy())
+ .AddPolicyHandler(GetCircuitBreakerPolicy());
  builder.Services.AddSingleton<NullSpeechService>();
 }
 else if (!string.IsNullOrWhiteSpace(speechKey) && !string.IsNullOrWhiteSpace(speechRegion) &&

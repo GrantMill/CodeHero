@@ -12,15 +12,15 @@ Priority order (top = next):
 - [x] [H] Add `/health` endpoints to Whisper and TTS containers (return200 when ready)
 - [x] [A] Wire `WithHttpHealthCheck("/health")` for `stt-whisper` and `tts-http` in AppHost
 - [x] [A] Make `webfrontend` `.WaitFor(stt)` and `.WaitFor(tts)` in AppHost (after health exists)
-- [ ] [A] Use `HttpCompletionOption.ResponseHeadersRead` for TTS and cap response size
+- [x] [A] Use `HttpCompletionOption.ResponseHeadersRead` for TTS and cap response size
 - [ ] [A] Ensure `Expect:100-Continue` on STT uploads (already set for named client; verify)
-- [ ] [A] Add targeted retries (connect/read only) and a circuit breaker for STT/TTS; no retry on4xx or large bodies
+- [x] [A] Add targeted retries (connect/read only) and a circuit breaker for STT/TTS; no retry on4xx or large bodies
 - [ ] [A] Integration tests for `/api/stt` and `/api/tts` (behind feature flag)
 - [ ] [A] Add mic toggle + locale/voice pickers in `AgentsChat.razor`
 - [ ] [A] Improve `wwwroot/js/audio.js` to guarantee WAV16-bit PCM @16kHz and better error handling
 - [ ] [A] Add locale auto-detect fallback if `language` not provided (server-side)
 - [ ] [A] Implement streaming transcription endpoint (server push partials)
-- [ ] [A] Add endpoint to stream TTS audio for immediate playback
+- [x] [A] Add endpoint to stream TTS audio for immediate playback
 - [ ] [A] Wire agent turn-taking: STT -> Agent -> TTS, with UI playback
 - [ ] [H] Define requirement IDs policy (REQ-### format, uniqueness, authoring rules)
 - [ ] [H] Document endpoint scheme/port troubleshooting and dev cert trust steps

@@ -15,6 +15,9 @@ public sealed class WhisperAndHttpTtsSpeechService : ISpeechService
     private readonly string _ttsBase;
     private readonly NullSpeechService _nullTts;
 
+    // Cap TTS response to5MB by default
+    private const long MaxTtsResponseBytes = 5L * 1024 * 1024;
+
     public WhisperAndHttpTtsSpeechService(IHttpClientFactory httpFactory, IConfiguration config, NullSpeechService nullTts)
     {
         _httpFactory = httpFactory;
@@ -30,12 +33,35 @@ public sealed class WhisperAndHttpTtsSpeechService : ISpeechService
             return await _nullTts.SynthesizeAsync(text, voiceName, style, role, ct);
         }
 
-        // SynthesizeAsync: use named client "tts"
+        // SynthesizeAsync: use named client "tts" and stream response headers-first
         var client = _httpFactory.CreateClient("tts");
-        using var content = new StringContent(text ?? string.Empty, Encoding.UTF8, "text/plain");
-        using var resp = await client.PostAsync("tts", content, ct);
+        using var request = new HttpRequestMessage(HttpMethod.Post, "tts")
+        {
+            Content = new StringContent(text ?? string.Empty, Encoding.UTF8, "text/plain")
+        };
+        request.Headers.Accept.Clear();
+        request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("audio/wav"));
+
+        using var resp = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, ct);
         resp.EnsureSuccessStatusCode();
-        return await resp.Content.ReadAsByteArrayAsync(ct);
+
+        // Stream and cap response size
+        await using var stream = await resp.Content.ReadAsStreamAsync(ct);
+        using var ms = new MemoryStream();
+        var buffer = new byte[81920];
+        long total = 0;
+        while (true)
+        {
+            int read = await stream.ReadAsync(buffer.AsMemory(0, buffer.Length), ct);
+            if (read == 0) break;
+            total += read;
+            if (total > MaxTtsResponseBytes)
+            {
+                throw new InvalidOperationException($"TTS response exceeded limit ({MaxTtsResponseBytes} bytes)");
+            }
+            await ms.WriteAsync(buffer.AsMemory(0, read), ct);
+        }
+        return ms.ToArray();
     }
 
     public async Task<string> TranscribeAsync(byte[] audioWav, string locale = "en-US", CancellationToken ct = default)
