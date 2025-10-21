@@ -7,9 +7,9 @@ Priority order (top = next):
 - [x] [A] Disable output cache for `api/stt` and `api/tts` routes
 - [x] [A] Add request size limits and cancellation timeouts on `api/stt` and `api/tts`
 - [x] [A] Add structured logs for STT/TTS calls (duration, status, sizes)
-- [ ] [A] Emit OpenTelemetry dependency traces and basic metrics for STT/TTS
+- [x] [A] Emit OpenTelemetry dependency traces and basic metrics for STT/TTS
+- [x] [A] Add diagnostics page showing current `Speech:Endpoint`/`Tts:Endpoint` and last call status
 - [ ] [A] Unit tests for `WhisperAndHttpTtsSpeechService` (success/empty/5xx using fake handlers)
-- [ ] [A] Add diagnostics page showing current `Speech:Endpoint`/`Tts:Endpoint` and last call status
 - [ ] [H] Add `/health` endpoints to Whisper and TTS containers (return200 when ready)
 - [ ] [A] Wire `WithHttpHealthCheck("/health")` for `stt-whisper` and `tts-http` in AppHost
 - [ ] [A] Make `webfrontend` `.WaitFor(stt)` and `.WaitFor(tts)` in AppHost (after health exists)
