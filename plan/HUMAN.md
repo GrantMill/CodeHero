@@ -21,27 +21,26 @@
 - [x] Run container in Aspire (AppHost) with bind mount for models
 - [x] Wire `Speech__Endpoint` from Aspire to Web via env
 - [x] Verify: Agents Chat ? record ? Stop ? Transcribe shows text via Whisper
+- [ ] Add health endpoints to Whisper and TTS containers; wire `WithHttpHealthCheck` in AppHost
+- [ ] Make `webfrontend` wait for `stt` and `tts` readiness in AppHost
 
-## Wire Azure Foundry STT (gpt-4o-transcribe-diarize)
-- [ ] In Azure AI Foundry (project/workspace), create or locate a deployment of `gpt-4o-transcribe-diarize`.
-  - Name it clearly, e.g. `gpt-4o-transcribe-diarize` (note exact deployment name).
-  - Ensure the project has an endpoint and API key access enabled for your account/app.
-- [ ] Capture the endpoint and key:
-  - Endpoint (similar to `https://<workspace>.<region>.models.ai.azure.com`)
-  - Key (Foundry project key)
-- [ ] Set local secrets for CodeHero.Web:
-  - `dotnet user-secrets set "AzureAI:Foundry:Endpoint" "<endpoint>" --project CodeHero.Web`
-  - `dotnet user-secrets set "AzureAI:Foundry:Key" "<key>" --project CodeHero.Web`
-  - `dotnet user-secrets set "AzureAI:Foundry:TranscribeDeployment" "gpt-4o-transcribe-diarize" --project CodeHero.Web`
-  - (Optional) `dotnet user-secrets set "AzureAI:Foundry:ApiVersion" "2024-08-01-preview" --project CodeHero.Web`
-- [ ] Ensure `Features:EnableSpeechApi` is `true` in `appsettings.Development.json`.
-- [ ] Restart the app. In Agents Chat:
-  - Record ? Stop ? Transcribe. Expect text from Foundry.
-  - TTS will produce a short silent WAV (no Azure Speech required). If TTS is needed later, add Speech key+region.
+## HTTP & resilience hardening
+- [ ] Ensure named HttpClients ("stt","tts") are used; add100-Continue and HTTP/1.1 defaults
+- [ ] Add targeted retries (connect/read only), circuit breaker; no retry on4xx or large bodies
+- [ ] Cap request/response sizes and use ResponseHeadersRead for TTS
 
-## Next steps to enable interactive voice chat
-- [ ] Add push-to-talk button to AgentsChat; integrate `codeheroAudio.start/stopAsBlob`
-- [ ] On stop, POST WAV to `/api/stt`, insert transcript into chat input, auto-send
-- [ ] After agent reply, call `/api/tts` and play audio in the UI
-- [ ] Add configuration toggle to pick STT/TTS provider (Foundry vs Whisper/Azure Speech)
-- [ ] Add diagnostics UI (permissions, codec support, endpoint health)
+## Tests
+- [ ] Add unit tests for `WhisperAndHttpTtsSpeechService` (success/empty/5xx)
+- [ ] Add integration tests for `/api/stt` and `/api/tts` behind feature flag
+- [ ] Extend Aspire test to wait for health and then call endpoints
+
+## Blazor UX & diagnostics
+- [ ] Add mic toggle + locale/voice pickers to `AgentsChat.razor`
+- [ ] Improve `wwwroot/js/audio.js` to ensure WAV16-bit PCM @16kHz and better error handling
+- [ ] Add diagnostics UI: endpoint values, last STT/TTS status, and simple logs
+- [ ] Disable output cache for `/api/stt` and `/api/tts` routes
+
+## Documentation
+- [ ] Document endpoint scheme/port troubleshooting and cert trust steps
+- [ ] Document speech feature flags and typical dev appsettings
+- [ ] Update architecture diagrams to include health and named HttpClients
