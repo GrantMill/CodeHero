@@ -7,6 +7,10 @@ app = FastAPI()
 # Minimal placeholder TTS that returns a 440Hz tone for 1s as WAV.
 # Replace with a real TTS engine as needed.
 
+@app.get('/health')
+async def health():
+    return {"status": "ok"}
+
 def synth_sine(duration_sec=1.0, freq=440.0, sample_rate=16000):
     samples = int(duration_sec * sample_rate)
     buf = io.BytesIO()

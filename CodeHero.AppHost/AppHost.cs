@@ -12,11 +12,13 @@ var stt = builder.AddContainer("stt-whisper", "codehero/stt-whisper:cpu")
     .WithEnvironment("WHISPER_MODEL", "small")
     .WithEnvironment("COMPUTE_TYPE", "int8")
     // Canonical Docker Desktop path so DCP can mkdir the parent
-    .WithBindMount("/run/desktop/mnt/host/d/codehero/models/whisper", "/models", isReadOnly: false);
+    .WithBindMount("/run/desktop/mnt/host/d/codehero/models/whisper", "/models", isReadOnly: false)
+    .WithHttpHealthCheck("/health");
 
 // Simple HTTP TTS container (placeholder tone) managed by Aspire
 var tts = builder.AddContainer("tts-http", "codehero/tts-http:cpu")
-    .WithHttpEndpoint(targetPort: 8000, name: "http");
+    .WithHttpEndpoint(targetPort: 8000, name: "http")
+    .WithHttpHealthCheck("/health");
 
 builder.AddProject<Projects.CodeHero_Web>("webfrontend")
     .WithExternalHttpEndpoints()
@@ -24,6 +26,8 @@ builder.AddProject<Projects.CodeHero_Web>("webfrontend")
     .WithReference(apiService)
     .WithEnvironment("Speech__Endpoint", stt.GetEndpoint("http"))
     .WithEnvironment("Tts__Endpoint", tts.GetEndpoint("http"))
+    .WaitFor(stt)
+    .WaitFor(tts)
     .WaitFor(apiService);
 
 builder.Build().Run();

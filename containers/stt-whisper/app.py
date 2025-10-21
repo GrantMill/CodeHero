@@ -14,6 +14,10 @@ class STTOut(BaseModel):
     text: str
     segments: list[dict]
 
+@app.get("/health")
+async def health():
+    return {"status": "ok"}
+
 @app.post("/stt", response_model=STTOut)
 async def stt(file: UploadFile = File(...), language: str | None = None):
     with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp:

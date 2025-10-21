@@ -9,10 +9,9 @@ Priority order (top = next):
 - [x] [A] Add structured logs for STT/TTS calls (duration, status, sizes)
 - [x] [A] Emit OpenTelemetry dependency traces and basic metrics for STT/TTS
 - [x] [A] Add diagnostics page showing current `Speech:Endpoint`/`Tts:Endpoint` and last call status
-- [ ] [A] Unit tests for `WhisperAndHttpTtsSpeechService` (success/empty/5xx using fake handlers)
-- [ ] [H] Add `/health` endpoints to Whisper and TTS containers (return200 when ready)
-- [ ] [A] Wire `WithHttpHealthCheck("/health")` for `stt-whisper` and `tts-http` in AppHost
-- [ ] [A] Make `webfrontend` `.WaitFor(stt)` and `.WaitFor(tts)` in AppHost (after health exists)
+- [x] [H] Add `/health` endpoints to Whisper and TTS containers (return200 when ready)
+- [x] [A] Wire `WithHttpHealthCheck("/health")` for `stt-whisper` and `tts-http` in AppHost
+- [x] [A] Make `webfrontend` `.WaitFor(stt)` and `.WaitFor(tts)` in AppHost (after health exists)
 - [ ] [A] Use `HttpCompletionOption.ResponseHeadersRead` for TTS and cap response size
 - [ ] [A] Ensure `Expect:100-Continue` on STT uploads (already set for named client; verify)
 - [ ] [A] Add targeted retries (connect/read only) and a circuit breaker for STT/TTS; no retry on4xx or large bodies
