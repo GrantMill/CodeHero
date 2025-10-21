@@ -4,7 +4,7 @@ Legend: [A] = Agent can implement via PR, [H] = Human-in-loop (env/UX/product de
 
 Priority order (top = next):
 
-- [ ] [A] Disable output cache for `api/stt` and `api/tts` routes
+- [x] [A] Disable output cache for `api/stt` and `api/tts` routes
 - [ ] [A] Add request size limits and cancellation timeouts on `api/stt` and `api/tts`
 - [ ] [A] Add structured logs for STT/TTS calls (duration, status, sizes)
 - [ ] [A] Emit OpenTelemetry dependency traces and basic metrics for STT/TTS

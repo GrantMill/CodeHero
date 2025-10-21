@@ -97,8 +97,6 @@ else
     builder.Services.AddSingleton<IAgentService, NullAgentService>();
 }
 
-// Remove default sample HttpClient (Weather)
-
 var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())
@@ -130,6 +128,10 @@ if (enableSpeechApi)
 {
     app.MapPost("/api/tts", async (ISpeechService speech, HttpContext ctx) =>
     {
+        ctx.Response.Headers.CacheControl = "no-store, max-age=0, must-revalidate";
+        ctx.Response.Headers.Pragma = "no-cache";
+        ctx.Response.Headers.Expires = "0";
+
         var text = await new StreamReader(ctx.Request.Body).ReadToEndAsync();
         var voice = ctx.Request.Query["voice"].FirstOrDefault() ?? "en-US-JennyNeural";
         var audio = await speech.SynthesizeAsync(text, voice, ct: ctx.RequestAborted);
@@ -138,6 +140,10 @@ if (enableSpeechApi)
 
     app.MapPost("/api/stt", async (ISpeechService speech, HttpContext ctx) =>
     {
+        ctx.Response.Headers.CacheControl = "no-store, max-age=0, must-revalidate";
+        ctx.Response.Headers.Pragma = "no-cache";
+        ctx.Response.Headers.Expires = "0";
+
         using var ms = new MemoryStream();
         await ctx.Request.Body.CopyToAsync(ms, ctx.RequestAborted);
         var text = await speech.TranscribeAsync(ms.ToArray(), ct: ctx.RequestAborted);
