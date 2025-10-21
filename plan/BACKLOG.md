@@ -6,7 +6,7 @@ Priority order (top = next):
 
 - [x] [A] Disable output cache for `api/stt` and `api/tts` routes
 - [x] [A] Add request size limits and cancellation timeouts on `api/stt` and `api/tts`
-- [ ] [A] Add structured logs for STT/TTS calls (duration, status, sizes)
+- [x] [A] Add structured logs for STT/TTS calls (duration, status, sizes)
 - [ ] [A] Emit OpenTelemetry dependency traces and basic metrics for STT/TTS
 - [ ] [A] Unit tests for `WhisperAndHttpTtsSpeechService` (success/empty/5xx using fake handlers)
 - [ ] [A] Add diagnostics page showing current `Speech:Endpoint`/`Tts:Endpoint` and last call status

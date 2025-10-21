@@ -4,6 +4,7 @@ using CodeHero.Web.Services;
 using System.Net;
 using System.Net.Http;
 using Microsoft.AspNetCore.Http.Features;
+using System.Diagnostics;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -133,8 +134,15 @@ var ttsTimeout = TimeSpan.FromSeconds(30);
 var enableSpeechApi = builder.Configuration.GetValue("Features:EnableSpeechApi", app.Environment.IsDevelopment());
 if (enableSpeechApi)
 {
-    app.MapPost("/api/tts", async (ISpeechService speech, HttpContext ctx) =>
+    app.MapPost("/api/tts", async (ISpeechService speech, HttpContext ctx, ILoggerFactory lf) =>
     {
+        var log = lf.CreateLogger("Api.TTS");
+        var sw = Stopwatch.StartNew();
+        int status = StatusCodes.Status200OK;
+        long reqBytes = ctx.Request.ContentLength ?? -1;
+        long respBytes = 0;
+        string voice = ctx.Request.Query["voice"].FirstOrDefault() ?? "en-US-JennyNeural";
+
         // Disable caching
         ctx.Response.Headers.CacheControl = "no-store, max-age=0, must-revalidate";
         ctx.Response.Headers.Pragma = "no-cache";
@@ -143,24 +151,54 @@ if (enableSpeechApi)
         // Enforce request size limit (by feature + header check)
         ctx.Features.Get<IHttpMaxRequestBodySizeFeature>()?.Let(f => f.MaxRequestBodySize = TtsMaxBytes);
         if (ctx.Request.ContentLength.HasValue && ctx.Request.ContentLength.Value > TtsMaxBytes)
-            return Results.StatusCode(StatusCodes.Status413PayloadTooLarge);
+        {
+            status = StatusCodes.Status413PayloadTooLarge;
+            sw.Stop();
+            log.LogWarning("TTS rejected: payload too large. Status={Status} DurationMs={DurationMs} ReqBytes={ReqBytes}", status, sw.ElapsedMilliseconds, reqBytes);
+            return Results.StatusCode(status);
+        }
 
-        using var cts = CancellationTokenSource.CreateLinkedTokenSource(ctx.RequestAborted);
-        cts.CancelAfter(ttsTimeout);
+        try
+        {
+            using var cts = CancellationTokenSource.CreateLinkedTokenSource(ctx.RequestAborted);
+            cts.CancelAfter(ttsTimeout);
 
-        using var reader = new StreamReader(ctx.Request.Body);
+            using var reader = new StreamReader(ctx.Request.Body);
 #if NET8_0_OR_GREATER
-            var text = await reader.ReadToEndAsync(cts.Token);
+                var text = await reader.ReadToEndAsync(cts.Token);
 #else
-            var text = await reader.ReadToEndAsync();
+                var text = await reader.ReadToEndAsync();
 #endif
-        var voice = ctx.Request.Query["voice"].FirstOrDefault() ?? "en-US-JennyNeural";
-        var audio = await speech.SynthesizeAsync(text, voice, ct: cts.Token);
-        return Results.File(audio, "audio/wav");
+            var audio = await speech.SynthesizeAsync(text, voice, ct: cts.Token);
+            respBytes = audio?.LongLength ?? 0;
+            sw.Stop();
+            log.LogInformation("TTS completed. Status={Status} DurationMs={DurationMs} ReqBytes={ReqBytes} RespBytes={RespBytes} Voice={Voice}", status, sw.ElapsedMilliseconds, reqBytes, respBytes, voice);
+            return Results.File(audio, "audio/wav");
+        }
+        catch (OperationCanceledException)
+        {
+            status = 499; // client closed request / timeout
+            sw.Stop();
+            log.LogWarning("TTS canceled. Status={Status} DurationMs={DurationMs} ReqBytes={ReqBytes}", status, sw.ElapsedMilliseconds, reqBytes);
+            return Results.StatusCode(status);
+        }
+        catch (Exception ex)
+        {
+            status = StatusCodes.Status500InternalServerError;
+            sw.Stop();
+            log.LogError(ex, "TTS failed. Status={Status} DurationMs={DurationMs} ReqBytes={ReqBytes}", status, sw.ElapsedMilliseconds, reqBytes);
+            return Results.Problem("TTS failed");
+        }
     }).DisableAntiforgery();
 
-    app.MapPost("/api/stt", async (ISpeechService speech, HttpContext ctx) =>
+    app.MapPost("/api/stt", async (ISpeechService speech, HttpContext ctx, ILoggerFactory lf) =>
     {
+        var log = lf.CreateLogger("Api.STT");
+        var sw = Stopwatch.StartNew();
+        int status = StatusCodes.Status200OK;
+        long reqBytes = 0;
+        int respChars = 0;
+
         // Disable caching
         ctx.Response.Headers.CacheControl = "no-store, max-age=0, must-revalidate";
         ctx.Response.Headers.Pragma = "no-cache";
@@ -169,26 +207,55 @@ if (enableSpeechApi)
         // Enforce request size limit (by feature + stream enforcement)
         ctx.Features.Get<IHttpMaxRequestBodySizeFeature>()?.Let(f => f.MaxRequestBodySize = SttMaxBytes);
         if (ctx.Request.ContentLength.HasValue && ctx.Request.ContentLength.Value > SttMaxBytes)
-            return Results.StatusCode(StatusCodes.Status413PayloadTooLarge);
-
-        using var cts = CancellationTokenSource.CreateLinkedTokenSource(ctx.RequestAborted);
-        cts.CancelAfter(sttTimeout);
-
-        using var ms = new MemoryStream();
-        var buffer = new byte[81920];
-        long total = 0;
-        while (true)
         {
-            int read = await ctx.Request.Body.ReadAsync(buffer.AsMemory(0, buffer.Length), cts.Token);
-            if (read == 0) break;
-            total += read;
-            if (total > SttMaxBytes)
-                return Results.StatusCode(StatusCodes.Status413PayloadTooLarge);
-            await ms.WriteAsync(buffer.AsMemory(0, read), cts.Token);
+            status = StatusCodes.Status413PayloadTooLarge;
+            sw.Stop();
+            log.LogWarning("STT rejected: payload too large. Status=={Status} DurationMs={DurationMs} ReqBytes={ReqBytes}", status, sw.ElapsedMilliseconds, ctx.Request.ContentLength);
+            return Results.StatusCode(status);
         }
 
-        var text = await speech.TranscribeAsync(ms.ToArray(), ct: cts.Token);
-        return Results.Text(text);
+        try
+        {
+            using var cts = CancellationTokenSource.CreateLinkedTokenSource(ctx.RequestAborted);
+            cts.CancelAfter(sttTimeout);
+
+            using var ms = new MemoryStream();
+            var buffer = new byte[81920];
+            while (true)
+            {
+                int read = await ctx.Request.Body.ReadAsync(buffer.AsMemory(0, buffer.Length), cts.Token);
+                if (read == 0) break;
+                reqBytes += read;
+                if (reqBytes > SttMaxBytes)
+                {
+                    status = StatusCodes.Status413PayloadTooLarge;
+                    sw.Stop();
+                    log.LogWarning("STT rejected: payload grew too large. Status={Status} DurationMs={DurationMs} ReqBytes={ReqBytes}", status, sw.ElapsedMilliseconds, reqBytes);
+                    return Results.StatusCode(status);
+                }
+                await ms.WriteAsync(buffer.AsMemory(0, read), cts.Token);
+            }
+
+            var text = await speech.TranscribeAsync(ms.ToArray(), ct: cts.Token);
+            respChars = text?.Length ?? 0;
+            sw.Stop();
+            log.LogInformation("STT completed. Status={Status} DurationMs={DurationMs} ReqBytes={ReqBytes} RespChars={RespChars}", status, sw.ElapsedMilliseconds, reqBytes, respChars);
+            return Results.Text(text);
+        }
+        catch (OperationCanceledException)
+        {
+            status = 499; // client closed request / timeout
+            sw.Stop();
+            log.LogWarning("STT canceled. Status={Status} DurationMs={DurationMs} ReqBytes={ReqBytes}", status, sw.ElapsedMilliseconds, reqBytes);
+            return Results.StatusCode(status);
+        }
+        catch (Exception ex)
+        {
+            status = StatusCodes.Status500InternalServerError;
+            sw.Stop();
+            log.LogError(ex, "STT failed. Status={Status} DurationMs={DurationMs} ReqBytes={ReqBytes}", status, sw.ElapsedMilliseconds, reqBytes);
+            return Results.Problem("STT failed");
+        }
     }).DisableAntiforgery();
 }
 
