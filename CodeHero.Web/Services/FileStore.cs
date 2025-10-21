@@ -8,8 +8,7 @@ public sealed class FileStore
 {
     private readonly IWebHostEnvironment _env;
     private readonly Dictionary<StoreRoot, string> _roots;
-    private readonly string _humanPlanPath;
-    private readonly string _agentPlanPath;
+    private readonly string _backlogPath;
 
     public FileStore(IConfiguration config, IWebHostEnvironment env)
     {
@@ -21,9 +20,8 @@ public sealed class FileStore
             [StoreRoot.Artifacts] = Resolve(config, "ContentRoots:Artifacts"),
         };
 
-        // Optional single-file roots for plan documents
-        _humanPlanPath = Resolve(config, "ContentRoots:HumanPlan");
-        _agentPlanPath = Resolve(config, "ContentRoots:AgentPlan");
+        // Single-file root for unified backlog document
+        _backlogPath = Resolve(config, "ContentRoots:Backlog");
     }
 
     private static string Normalize(string path)
@@ -92,8 +90,8 @@ public sealed class FileStore
         return (safe, meta);
     }
 
-    public string ReadHumanPlan() => File.Exists(_humanPlanPath) ? File.ReadAllText(_humanPlanPath) : string.Empty;
-    public string ReadAgentPlan() => File.Exists(_agentPlanPath) ? File.ReadAllText(_agentPlanPath) : string.Empty;
-    public void WriteHumanPlan(string content) => File.WriteAllText(_humanPlanPath, content ?? string.Empty, new UTF8Encoding(false));
-    public void WriteAgentPlan(string content) => File.WriteAllText(_agentPlanPath, content ?? string.Empty, new UTF8Encoding(false));
+    // Unified backlog helpers
+    public string ReadBacklog() => File.Exists(_backlogPath) ? File.ReadAllText(_backlogPath) : string.Empty;
+    public void WriteBacklog(string content)
+        => File.WriteAllText(_backlogPath, content ?? string.Empty, new UTF8Encoding(false));
 }

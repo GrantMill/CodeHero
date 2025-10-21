@@ -31,6 +31,9 @@ public sealed class McpClient : IMcpClient
         psi.Environment["ContentRoots__Requirements"] = Path.Combine(repoRoot, "docs", "requirements");
         psi.Environment["ContentRoots__Architecture"] = Path.Combine(repoRoot, "docs", "architecture");
         psi.Environment["ContentRoots__Artifacts"] = Path.Combine(repoRoot, "artifacts");
+        // Backlog is required by FileStore
+        psi.Environment["ContentRoots__Backlog"] = Path.Combine(repoRoot, "plan", "BACKLOG.md");
+        // Legacy/optional plans retained for forward compatibility
         psi.Environment["ContentRoots__HumanPlan"] = Path.Combine(repoRoot, "plan", "HUMAN.md");
         psi.Environment["ContentRoots__AgentPlan"] = Path.Combine(repoRoot, "plan", "AGENT.md");
         _proc = Process.Start(psi)!;

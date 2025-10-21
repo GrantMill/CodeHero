@@ -70,6 +70,6 @@ public class WebFrontendRoutesTests
         var html = await resp.Content.ReadAsStringAsync(cts.Token);
 
         Assert.AreEqual(HttpStatusCode.OK, resp.StatusCode);
-        StringAssert.Contains(html, "Plan");
+        StringAssert.Contains(html, "Backlog");
     }
 }

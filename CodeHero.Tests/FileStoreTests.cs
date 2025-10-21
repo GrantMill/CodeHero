@@ -25,8 +25,7 @@ public class FileStoreTests
             ["ContentRoots:Requirements"] = Path.Combine(root, "req"),
             ["ContentRoots:Architecture"] = Path.Combine(root, "arch"),
             ["ContentRoots:Artifacts"] = Path.Combine(root, "art"),
-            ["ContentRoots:HumanPlan"] = Path.Combine(root, "HUMAN.md"),
-            ["ContentRoots:AgentPlan"] = Path.Combine(root, "AGENT.md"),
+            ["ContentRoots:Backlog"] = Path.Combine(root, "BACKLOG.md"),
         };
         var cfg = new ConfigurationBuilder().AddInMemoryCollection(inMemory!).Build();
         var env = new TestWebEnv { ContentRootPath = root, ContentRootFileProvider = new PhysicalFileProvider(root) };
