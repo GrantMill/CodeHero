@@ -27,6 +27,7 @@ public class McpServerFsTests
         // Pass content roots via environment
         psi.Environment["ContentRoots__Requirements"] = Path.Combine(contentRoot, "req");
         psi.Environment["ContentRoots__Architecture"] = Path.Combine(contentRoot, "arch");
+        psi.Environment["ContentRoots__Features"] = Path.Combine(contentRoot, "features");
         psi.Environment["ContentRoots__Artifacts"] = Path.Combine(contentRoot, "art");
         // Backlog is required by FileStore; point to a temp file within the temp content root
         psi.Environment["ContentRoots__Backlog"] = Path.Combine(contentRoot, "BACKLOG.md");
@@ -88,6 +89,7 @@ public class McpServerFsTests
         using var temp = new TempDir();
         Directory.CreateDirectory(Path.Combine(temp.Path, "req"));
         Directory.CreateDirectory(Path.Combine(temp.Path, "arch"));
+        Directory.CreateDirectory(Path.Combine(temp.Path, "features"));
         Directory.CreateDirectory(Path.Combine(temp.Path, "art"));
         // Ensure backlog file path exists (not required, but avoids surprises)
         File.WriteAllText(Path.Combine(temp.Path, "BACKLOG.md"), "");

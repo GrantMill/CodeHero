@@ -1,0 +1,51 @@
+@page "/features"
+@rendermode InteractiveServer
+@using CodeHero.Web.Services
+@inject FileStore Store
+
+<h3>Features</h3>
+
+@if (selected is null)
+{
+ <ul>
+ @foreach (var f in Store.List(StoreRoot.Features, ".md"))
+ {
+ <li>
+ <button type="button" class="btn btn-link p-0 align-baseline" @onclick="() => Load(f)">@f</button>
+ </li>
+ }
+ </ul>
+}
+else
+{
+ <h5>@selected</h5>
+ <textarea class="form-control" style="height:45vh" @bind="text"></textarea>
+ <div class="mt-2">
+ <button class="btn btn-primary" @onclick="Save">Save</button>
+ <button class="btn btn-secondary ms-2" @onclick="Back">Back</button>
+ </div>
+}
+
+@code {
+ string? selected;
+ string? text;
+
+ void Load(string f)
+ {
+ selected = f;
+ text = Store.ReadText(StoreRoot.Features, f, ".md");
+ }
+
+ void Save()
+ {
+ if (selected is not null && text is not null)
+ {
+ Store.WriteText(StoreRoot.Features, selected, text, ".md");
+ }
+ }
+
+ void Back()
+ {
+ selected = null; text = null;
+ }
+}

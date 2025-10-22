@@ -24,6 +24,7 @@ public class FileStoreTests
         {
             ["ContentRoots:Requirements"] = Path.Combine(root, "req"),
             ["ContentRoots:Architecture"] = Path.Combine(root, "arch"),
+            ["ContentRoots:Features"] = Path.Combine(root, "features"),
             ["ContentRoots:Artifacts"] = Path.Combine(root, "art"),
             ["ContentRoots:Backlog"] = Path.Combine(root, "BACKLOG.md"),
         };

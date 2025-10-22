@@ -2,7 +2,7 @@ using System.Text;
 
 namespace CodeHero.Web.Services;
 
-public enum StoreRoot { Requirements, Architecture, Artifacts }
+public enum StoreRoot { Requirements, Architecture, Features, Artifacts }
 
 public sealed class FileStore
 {
@@ -18,6 +18,7 @@ public sealed class FileStore
         {
             [StoreRoot.Requirements] = Resolve(config, "ContentRoots:Requirements"),
             [StoreRoot.Architecture] = Resolve(config, "ContentRoots:Architecture"),
+            [StoreRoot.Features] = Resolve(config, "ContentRoots:Features"),
             [StoreRoot.Artifacts] = Resolve(config, "ContentRoots:Artifacts"),
         };
 
