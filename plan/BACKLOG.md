@@ -3,6 +3,7 @@
 Legend: [A] = Agent can implement via PR, [H] = Human-in-loop (env/UX/product decision or external systems)
 
 Completed (most recent first)
+- [x] [A][REQ-001] Conversational mode: tests for OnPhrase pipeline (bUnit) and integration happy path
 - [x] [A][REQ-002] Unit tests for Orchestrator parsing (list/read/mishears)
 - [x] [A][REQ-002] Wire MCP Orchestrator agent and make it the default `IAgentService` (fallback)
 - [x] [A][REQ-001] Conversational scaffolding: Continuous UI toggle + VAD callbacks wired (client-side); phase chips; feature flag
@@ -19,7 +20,6 @@ Completed (most recent first)
 - [x] [A][REQ-001] Disable output cache for `api/stt` and `api/tts` routes
 
 Planned (priority order – top = next)
-- [ ] [A][REQ-001] Conversational mode: tests for OnPhrase pipeline (bUnit) and integration happy path
 - [ ] [A][REQ-001] Feature flag `Features:ContinuousDictation` docs and defaults
 - [ ] [A][REQ-002] Orchestrator LLM (Generalist with Tool Use)
  - [ ] [A][REQ-002] Define tool schema exposed to LLM (fs/list, fs/readText, fs/writeText, scribe/createRequirement)
