@@ -14,7 +14,7 @@
 <div class="border rounded p-2" style="height:50vh; overflow:auto; background:#fafafa">
     @if (messages.Count == 0)
     {
-        <div class="text-muted">Try: "ping", "list req", "read REQ-000.md", or "create REQ-123 A helpful title"</div>
+        <div class="text-muted">Say “list requirements” or “read requirement zero zero one”.</div>
     }
     @foreach (var m in messages)
     {
@@ -26,47 +26,24 @@
     <div @ref="bottom"></div>
 </div>
 
-<div class="input-group mt-2">
-    <input class="form-control" placeholder="Type a command…" @bind="input" @bind:event="oninput" @onkeydown="OnKey" />
-    <button class="btn btn-primary" @onclick="Send" disabled="@busy">Send</button>
-</div>
-<div class="small text-muted mt-1">@status</div>
-
 <div class="card mt-3">
-    <div class="card-header">Speech (local capture + optional Azure STT/TTS)</div>
+    <div class="card-header">Conversational mode</div>
     <div class="card-body">
-        <div class="btn-toolbar gap-2" role="toolbar">
-            <div class="btn-group" role="group">
-                <button class="btn btn-success" title="Hold to talk"
-                        @onpointerdown="PushToTalkDown"
-                        @onpointerup="PushToTalkUp"
-                        @onpointercancel="PushToTalkCancel"
-                        @onpointerleave="PushToTalkCancel"
-                        disabled="@busy">
-                    @(recording ? "Release to send" : "Push to talk")
-                </button>
-                <button class="btn btn-outline-primary" @onclick="StartRecording" disabled="@recording">Start</button>
-                <button class="btn btn-outline-danger" @onclick="StopRecording" disabled="@(!recording)">Stop</button>
-                <button class="btn btn-outline-secondary" @onclick="Transcribe" disabled="@(!hasAudio)">Transcribe</button>
-                <button class="btn btn-outline-secondary" @onclick="SpeakLast" disabled="@string.IsNullOrWhiteSpace(lastTranscript)">Speak last</button>
-                <button class="btn btn-outline-secondary" @onclick="SendToAgent" disabled="@string.IsNullOrWhiteSpace(lastTranscript)">Ask agent</button>
-                <button class="btn btn-outline-secondary" @onclick="SpeakAgent" disabled="@string.IsNullOrWhiteSpace(agentReply)">Speak agent</button>
-                <button class="btn btn-outline-dark" data-testid="mic-toggle" @onclick="ToggleMic">@(recording ? "Mic On – Stop" : "Mic Off – Start")</button>
-            </div>
+        <div class="d-flex align-items-center gap-2">
             @if (enableContinuous)
             {
-            <div class="btn-group" role="group">
-                <button class="btn @(continuous?"btn-warning":"btn-outline-warning")" @onclick="ToggleContinuous">@(continuous?"Continuous: On":"Continuous: Off")</button>
-            </div>
-            <div class="btn-group ms-2" role="group">
-                <span class="badge rounded-pill text-bg-@(phase=="Listening"?"primary":phase=="Speaking"?"success":phase=="Thinking"?"secondary":"light")">@phase</span>
-            </div>
+            <button class="btn @(continuous?"btn-warning":"btn-outline-warning")" data-testid="continuous-toggle" @onclick="ToggleContinuous">@(continuous?"Continuous: On":"Continuous: Off")</button>
+            <span class="badge rounded-pill text-bg-@(phase=="Listening"?"primary":phase=="Speaking"?"success":phase=="Thinking"?"secondary":"light")">@phase</span>
+            }
+            else
+            {
+            <span class="text-muted">Continuous mode is disabled by configuration.</span>
             }
         </div>
 
         @if (enableContinuous)
         {
-        <div class="row row-cols-1 row-cols-md-2 g-2 mt-2">
+        <div class="row row-cols-1 row-cols-md-2 g-2 mt-3">
             <div class="col">
                 <label class="form-label mb-1">Sensitivity (lower = more sensitive)</label>
                 <input type="range" class="form-range" min="0.001" max="0.05" step="0.001" @bind-value="vadThreshold" @bind-value:event="oninput" @onchange="ApplyContinuousSettings" />
@@ -87,25 +64,19 @@
         }
         <audio class="mt-2 w-100" controls @ref="audioRef"></audio>
     </div>
-    <div class="card-footer text-muted">Your browser audio never leaves the page until you click Transcribe or TTS.</div>
+    <div class="card-footer text-muted">Continuous On will listen, transcribe, call the agent, and play the reply.</div>
 </div>
 
 @code {
     record Msg(string Role, string Text);
     List<Msg> messages = new();
-    string input = string.Empty;
     string status = string.Empty;
-    bool busy = false;
     ElementReference bottom;
     ElementReference audioRef;
-    bool recording = false;
-    bool hasAudio = false;
     string recStatus = string.Empty;
     string supportStatus = string.Empty;
-    byte[]? audioBytes;
     string lastTranscript = string.Empty;
     string agentReply = string.Empty;
-    bool autoSpeakAgentAfterSend = true;
 
     // Continuous mode
     bool enableContinuous = false;
@@ -116,7 +87,7 @@
     CancellationTokenSource? continuousCts;
 
     // VAD sliders
-    double vadThreshold =0.010; // default matches previous
+    double vadThreshold =0.010; // default
     int vadSilenceMs =800;
 
     protected override void OnInitialized()
@@ -155,270 +126,10 @@
         catch { }
     }
 
-    async Task Send()
+    async Task LoadAudioTag(byte[] bytes)
     {
-        if (string.IsNullOrWhiteSpace(input)) return;
-        var text = input;
-        input = string.Empty;
-        messages.Add(new Msg("you", text));
-        status = string.Empty; busy = true;
-        StateHasChanged();
-        try
-        {
-            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(8));
-            if (!await Client.InitializeAsync(cts.Token))
-            {
-                messages.Add(new Msg("scribe", "Initialization failed."));
-                return;
-            }
-
-            var reply = await HandleIntent(text, cts.Token);
-            messages.Add(new Msg("scribe", reply));
-        }
-        catch (Exception ex)
-        {
-            messages.Add(new Msg("scribe", $"Error: {ex.Message}"));
-        }
-        finally
-        {
-            busy = false; await ScrollToBottom();
-        }
-    }
-
-    async Task<string> HandleIntent(string text, CancellationToken ct)
-    {
-        var t = text.Trim();
-        if (string.Equals(t, "ping", StringComparison.OrdinalIgnoreCase))
-        {
-            var ok = await Client.PingAsync(ct);
-            return ok ? "pong" : "no pong";
-        }
-        if (t.StartsWith("list req", StringComparison.OrdinalIgnoreCase))
-        {
-            var files = await Client.ListAsync(StoreRoot.Requirements, new[] { ".md" }, ct);
-            return files.Count ==0 ? "No requirements found." : string.Join("\n", files);
-        }
-        if (t.StartsWith("read ", StringComparison.OrdinalIgnoreCase))
-        {
-            var name = t.Substring(5).Trim();
-            if (string.IsNullOrEmpty(name)) return "Please provide a filename, e.g. read REQ-000.md";
-            var body = await Client.ReadTextAsync(StoreRoot.Requirements, name, new[] { ".md" }, ct);
-            return $"--- {name} ---\n" + body;
-        }
-        if (t.StartsWith("create ", StringComparison.OrdinalIgnoreCase))
-        {
-            // create <id> <title>
-            var rest = t.Substring(7).Trim();
-            var space = rest.IndexOf(' ');
-            if (space <=0) return "Usage: create REQ-123 Title here";
-            var id = rest.Substring(0, space);
-            var title = rest.Substring(space +1).Trim();
-            var created = await Client.ScribeCreateRequirementAsync(id, title, ct);
-            return $"Created: {created}";
-        }
-        return "Sorry, try: ping | list req | read REQ-xxx.md | create REQ-xxx Title";
-    }
-
-    async Task OnKey(KeyboardEventArgs e)
-    {
-        if (e.Key == "Enter" && !busy)
-        {
-            await Send();
-        }
-    }
-
-    async Task ScrollToBottom()
-    {
-        await Task.Yield();
-    }
-
-    // Speech UI handlers
-    async Task StartRecording()
-    {
-        try
-        {
-            // Basic capabilities check to help user
-            var caps = await JS.InvokeAsync<AudioCapabilities>("codeheroAudio.support");
-            supportStatus = $"secure={caps.secure}, mediaDevices={caps.hasMediaDevices}, getUserMedia={caps.hasGetUserMedia}, mediaRecorder={caps.hasMediaRecorder}, pref={caps.preferred ?? "n/a"}, mic={caps.micPerm}";
-            if (!caps.hasGetUserMedia || !caps.hasMediaRecorder)
-            {
-                recStatus = "Browser does not support microphone capture (getUserMedia/MediaRecorder).";
-                return;
-            }
-            await JS.InvokeVoidAsync("codeheroAudio.start");
-            recording = true; recStatus = "Recording... (allow mic if prompted)"; hasAudio = false; audioBytes = null; lastTranscript = string.Empty; agentReply = string.Empty;
-        }
-        catch (Exception ex)
-        {
-            recStatus = ex.Message;
-        }
-    }
-
-    async Task StopRecording()
-    {
-        try
-        {
-            // Prefer streamed interop to avoid SignalR payload limits
-            var streamRef = await JS.InvokeAsync<IJSStreamReference>("codeheroAudio.stopAsBlob");
-            if (streamRef is not null)
-            {
-                await using var stream = await streamRef.OpenReadStreamAsync(10 *1024 *1024); //10MB cap
-                using var ms = new MemoryStream();
-                await stream.CopyToAsync(ms);
-                audioBytes = ms.ToArray();
-                hasAudio = audioBytes.Length >0;
-                recStatus = hasAudio ? $"Audio captured: {audioBytes!.Length} bytes" : "No audio";
-                await LoadAudioTag(audioBytes);
-            }
-            else
-            {
-                // Fallback to base64 path if stream is unavailable
-                var base64 = await JS.InvokeAsync<string>("codeheroAudio.stop");
-                if (!string.IsNullOrEmpty(base64))
-                {
-                    audioBytes = Convert.FromBase64String(base64);
-                    hasAudio = audioBytes?.Length >0;
-                    recStatus = hasAudio ? $"Audio captured: {audioBytes!.Length} bytes" : "No audio";
-                    await LoadAudioTag(audioBytes);
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            recStatus = ex.Message;
-        }
-        finally { recording = false; }
-    }
-
-    async Task ToggleMic()
-    {
-        if (recording) await StopRecording(); else await StartRecording();
-    }
-
-    async Task LoadAudioTag(byte[]? bytes)
-    {
-        if (bytes is null) return;
         var b64 = Convert.ToBase64String(bytes);
         await JS.InvokeVoidAsync("codeheroAudio.load", audioRef, "data:audio/wav;base64," + b64);
-    }
-
-    // Push-to-talk handlers
-    async Task PushToTalkDown()
-    {
-        if (busy || recording) return;
-        await StartRecording();
-    }
-
-    async Task PushToTalkUp()
-    {
-        // End capture, transcribe, send to agent, optionally speak
-        if (!recording) return;
-        await StopRecording();
-        if (!hasAudio) return;
-        await Transcribe();
-        if (!string.IsNullOrWhiteSpace(lastTranscript))
-        {
-            await SendToAgent();
-            if (autoSpeakAgentAfterSend && !string.IsNullOrWhiteSpace(agentReply))
-            {
-                await SpeakAgent();
-            }
-        }
-    }
-
-    async Task PushToTalkCancel()
-    {
-        // Gracefully stop without sending if pointer leaves/cancels
-        if (!recording) return;
-        await StopRecording();
-        // keep audio preview, require manual Transcribe/Send
-    }
-
-    async Task Transcribe()
-    {
-        if (audioBytes is null) return;
-        try
-        {
-            var http = CreateLocalClient();
-            using var content = new ByteArrayContent(audioBytes);
-            content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("audio/wav");
-            var resp = await http.PostAsync("api/stt", content);
-            if (!resp.IsSuccessStatusCode)
-            {
-                var body = await resp.Content.ReadAsStringAsync();
-                messages.Add(new Msg("stt", $"Error {(int)resp.StatusCode}: {body}"));
-                return;
-            }
-            lastTranscript = await resp.Content.ReadAsStringAsync();
-            if (string.IsNullOrWhiteSpace(lastTranscript))
-            {
-                messages.Add(new Msg("stt", "(No transcription. Speech not configured or silence detected.)"));
-                return;
-            }
-            messages.Add(new Msg("you", lastTranscript));
-        }
-        catch (Exception ex) { messages.Add(new Msg("stt", "Error: " + ex.Message)); }
-    }
-
-    async Task SpeakLast()
-    {
-        if (string.IsNullOrWhiteSpace(lastTranscript)) return;
-        try
-        {
-            var http = CreateLocalClient();
-            var resp = await http.PostAsync("api/tts?voice=en-US-JennyNeural", new StringContent(lastTranscript));
-            if (!resp.IsSuccessStatusCode)
-            {
-                var body = await resp.Content.ReadAsStringAsync();
-                messages.Add(new Msg("tts", $"Error {(int)resp.StatusCode}: {body}"));
-                return;
-            }
-            var wav = await resp.Content.ReadAsByteArrayAsync();
-            await LoadAudioTag(wav);
-        }
-        catch (Exception ex) { messages.Add(new Msg("tts", "Error: " + ex.Message)); }
-    }
-
-    async Task SendToAgent()
-    {
-        if (string.IsNullOrWhiteSpace(lastTranscript)) return;
-        try
-        {
-            var http = CreateLocalClient();
-            var resp = await http.PostAsync("api/agent/chat", new StringContent(lastTranscript));
-            if (!resp.IsSuccessStatusCode)
-            {
-                var body = await resp.Content.ReadAsStringAsync();
-                messages.Add(new Msg("agent", $"Error {(int)resp.StatusCode}: {body}"));
-                return;
-            }
-            agentReply = await resp.Content.ReadAsStringAsync();
-            messages.Add(new Msg("agent", agentReply));
-        }
-        catch (Exception ex) { messages.Add(new Msg("agent", "Error: " + ex.Message)); }
-    }
-
-    async Task SpeakAgent()
-    {
-        if (string.IsNullOrWhiteSpace(agentReply)) return;
-        try
-        {
-            var http = CreateLocalClient();
-            var resp = await http.PostAsync("api/tts?voice=en-US-JennyNeural", new StringContent(agentReply));
-            var wav = await resp.Content.ReadAsByteArrayAsync();
-            await LoadAudioTag(wav);
-        }
-        catch (Exception ex) { messages.Add(new Msg("tts", "Error: " + ex.Message)); }
-    }
-
-    HttpClient CreateLocalClient()
-    {
-        var http = HttpFactory.CreateClient();
-        if (http.BaseAddress is null)
-        {
-            http.BaseAddress = new Uri(Nav.BaseUri, UriKind.Absolute);
-        }
-        return http;
     }
 
     // Continuous mode helpers
@@ -427,6 +138,14 @@
         if (!enableContinuous) return;
         if (!continuous)
         {
+            // Capability check (optional)
+            try
+            {
+                var caps = await JS.InvokeAsync<AudioCapabilities>("codeheroAudio.support");
+                supportStatus = $"secure={caps.secure}, mediaDevices={caps.hasMediaDevices}, getUserMedia={caps.hasGetUserMedia}, mediaRecorder={caps.hasMediaRecorder}, pref={caps.preferred ?? "n/a"}, mic={caps.micPerm}";
+            }
+            catch { }
+
             continuousCts = new CancellationTokenSource();
             phase = "Listening";
             await JS.InvokeVoidAsync("codeheroAudio.continuous.start", selfRef, new { threshold = vadThreshold, minSilenceMs = vadSilenceMs });
@@ -452,11 +171,7 @@
     public async Task OnPhrase(string base64)
     {
         // Allow only one phrase in flight to avoid overlap
-        if (!await phraseGate.WaitAsync(0))
-        {
-            // drop overlapping phrase
-            return;
-        }
+        if (!await phraseGate.WaitAsync(0)) return;
         using var gateReleaser = new Releaser(phraseGate);
 
         using var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
@@ -465,7 +180,8 @@
         {
             var bytes = Convert.FromBase64String(base64);
             // Send to STT
-            var http = CreateLocalClient();
+            var http = HttpFactory.CreateClient();
+            if (http.BaseAddress is null) http.BaseAddress = new Uri(Nav.BaseUri, UriKind.Absolute);
             using var content = new ByteArrayContent(bytes);
             content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("audio/wav");
             var resp = await http.PostAsync("api/stt", content, linked.Token);

@@ -1,12 +1,11 @@
 sequenceDiagram
   participant User
-  participant Browser as Browser (AgentsChat)
-  participant Web as Web (CodeHero.Web)
+  participant Browser as Browser (AgentsChat, Continuous)
+  participant Web as CodeHero.Web
   participant Speech as ISpeechService
   participant AzureSpeech as Azure Speech
   participant HttpTts as tts-http (Docker)
 
-  User->>Browser: Click "Speak last"
   Browser->>Web: POST /api/tts?voice=...
   Web->>Speech: SynthesizeAsync(text, voice)
   alt Azure Speech configured
@@ -19,4 +18,4 @@ sequenceDiagram
     Speech-->>Web: silent WAV
   end
   Web-->>Browser: audio/wav
-  Browser-->>User: play audio
+  Browser-->>User: play audio (auto after agent reply)

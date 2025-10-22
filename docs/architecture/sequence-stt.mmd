@@ -1,14 +1,13 @@
 sequenceDiagram
   participant User
-  participant Browser as Browser (Blazor + JS)
+  participant Browser as Browser (Blazor + JS, Continuous)
   participant Web as Web (CodeHero.Web)
   participant Speech as ISpeechService
   participant Foundry as Azure Foundry
   participant Whisper as stt-whisper (Docker)
 
-  User->>Browser: Start Recording
-  Browser->>Browser: MediaRecorder + PCM fallback
-  User->>Browser: Stop
+  User->>Browser: Speak phrase (Continuous On)
+  Browser->>Browser: VAD slices on silence, resample to16k WAV
   Browser->>Web: POST /api/stt (audio/wav)
   Web->>Speech: TranscribeAsync(wav)
   alt Foundry configured
@@ -22,4 +21,10 @@ sequenceDiagram
   end
   Speech-->>Web: transcription
   Web-->>Browser: text/plain
-  Browser-->>User: show transcript
+  Browser-->>User: show transcript (you: ...)
+
+  Browser->>Web: POST /api/agent/chat (text)
+  Web->>Agent: ChatAsync(text)
+  Agent-->>Web: reply
+  Web-->>Browser: reply
+  Browser-->>User: show reply (agent: ...) and continue

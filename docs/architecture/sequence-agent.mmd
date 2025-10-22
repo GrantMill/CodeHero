@@ -1,18 +1,15 @@
 sequenceDiagram
   participant User
-  participant Browser as Browser (AgentsChat)
-  participant Web as Web (CodeHero.Web)
-  participant Agent as IAgentService
-  participant Foundry as Azure Foundry (agent)
+  participant Browser as Browser (AgentsChat, Continuous)
+  participant Web as CodeHero.Web
+  participant Agent as IAgentService (MCP Orchestrator)
 
-  User->>Browser: Click "Ask agent"
   Browser->>Web: POST /api/agent/chat (text)
   Web->>Agent: ChatAsync(text)
-  alt Foundry configured
-    Agent->>Foundry: Chat API (stub today)
-    Foundry-->>Agent: reply
-  else Not configured
-    Agent-->>Web: "Azure Foundry Agent not configured."
-  end
+  Agent->>Agent: Parse intent (list/read/create) with allowlist
+  Agent->>MCP: IMcpClient (fs/list, fs/readText, scribe/createRequirement)
+  MCP-->>Agent: results
+  Agent-->>Web: reply summary
   Web-->>Browser: reply
-  Browser-->>User: show response
+  Browser->>Web: POST /api/tts (auto)
+  Web-->>Browser: audio/wav (play)
