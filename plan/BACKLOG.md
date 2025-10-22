@@ -3,6 +3,7 @@
 Legend: [A] = Agent can implement via PR, [H] = Human-in-loop (env/UX/product decision or external systems)
 
 Completed (most recent first)
+- [x] [A] Conversational scaffolding: Continuous UI toggle + VAD callbacks wired (client-side); phase chips; feature flag
 - [x] [A] Integration tests for `/api/stt` and `/api/tts` (behind feature flag)
 - [x] [A] Add targeted retries (connect/read only) and a circuit breaker for STT/TTS; no retry on4xx or large bodies
 - [x] [A] Use `HttpCompletionOption.ResponseHeadersRead` for TTS and cap response size
@@ -17,12 +18,12 @@ Completed (most recent first)
 
 Planned (priority order – top = next)
 - [ ] [A] Conversational mode (continuous mic ? transcribe ? orchestrate MCP ? TTS)
- - [ ] [A] AgentsChat: add "Continuous" toggle and status chips (Listening / Thinking / Speaking)
- - [ ] [A] JS (audio.js): add simple VAD/silence detection, slice phrases, post each phrase to .NET via JSInvokable callback
- - [ ] [A] .NET: add `OnPhraseAsync(byte[] wav)` callback to AgentsChat ? call `/api/stt` ? append transcript live
+ - [x] [A] AgentsChat: add "Continuous" toggle and status chips (Listening / Thinking / Speaking)
+ - [x] [A] JS (audio.js): add simple VAD/silence detection, slice phrases, post each phrase to .NET via JSInvokable callback
+ - [ ] [A] .NET: finalize `OnPhraseAsync` pipeline (error surfaces, cancellations, rate-limit)
  - [ ] [A] After final phrase, call orchestrator agent (see below) ? then TTS the reply and play
- - [ ] [A] Feature flag `Features:ContinuousDictation`
- - [ ] [A] bUnit tests for UI toggles + JS callbacks; integration test happy-path (small WAV ? agent reply ? TTS)
+ - [ ] [A] Feature flag `Features:ContinuousDictation` (config + docs)
+ - [ ] [A] Tests: bUnit for UI toggles + JS callbacks; integration happy-path (small WAV ? agent reply ? TTS)
 - [ ] [A] Orchestration agent for MCP actions (turn user requests into safe tool calls)
  - [ ] [A] Define allowlist of MCP tools (fs/list, fs/readText, fs/writeText, scribe/createRequirement)
  - [ ] [A] Add `IAgentService` implementation `McpOrchestratorAgentService` that:

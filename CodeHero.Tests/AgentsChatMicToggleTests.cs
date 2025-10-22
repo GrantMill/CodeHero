@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.JSInterop;
+using Microsoft.Extensions.Configuration;
 
 namespace CodeHero.Tests;
 
@@ -33,6 +34,14 @@ public class AgentsChatMicToggleTests
  _ctx.Services.AddSingleton<CodeHero.Web.Services.IMcpClient, CodeHero.Web.Services.NullMcpClient>();
  _ctx.Services.AddHttpClient();
  _ctx.Services.AddSingleton<NavigationManager>(new FakeNav());
+ // Provide IConfiguration for component injection
+ var cfg = new ConfigurationBuilder()
+ .AddInMemoryCollection(new Dictionary<string,string?>
+ {
+ ["Features:ContinuousDictation"] = "false" // keep continuous mode off in this unit test
+ })
+ .Build();
+ _ctx.Services.AddSingleton<IConfiguration>(cfg);
  }
 
  [TestCleanup]

@@ -260,3 +260,72 @@ window.codeheroAudio = (function(){
 
   return { start, stop, stopAsBlob, load, support };
 })();
+
+
+// Lightweight continuous VAD + phrase slicing
+window.codeheroAudio = window.codeheroAudio || {};
+(function(ns){
+ let ctx, mic, proc, gain, stream;
+ let speaking = false;
+ let lastAbove =0;
+ let chunks = []; // PCM float32 frames
+ const targetRate =16000;
+
+ ns.continuous = ns.continuous || {};
+
+ ns.continuous.start = async function(dotnetRef, opts){
+ const threshold = (opts && opts.threshold) ||0.01;
+ const minSilenceMs = (opts && opts.minSilenceMs) ||800;
+ stream = await navigator.mediaDevices.getUserMedia({ audio:true });
+ ctx = new (window.AudioContext||window.webkitAudioContext)();
+ mic = ctx.createMediaStreamSource(stream);
+ proc = ctx.createScriptProcessor(4096,1,1);
+ gain = ctx.createGain(); gain.gain.value =0; // mute path
+ mic.connect(proc); proc.connect(gain); gain.connect(ctx.destination);
+
+ lastAbove = performance.now();
+ speaking = false;
+ await dotnetRef.invokeMethodAsync('OnVADState','listening');
+
+ proc.onaudioprocess = async ev => {
+ const buf = ev.inputBuffer.getChannelData(0);
+ let rms =0; for (let i=0;i<buf.length;i++){ const v = buf[i]; rms += v*v; }
+ rms = Math.sqrt(rms / buf.length);
+
+ // upsample/downsample to16k by naive decimation if needed later
+ chunks.push(buf.slice(0));
+
+ const now = performance.now();
+ if (rms >= threshold){
+ lastAbove = now;
+ if (!speaking){ speaking = true; await dotnetRef.invokeMethodAsync('OnVADState','speaking'); }
+ } else if (speaking && (now - lastAbove) >= minSilenceMs){
+ // phrase ended -> package and send
+ speaking = false;
+ await dotnetRef.invokeMethodAsync('OnVADState','listening');
+ const merged = mergeFloat32(chunks); chunks = [];
+ const resampled = resampleTo16k(merged, ctx.sampleRate);
+ const wav = encodeWav(resampled, targetRate);
+ const b64 = toBase64(wav);
+ try { await dotnetRef.invokeMethodAsync('OnPhrase', b64); } catch { /* ignore */ }
+ }
+ };
+ };
+
+ ns.continuous.stop = async function(){
+ try { if (proc){ proc.disconnect(); proc.onaudioprocess = null; } } catch{}
+ try { if (mic){ mic.disconnect(); } } catch{}
+ try { if (gain){ gain.disconnect(); } } catch{}
+ try { if (ctx){ await ctx.close(); } } catch{}
+ try { if (stream){ stream.getTracks().forEach(t=>t.stop()); } } catch{}
+ ctx = mic = proc = gain = stream = undefined; chunks = []; speaking = false;
+ };
+
+ // Helpers from existing module (duplicated minimal versions)
+ function mergeFloat32(parts){ let len=0; for(const p of parts) len+=p.length; const out=new Float32Array(len); let off=0; for(const p of parts){ out.set(p,off); off+=p.length; } return out; }
+ function resampleTo16k(input, inRate){ if (inRate===16000) return input; const ratio=inRate/16000; const n=Math.round(input.length/ratio); const out=new Float32Array(n); for(let i=0;i<n;i++){ const idx=i*ratio; const i0=Math.floor(idx); const i1=Math.min(i0+1,input.length-1); const frac=idx-i0; out[i]=input[i0]*(1-frac)+input[i1]*frac; } return out; }
+ function encodeWav(samples, sampleRate){ const buffer=new ArrayBuffer(44+samples.length*2); const view=new DataView(buffer); writeString(view,0,'RIFF'); view.setUint32(4,36+samples.length*2,true); writeString(view,8,'WAVE'); writeString(view,12,'fmt '); view.setUint32(16,16,true); view.setUint16(20,1,true); view.setUint16(22,1,true); view.setUint32(24,sampleRate,true); view.setUint32(28,sampleRate*2,true); view.setUint16(32,2,true); view.setUint16(34,16,true); writeString(view,36,'data'); view.setUint32(40,samples.length*2,true); floatTo16(view,44,samples); return buffer; }
+ function writeString(view,off,s){ for(let i=0;i<s.length;i++) view.setUint8(off+i,s.charCodeAt(i)); }
+ function floatTo16(view,off,input){ for(let i=0;i<input.length;i++,off+=2){ let s=Math.max(-1,Math.min(1,input[i])); view.setInt16(off, s<0?s*0x8000:s*0x7FFF, true);} }
+ function toBase64(arrayBuffer){ const bytes=new Uint8Array(arrayBuffer); const chunk=0x8000; let binary=''; for(let i=0;i<bytes.length;i+=chunk){ const sub=bytes.subarray(i,i+chunk); binary+=String.fromCharCode.apply(null, sub);} return btoa(binary); }
+})(window.codeheroAudio);
