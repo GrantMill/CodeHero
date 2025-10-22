@@ -21,6 +21,9 @@ Completed (most recent first)
 Planned (priority order – top = next)
 - [ ] [A] Conversational mode: tests for OnPhrase pipeline (bUnit) and integration happy path
 - [ ] [A] Feature flag `Features:ContinuousDictation` docs and defaults
+- [ ] [A] Orchestrator LLM (Generalist with Tool Use) [REQ-002]
+- [ ] [A] RAG over Repo (Docs, Diagrams, Code) [REQ-003]
+- [ ] [A] MCP Tooling for Code Changes (Plan, Edit, Diff) [REQ-004]
 - [ ] [A] Ensure `Expect:100-Continue` on STT uploads (verify header observed)
 - [ ] [A] Add locale/voice pickers in `AgentsChat.razor`
 - [ ] [A] Improve `wwwroot/js/audio.js` to guarantee WAV16?bit PCM @16kHz and better error handling
