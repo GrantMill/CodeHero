@@ -3,6 +3,7 @@
 Legend: [A] = Agent can implement via PR, [H] = Human-in-loop (env/UX/product decision or external systems)
 
 Completed (most recent first)
+- [x] [A] Wire MCP Orchestrator agent and make it the default `IAgentService` (fallback)
 - [x] [A] Conversational scaffolding: Continuous UI toggle + VAD callbacks wired (client-side); phase chips; feature flag
 - [x] [A] Integration tests for `/api/stt` and `/api/tts` (behind feature flag)
 - [x] [A] Add targeted retries (connect/read only) and a circuit breaker for STT/TTS; no retry on4xx or large bodies
@@ -25,13 +26,10 @@ Planned (priority order – top = next)
  - [ ] [A] Feature flag `Features:ContinuousDictation` (config + docs)
  - [ ] [A] Tests: bUnit for UI toggles + JS callbacks; integration happy-path (small WAV ? agent reply ? TTS)
 - [ ] [A] Orchestration agent for MCP actions (turn user requests into safe tool calls)
- - [ ] [A] Define allowlist of MCP tools (fs/list, fs/readText, fs/writeText, scribe/createRequirement)
- - [ ] [A] Add `IAgentService` implementation `McpOrchestratorAgentService` that:
- - [ ] [A] Parses intents (rule-based first: "list req", "read REQ-###", "create REQ-### title", "write file…")
- - [ ] [A] Executes via `IMcpClient` and returns a short, human-readable summary of actions + results
- - [ ] [A] Logs structured steps and MCP responses for diagnostics
- - [ ] [A] If Foundry is configured, add LLM planning mode: prompt ? JSON tool plan ? execute ? summarize (guarded by allowlist)
- - [ ] [A] Wire `/api/agent/chat` to use orchestrator by default
+ - [x] [A] Define allowlist of MCP tools (fs/list, fs/readText, fs/writeText, scribe/createRequirement)
+ - [x] [A] Add `IAgentService` implementation `McpOrchestratorAgentService` (rule-based intents)
+ - [ ] [A] Add LLM planning mode when Foundry configured: prompt ? JSON plan ? execute ? summarize
+ - [x] [A] Wire `/api/agent/chat` to use orchestrator by default (when Foundry agent not configured)
  - [ ] [A] Tests: unit (intent parsing), integration (end-to-end tool calls in a temp repo)
 - [ ] [A] Ensure `Expect:100-Continue` on STT uploads (already set for named client; verify)
 - [ ] [A] Add mic toggle + locale/voice pickers in `AgentsChat.razor` (toggle done; add locale/voice)

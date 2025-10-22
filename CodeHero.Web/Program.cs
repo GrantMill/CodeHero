@@ -109,14 +109,14 @@ else
  builder.Services.AddSingleton<ISpeechService, NullSpeechService>();
 }
 
-// Conditionally wire up agent service based on configuration presence
+// Agent service: prefer Foundry agent if configured, otherwise MCP orchestrator, otherwise null agent
 if (!string.IsNullOrWhiteSpace(foundryKey) && !string.IsNullOrWhiteSpace(foundryEndpoint))
 {
  builder.Services.AddSingleton<IAgentService, AzureFoundryAgentService>();
 }
 else
 {
- builder.Services.AddSingleton<IAgentService, NullAgentService>();
+ builder.Services.AddSingleton<IAgentService, McpOrchestratorAgentService>();
 }
 
 var app = builder.Build();
