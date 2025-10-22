@@ -30,6 +30,7 @@ public sealed class McpClient : IMcpClient
         var repoRoot = Path.GetFullPath(Path.Combine(serverDir, "..", "..", "..", ".."));
         psi.Environment["ContentRoots__Requirements"] = Path.Combine(repoRoot, "docs", "requirements");
         psi.Environment["ContentRoots__Architecture"] = Path.Combine(repoRoot, "docs", "architecture");
+        psi.Environment["ContentRoots__Features"] = Path.Combine(repoRoot, "docs", "features");
         psi.Environment["ContentRoots__Artifacts"] = Path.Combine(repoRoot, "artifacts");
         // Backlog is required by FileStore
         psi.Environment["ContentRoots__Backlog"] = Path.Combine(repoRoot, "plan", "BACKLOG.md");
