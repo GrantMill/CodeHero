@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Http.Features;
 using System.Diagnostics;
 using Polly;
 using Polly.Extensions.Http;
+using Microsoft.AspNetCore.ResponseCompression;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,6 +17,21 @@ builder.AddServiceDefaults();
 // Add services to the container.
 builder.Services.AddRazorComponents()
  .AddInteractiveServerComponents();
+
+// Response compression for SignalR (_blazor) payloads
+builder.Services.AddResponseCompression(options =>
+{
+ options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(new[] { "application/octet-stream" });
+});
+
+// Tune SignalR/Blazor Server hub to reduce WS disconnects (applies to all hubs)
+builder.Services.AddSignalR(options =>
+{
+ options.EnableDetailedErrors = true;
+ options.MaximumReceiveMessageSize =2 *1024 *1024; //2 MB
+ options.KeepAliveInterval = TimeSpan.FromSeconds(15);
+ options.ClientTimeoutInterval = TimeSpan.FromSeconds(60);
+});
 
 builder.Services.AddOutputCache();
 
@@ -30,7 +46,7 @@ builder.Services.AddSingleton<SpeechDiagnosticsMonitor>();
 static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy() => HttpPolicyExtensions
  .HandleTransientHttpError() //5xx + HttpRequestException +408
  .OrResult(r => (int)r.StatusCode ==429)
- .WaitAndRetryAsync(3, attempt => TimeSpan.FromMilliseconds(200 * Math.Pow(2, attempt))); // exp backoff200ms,400ms,800ms
+ .WaitAndRetryAsync(3, attempt => TimeSpan.FromMilliseconds(200 * Math.Pow(2, attempt))); // exp backoff
 
 static IAsyncPolicy<HttpResponseMessage> GetCircuitBreakerPolicy() => HttpPolicyExtensions
  .HandleTransientHttpError()

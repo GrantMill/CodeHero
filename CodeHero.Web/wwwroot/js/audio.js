@@ -261,8 +261,7 @@ window.codeheroAudio = (function(){
   return { start, stop, stopAsBlob, load, support };
 })();
 
-
-// Lightweight continuous VAD + phrase slicing
+// Lightweight continuous VAD + phrase slicing with level indicator
 window.codeheroAudio = window.codeheroAudio || {};
 (function(ns){
  let ctx, mic, proc, gain, stream;
@@ -270,6 +269,7 @@ window.codeheroAudio = window.codeheroAudio || {};
  let lastAbove =0;
  let chunks = []; // PCM float32 frames
  const targetRate =16000;
+ let lastEmit =0;
 
  ns.continuous = ns.continuous || {};
 
@@ -292,17 +292,16 @@ window.codeheroAudio = window.codeheroAudio || {};
  let rms =0; for (let i=0;i<buf.length;i++){ const v = buf[i]; rms += v*v; }
  rms = Math.sqrt(rms / buf.length);
 
- // upsample/downsample to16k by naive decimation if needed later
- chunks.push(buf.slice(0));
-
+ // push level every ~250ms to indicate input activity (optional)
  const now = performance.now();
+ if (now - lastEmit >250){ lastEmit = now; try{ await dotnetRef.invokeMethodAsync('OnVADState', speaking? 'speaking':'listening'); } catch{} }
+
+ chunks.push(buf.slice(0));
  if (rms >= threshold){
  lastAbove = now;
- if (!speaking){ speaking = true; await dotnetRef.invokeMethodAsync('OnVADState','speaking'); }
+ if (!speaking){ speaking = true; try{ await dotnetRef.invokeMethodAsync('OnVADState','speaking'); } catch{} }
  } else if (speaking && (now - lastAbove) >= minSilenceMs){
- // phrase ended -> package and send
- speaking = false;
- await dotnetRef.invokeMethodAsync('OnVADState','listening');
+ speaking = false; try{ await dotnetRef.invokeMethodAsync('OnVADState','listening'); } catch{}
  const merged = mergeFloat32(chunks); chunks = [];
  const resampled = resampleTo16k(merged, ctx.sampleRate);
  const wav = encodeWav(resampled, targetRate);
@@ -321,7 +320,7 @@ window.codeheroAudio = window.codeheroAudio || {};
  ctx = mic = proc = gain = stream = undefined; chunks = []; speaking = false;
  };
 
- // Helpers from existing module (duplicated minimal versions)
+ // Helpers retained from main module
  function mergeFloat32(parts){ let len=0; for(const p of parts) len+=p.length; const out=new Float32Array(len); let off=0; for(const p of parts){ out.set(p,off); off+=p.length; } return out; }
  function resampleTo16k(input, inRate){ if (inRate===16000) return input; const ratio=inRate/16000; const n=Math.round(input.length/ratio); const out=new Float32Array(n); for(let i=0;i<n;i++){ const idx=i*ratio; const i0=Math.floor(idx); const i1=Math.min(i0+1,input.length-1); const frac=idx-i0; out[i]=input[i0]*(1-frac)+input[i1]*frac; } return out; }
  function encodeWav(samples, sampleRate){ const buffer=new ArrayBuffer(44+samples.length*2); const view=new DataView(buffer); writeString(view,0,'RIFF'); view.setUint32(4,36+samples.length*2,true); writeString(view,8,'WAVE'); writeString(view,12,'fmt '); view.setUint32(16,16,true); view.setUint16(20,1,true); view.setUint16(22,1,true); view.setUint32(24,sampleRate,true); view.setUint32(28,sampleRate*2,true); view.setUint16(32,2,true); view.setUint16(34,16,true); writeString(view,36,'data'); view.setUint32(40,samples.length*2,true); floatTo16(view,44,samples); return buffer; }

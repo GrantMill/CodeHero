@@ -24,7 +24,7 @@
         </div>
     }
     <div @ref="bottom"></div>
-    </div>
+</div>
 
 <div class="input-group mt-2">
     <input class="form-control" placeholder="Type a command…" @bind="input" @bind:event="oninput" @onkeydown="OnKey" />
@@ -63,6 +63,23 @@
             </div>
             }
         </div>
+
+        @if (enableContinuous)
+        {
+        <div class="row row-cols-1 row-cols-md-2 g-2 mt-2">
+            <div class="col">
+                <label class="form-label mb-1">Sensitivity (lower = more sensitive)</label>
+                <input type="range" class="form-range" min="0.001" max="0.05" step="0.001" @bind-value="vadThreshold" @bind-value:event="oninput" @onchange="ApplyContinuousSettings" />
+                <div class="small text-muted">threshold=@vadThreshold:F3</div>
+            </div>
+            <div class="col">
+                <label class="form-label mb-1">Silence window (ms)</label>
+                <input type="range" class="form-range" min="200" max="2000" step="50" @bind-value="vadSilenceMs" @bind-value:event="oninput" @onchange="ApplyContinuousSettings" />
+                <div class="small text-muted">minSilenceMs=@vadSilenceMs</div>
+            </div>
+        </div>
+        }
+
         <div class="mt-2 small text-muted">@recStatus</div>
         @if (!string.IsNullOrWhiteSpace(supportStatus))
         {
@@ -95,6 +112,12 @@
     bool continuous = false;
     string phase = "Idle";
     DotNetObjectReference<AgentsChat>? selfRef;
+    SemaphoreSlim phraseGate = new(1,1);
+    CancellationTokenSource? continuousCts;
+
+    // VAD sliders
+    double vadThreshold =0.010; // default matches previous
+    int vadSilenceMs =800;
 
     protected override void OnInitialized()
     {
@@ -115,8 +138,21 @@
         if (continuous)
         {
             try { await JS.InvokeVoidAsync("codeheroAudio.continuous.stop"); } catch { }
+            continuousCts?.Cancel();
         }
         selfRef?.Dispose();
+        phraseGate.Dispose();
+    }
+
+    async Task ApplyContinuousSettings(ChangeEventArgs _)
+    {
+        if (!continuous) return;
+        try
+        {
+            await JS.InvokeVoidAsync("codeheroAudio.continuous.stop");
+            await JS.InvokeVoidAsync("codeheroAudio.continuous.start", selfRef, new { threshold = vadThreshold, minSilenceMs = vadSilenceMs });
+        }
+        catch { }
     }
 
     async Task Send()
@@ -160,7 +196,7 @@
         if (t.StartsWith("list req", StringComparison.OrdinalIgnoreCase))
         {
             var files = await Client.ListAsync(StoreRoot.Requirements, new[] { ".md" }, ct);
-            return files.Count == 0 ? "No requirements found." : string.Join("\n", files);
+            return files.Count ==0 ? "No requirements found." : string.Join("\n", files);
         }
         if (t.StartsWith("read ", StringComparison.OrdinalIgnoreCase))
         {
@@ -174,9 +210,9 @@
             // create <id> <title>
             var rest = t.Substring(7).Trim();
             var space = rest.IndexOf(' ');
-            if (space <= 0) return "Usage: create REQ-123 Title here";
+            if (space <=0) return "Usage: create REQ-123 Title here";
             var id = rest.Substring(0, space);
-            var title = rest.Substring(space + 1).Trim();
+            var title = rest.Substring(space +1).Trim();
             var created = await Client.ScribeCreateRequirementAsync(id, title, ct);
             return $"Created: {created}";
         }
@@ -196,7 +232,7 @@
         await Task.Yield();
     }
 
-    // Speech UI handlers (tap-to-record)
+    // Speech UI handlers
     async Task StartRecording()
     {
         try
@@ -226,11 +262,11 @@
             var streamRef = await JS.InvokeAsync<IJSStreamReference>("codeheroAudio.stopAsBlob");
             if (streamRef is not null)
             {
-                await using var stream = await streamRef.OpenReadStreamAsync(10 * 1024 * 1024); // 10MB cap
+                await using var stream = await streamRef.OpenReadStreamAsync(10 *1024 *1024); //10MB cap
                 using var ms = new MemoryStream();
                 await stream.CopyToAsync(ms);
                 audioBytes = ms.ToArray();
-                hasAudio = audioBytes.Length > 0;
+                hasAudio = audioBytes.Length >0;
                 recStatus = hasAudio ? $"Audio captured: {audioBytes!.Length} bytes" : "No audio";
                 await LoadAudioTag(audioBytes);
             }
@@ -241,7 +277,7 @@
                 if (!string.IsNullOrEmpty(base64))
                 {
                     audioBytes = Convert.FromBase64String(base64);
-                    hasAudio = audioBytes?.Length > 0;
+                    hasAudio = audioBytes?.Length >0;
                     recStatus = hasAudio ? $"Audio captured: {audioBytes!.Length} bytes" : "No audio";
                     await LoadAudioTag(audioBytes);
                 }
@@ -391,13 +427,15 @@
         if (!enableContinuous) return;
         if (!continuous)
         {
+            continuousCts = new CancellationTokenSource();
             phase = "Listening";
-            await JS.InvokeVoidAsync("codeheroAudio.continuous.start", selfRef, new { threshold = 0.01, minSilenceMs = 800 });
+            await JS.InvokeVoidAsync("codeheroAudio.continuous.start", selfRef, new { threshold = vadThreshold, minSilenceMs = vadSilenceMs });
             continuous = true;
         }
         else
         {
             await JS.InvokeVoidAsync("codeheroAudio.continuous.stop");
+            continuousCts?.Cancel();
             continuous = false;
             phase = "Idle";
         }
@@ -413,6 +451,16 @@
     [JSInvokable]
     public async Task OnPhrase(string base64)
     {
+        // Allow only one phrase in flight to avoid overlap
+        if (!await phraseGate.WaitAsync(0))
+        {
+            // drop overlapping phrase
+            return;
+        }
+        using var gateReleaser = new Releaser(phraseGate);
+
+        using var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+        using var linked = CancellationTokenSource.CreateLinkedTokenSource(timeoutCts.Token, continuousCts?.Token ?? CancellationToken.None);
         try
         {
             var bytes = Convert.FromBase64String(base64);
@@ -420,27 +468,31 @@
             var http = CreateLocalClient();
             using var content = new ByteArrayContent(bytes);
             content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("audio/wav");
-            var resp = await http.PostAsync("api/stt", content);
-            var text = resp.IsSuccessStatusCode ? (await resp.Content.ReadAsStringAsync()) : string.Empty;
+            var resp = await http.PostAsync("api/stt", content, linked.Token);
+            var text = resp.IsSuccessStatusCode ? (await resp.Content.ReadAsStringAsync(linked.Token)) : string.Empty;
             if (!string.IsNullOrWhiteSpace(text))
             {
                 lastTranscript = text;
                 messages.Add(new Msg("you", text));
                 phase = "Thinking";
                 // Ask agent and speak
-                var replyResp = await http.PostAsync("api/agent/chat", new StringContent(text));
+                var replyResp = await http.PostAsync("api/agent/chat", new StringContent(text), linked.Token);
                 if (replyResp.IsSuccessStatusCode)
                 {
-                    agentReply = await replyResp.Content.ReadAsStringAsync();
+                    agentReply = await replyResp.Content.ReadAsStringAsync(linked.Token);
                     messages.Add(new Msg("agent", agentReply));
-                    var tts = await http.PostAsync("api/tts?voice=en-US-JennyNeural", new StringContent(agentReply));
+                    var tts = await http.PostAsync("api/tts?voice=en-US-JennyNeural", new StringContent(agentReply), linked.Token);
                     if (tts.IsSuccessStatusCode)
                     {
-                        var wav = await tts.Content.ReadAsByteArrayAsync();
+                        var wav = await tts.Content.ReadAsByteArrayAsync(linked.Token);
                         await LoadAudioTag(wav);
                     }
                 }
             }
+        }
+        catch (OperationCanceledException)
+        {
+            messages.Add(new Msg("error", "Timed out processing phrase."));
         }
         catch (Exception ex)
         {
@@ -448,8 +500,16 @@
         }
         finally
         {
-            phase = "Listening";
+            phase = continuous ? "Listening" : "Idle";
             await InvokeAsync(StateHasChanged);
         }
+    }
+
+    private sealed class Releaser : IAsyncDisposable, IDisposable
+    {
+        private readonly SemaphoreSlim _gate;
+        public Releaser(SemaphoreSlim gate) => _gate = gate;
+        public void Dispose() => _gate.Release();
+        public ValueTask DisposeAsync() { _gate.Release(); return ValueTask.CompletedTask; }
     }
 }
