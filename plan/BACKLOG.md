@@ -3,6 +3,7 @@
 Legend: [A] = Agent can implement via PR, [H] = Human-in-loop (env/UX/product decision or external systems)
 
 Completed (most recent first)
+- [x] [H][REQ-001] Feature flag `Features:ContinuousDictation` documentation and defaults
 - [x] [A][REQ-001] Conversational mode: tests for OnPhrase pipeline (bUnit) and integration happy path
 - [x] [A][REQ-002] Unit tests for Orchestrator parsing (list/read/mishears)
 - [x] [A][REQ-002] Wire MCP Orchestrator agent and make it the default `IAgentService` (fallback)
@@ -20,7 +21,6 @@ Completed (most recent first)
 - [x] [A][REQ-001] Disable output cache for `api/stt` and `api/tts` routes
 
 Planned (priority order – top = next)
-- [ ] [A][REQ-001] Feature flag `Features:ContinuousDictation` docs and defaults
 - [ ] [A][REQ-002] Orchestrator LLM (Generalist with Tool Use)
  - [ ] [A][REQ-002] Define tool schema exposed to LLM (fs/list, fs/readText, fs/writeText, scribe/createRequirement)
  - [ ] [A][REQ-002] Prompt templates (system/developer) including guardrails and plan schema
@@ -46,8 +46,3 @@ Planned (priority order – top = next)
 - [ ] [H][REQ-001] Document speech feature flags and typical dev `appsettings`
 - [ ] [H][REQ-001] Update architecture diagrams to include health checks and named HttpClients
 - [ ] [A][REQ-002] Add Foundry Agent service and demo flow (STT -> Agent -> TTS)
-
-Notes
-- Keep PRs small and check off each item as it merges.
-- Items marked [H] may block dependent [A] work; sequence accordingly.
-- If any [H] turns into [A] (requirements clarified), re-tag and proceed.
