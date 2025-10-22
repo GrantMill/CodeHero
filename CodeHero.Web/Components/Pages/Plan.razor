@@ -5,6 +5,14 @@
 @inject FileStore Store
 
 <h3>Backlog</h3>
+
+<div class="card mb-3">
+ <div class="card-body">
+ <div class="mermaid">@roadmap</div>
+ </div>
+ <div class="card-footer small text-muted">Source: docs/roadmap.mmd</div>
+</div>
+
 <p class="text-muted">One list, prioritized top-to-bottom. <span title="Agent" class="bi bi-robot"></span> = agent task, <span title="Human" class="bi bi-person-badge"></span> = human task.</p>
 
 <div class="card">
@@ -25,10 +33,16 @@
 @code {
  record TaskItem(string Text, bool Checked, bool IsAgent);
  List<TaskItem> items = new();
+ string roadmap = "";
 
  protected override void OnInitialized()
  {
  items = ParseTasks(Store.ReadBacklog());
+ roadmap = Store.ReadRoadmap();
+ if (string.IsNullOrWhiteSpace(roadmap))
+ {
+ roadmap = "gantt\n title Roadmap (missing docs/roadmap.mmd)\n dateFormat YYYY-MM-DD\n section Demo\n Placeholder :done,2025-10-22,1d";
+ }
  }
 
  static List<TaskItem> ParseTasks(string md)
@@ -36,7 +50,6 @@
  var list = new List<TaskItem>();
  foreach (var line in md.Split('\n'))
  {
- // Match: - [ ] [A] Some text
  var m = Regex.Match(line, @"^\s*-\s*\[( |x|X)\]\s*\[(A|H)\]\s*(.*)$");
  if (m.Success)
  {
