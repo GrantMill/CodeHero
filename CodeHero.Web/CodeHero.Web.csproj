@@ -4,6 +4,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <UserSecretsId>codehero-web-2a2b7d44-0a2a-46a3-9e4e-2d7f2f9b7a11</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
