@@ -22,7 +22,7 @@ public sealed class LlmOrchestratorAgentService : IAgentService
     private PendingApproval? _pendingApproval; // file write approval
     private PendingRequirement? _pendingReq; // interactive create wizard
 
-    private sealed record PendingApproval(StoreRoot Root, string Name, string Content);
+    private sealed record PendingApproval(StoreRoot Root, string Name, string Content, string Diff);
     private enum ReqStage { None, AwaitingTitle, AwaitingDescription, AwaitingCriteria }
     private sealed class PendingRequirement
     {
@@ -51,14 +51,34 @@ public sealed class LlmOrchestratorAgentService : IAgentService
         using var activity = AgentTelemetry.Activity.StartActivity("orchestrator.chat");
         try
         {
+            // Start over/reset command
+            if (IsStartOver(text))
+            {
+                _pendingApproval = null;
+                _pendingWrite = null;
+                _pendingReq = new PendingRequirement { Stage = ReqStage.AwaitingTitle };
+                return "[answer] reset. What is the title?";
+            }
+
             // Handle approval/cancel for file write
             if (_pendingApproval is not null)
             {
                 if (IsApproval(text))
                 {
-                    await _mcp.WriteTextAsync(_pendingApproval.Root, _pendingApproval.Name, _pendingApproval.Content, new[] { ".md" }, ct);
-                    var saved = _pendingApproval.Name; _pendingApproval = null; _pendingWrite = null; _pendingReq = null;
-                    return $"[fs/writeText] Saved: {saved}";
+                    var pending = _pendingApproval; // local copy
+                    try
+                    {
+                        await _mcp.CodeEditAsync(pending.Root, pending.Name, pending.Content, expectedDiff: pending.Diff, ct: ct);
+                        _pendingApproval = null; _pendingWrite = null; _pendingReq = null;
+                        return $"[fs/writeText] Saved: {pending.Name}";
+                    }
+                    catch (Exception ex)
+                    {
+                        // Diff changed or write failed; refresh diff and re-prompt
+                        var latest = await _mcp.CodeDiffAsync(pending.Root, pending.Name, pending.Content, original: null, ct: ct);
+                        _pendingApproval = new PendingApproval(pending.Root, pending.Name, pending.Content, latest);
+                        return $"[approval] Diff changed or write failed ({ex.Message}). Review new diff and reply 'approve' to apply or 'cancel' to discard:\n{latest}";
+                    }
                 }
                 if (IsCancel(text))
                 {
@@ -180,7 +200,7 @@ public sealed class LlmOrchestratorAgentService : IAgentService
         var file = nextId + ".md";
         var content = BuildRequirementContent(nextId, _pendingReq.Title ?? "New Requirement", _pendingReq.Description ?? string.Empty, _pendingReq.Criteria);
         var diff = await _mcp.CodeDiffAsync(StoreRoot.Requirements, file, content, original: null, ct: ct);
-        _pendingApproval = new PendingApproval(StoreRoot.Requirements, file, content);
+        _pendingApproval = new PendingApproval(StoreRoot.Requirements, file, content, diff);
         return $"[approval] Ready to create {file}. Review diff and reply 'approve' to apply or 'cancel' to discard:\n{diff}";
     }
 
@@ -245,6 +265,16 @@ public sealed class LlmOrchestratorAgentService : IAgentService
                s.Equals("no", StringComparison.OrdinalIgnoreCase) ||
                s.Equals("reject", StringComparison.OrdinalIgnoreCase) ||
                s.Equals("decline", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool IsStartOver(string text)
+    {
+        var s = text.Trim();
+        return s.Equals("start over", StringComparison.OrdinalIgnoreCase) ||
+               s.Equals("reset", StringComparison.OrdinalIgnoreCase) ||
+               s.Equals("restart", StringComparison.OrdinalIgnoreCase) ||
+               s.Equals("begin again", StringComparison.OrdinalIgnoreCase) ||
+               s.Equals("discard", StringComparison.OrdinalIgnoreCase);
     }
 
     private async Task<Plan> ComposePlanAsync(string input, CancellationToken ct)
