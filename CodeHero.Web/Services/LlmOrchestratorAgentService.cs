@@ -17,6 +17,21 @@ public sealed class LlmOrchestratorAgentService : IAgentService
     private readonly string _apiVersion; // used for deployments route
     private readonly bool _useModelsRoute;
 
+    // Pending approval state
+    private PlanStep? _pendingWrite; // legacy plan-based approval
+    private PendingApproval? _pendingApproval; // file write approval
+    private PendingRequirement? _pendingReq; // interactive create wizard
+
+    private sealed record PendingApproval(StoreRoot Root, string Name, string Content);
+    private enum ReqStage { None, AwaitingTitle, AwaitingDescription, AwaitingCriteria }
+    private sealed class PendingRequirement
+    {
+        public ReqStage Stage { get; set; } = ReqStage.None;
+        public string? Title { get; set; }
+        public string? Description { get; set; }
+        public List<string> Criteria { get; } = new();
+    }
+
     public LlmOrchestratorAgentService(IMcpClient mcp, IConfiguration cfg, ILogger<LlmOrchestratorAgentService> log, IHttpClientFactory http)
     {
         _mcp = mcp; _log = log; _http = http;
@@ -27,17 +42,8 @@ public sealed class LlmOrchestratorAgentService : IAgentService
         _model = cfg["AzureAI:Foundry:Model"] ?? string.Empty;
         _apiVersion = cfg["AzureAI:Foundry:ApiVersion"] ?? "2024-08-01-preview";
         _useModelsRoute = ep.Contains("/models", StringComparison.OrdinalIgnoreCase);
-
-        // Sensible default model if models route is used without explicit model
-        if (_useModelsRoute && string.IsNullOrWhiteSpace(_model))
-        {
-            _model = "gpt-4o-mini";
-        }
-        // Sensible default deployment if deployments route is used without explicit deployment
-        if (!_useModelsRoute && string.IsNullOrWhiteSpace(_deployment))
-        {
-            _deployment = "gpt-4o-mini";
-        }
+        if (_useModelsRoute && string.IsNullOrWhiteSpace(_model)) _model = "gpt-4o-mini";
+        if (!_useModelsRoute && string.IsNullOrWhiteSpace(_deployment)) _deployment = "gpt-4o-mini";
     }
 
     public async Task<string> ChatAsync(string text, CancellationToken ct = default)
@@ -45,12 +51,84 @@ public sealed class LlmOrchestratorAgentService : IAgentService
         using var activity = AgentTelemetry.Activity.StartActivity("orchestrator.chat");
         try
         {
+            // Handle approval/cancel for file write
+            if (_pendingApproval is not null)
+            {
+                if (IsApproval(text))
+                {
+                    await _mcp.WriteTextAsync(_pendingApproval.Root, _pendingApproval.Name, _pendingApproval.Content, new[] { ".md" }, ct);
+                    var saved = _pendingApproval.Name; _pendingApproval = null; _pendingWrite = null; _pendingReq = null;
+                    return $"[fs/writeText] Saved: {saved}";
+                }
+                if (IsCancel(text)) { _pendingApproval = null; return "[answer] cancelled"; }
+            }
+
+            // Interactive create wizard states
+            if (_pendingReq is not null)
+            {
+                switch (_pendingReq.Stage)
+                {
+                    case ReqStage.AwaitingTitle:
+                        {
+                            var title = BuildTitle(text, "REQ-000");
+                            _pendingReq.Title = string.IsNullOrWhiteSpace(title) ? "New Requirement" : title;
+                            _pendingReq.Stage = ReqStage.AwaitingDescription;
+                            return "[answer] Got the title. Please provide a short description.";
+                        }
+                    case ReqStage.AwaitingDescription:
+                        {
+                            _pendingReq.Description = text.Trim();
+                            // Suggest criteria from description
+                            _pendingReq.Criteria.Clear();
+                            foreach (var c in SuggestCriteria(_pendingReq.Description)) _pendingReq.Criteria.Add(c);
+                            _pendingReq.Stage = ReqStage.AwaitingCriteria;
+                            var suggestion = string.Join("\n", _pendingReq.Criteria.Select(c => "- [ ] " + c));
+                            return "[answer] Suggested acceptance criteria:\n" + suggestion + "\nReply 'approve' to accept or paste your own checklist (one per line).";
+                        }
+                    case ReqStage.AwaitingCriteria:
+                        {
+                            if (IsApproval(text))
+                            {
+                                return await PreparePreviewAndApprovalAsync(ct);
+                            }
+                            else
+                            {
+                                // Treat user input as custom criteria lines
+                                var lines = text.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                                    .Select(l => l.Trim().TrimStart('-', '*').Trim())
+                                    .Where(l => !string.IsNullOrWhiteSpace(l))
+                                    .ToList();
+                                if (lines.Count > 0) { _pendingReq.Criteria.Clear(); _pendingReq.Criteria.AddRange(lines); }
+                                return await PreparePreviewAndApprovalAsync(ct);
+                            }
+                        }
+                }
+            }
+
+            // Creation intent: start wizard
+            if (IsCreateIntent(text))
+            {
+                _pendingReq = new PendingRequirement { Stage = ReqStage.AwaitingTitle };
+                return "[answer] Let's add a new requirement. What is the title?";
+            }
+
+            // Handle approval/cancel for legacy plan step
+            if (IsApproval(text) && _pendingWrite is not null)
+            {
+                var executed = await ExecuteAsync(_pendingWrite, ct);
+                _pendingWrite = null;
+                return executed;
+            }
+            if (IsCancel(text) && _pendingWrite is not null)
+            {
+                _pendingWrite = null;
+                return "[answer] cancelled";
+            }
+
+            // Normal planning path
             var plan = await ComposePlanAsync(text, ct);
-            if (plan.Steps.Count ==0)
-                return await AnswerDirectAsync(text, ct);
-
+            if (plan.Steps.Count == 0) return await AnswerDirectAsync(text, ct);
             _log.LogInformation("Agent plan steps: {Steps}", string.Join(", ", plan.Steps.Select(s => s.Tool)));
-
             var results = new List<string>();
             foreach (var step in plan.Steps)
             {
@@ -58,6 +136,16 @@ public sealed class LlmOrchestratorAgentService : IAgentService
                 var sw = System.Diagnostics.Stopwatch.StartNew();
                 try
                 {
+                    // For legacy create step, keep approval diff
+                    if (step.Tool == "scribe/createRequirement" && !IsApproval(text))
+                    {
+                        var title = step.Parameters.TryGetProperty("title", out var t) ? t.GetString() ?? "New Requirement" : "New Requirement";
+                        var preview = await _mcp.ScribePreviewCreateRequirementAsync(title, ct);
+                        var diff = await _mcp.CodeDiffAsync(StoreRoot.Requirements, preview.File, preview.Content, original: null, ct: ct);
+                        _pendingWrite = step;
+                        results.Add($"[approval] Ready to create {preview.File}. Review diff and reply 'approve' to apply or 'cancel' to discard:\n{diff}");
+                        continue;
+                    }
                     var output = await ExecuteAsync(step, ct);
                     results.Add($"[{step.Tool}] {output}");
                     AgentTelemetry.Steps.Add(1);
@@ -67,10 +155,7 @@ public sealed class LlmOrchestratorAgentService : IAgentService
                     AgentTelemetry.Errors.Add(1);
                     results.Add($"[{step.Tool}] error: {ex.Message}");
                 }
-                finally
-                {
-                    sw.Stop(); AgentTelemetry.StepDurationMs.Record(sw.Elapsed.TotalMilliseconds);
-                }
+                finally { sw.Stop(); AgentTelemetry.StepDurationMs.Record(sw.Elapsed.TotalMilliseconds); }
             }
             return string.Join("\n", results);
         }
@@ -80,6 +165,80 @@ public sealed class LlmOrchestratorAgentService : IAgentService
             _log.LogError(ex, "LLM orchestrator failed");
             return $"Error: {ex.Message}";
         }
+    }
+
+    private async Task<string> PreparePreviewAndApprovalAsync(CancellationToken ct)
+    {
+        if (_pendingReq is null) return "[answer] Nothing to save.";
+        var nextId = await _mcp.ScribeNextIdAsync(ct); // e.g., REQ-006
+        var file = nextId + ".md";
+        var content = BuildRequirementContent(nextId, _pendingReq.Title ?? "New Requirement", _pendingReq.Description ?? string.Empty, _pendingReq.Criteria);
+        var diff = await _mcp.CodeDiffAsync(StoreRoot.Requirements, file, content, original: null, ct: ct);
+        _pendingApproval = new PendingApproval(StoreRoot.Requirements, file, content);
+        return $"[approval] Ready to create {file}. Review diff and reply 'approve' to apply or 'cancel' to discard:\n{diff}";
+    }
+
+    private static string BuildRequirementContent(string id, string title, string description, List<string> criteria)
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine("---");
+        sb.AppendLine($"id: {id}");
+        sb.AppendLine($"title: {title}");
+        sb.AppendLine("status: draft");
+        sb.AppendLine($"start: {DateTime.UtcNow:yyyy-MM-dd}");
+        sb.AppendLine("---");
+        sb.AppendLine(string.IsNullOrWhiteSpace(description) ? "Short description." : description.Trim());
+        sb.AppendLine();
+        sb.AppendLine("Acceptance");
+        foreach (var c in criteria.DefaultIfEmpty("Defined and testable acceptance criteria agreed."))
+        {
+            sb.AppendLine("- [ ] " + c);
+        }
+        return sb.ToString();
+    }
+
+    private static IEnumerable<string> SuggestCriteria(string description)
+    {
+        var list = new List<string>();
+        if (!string.IsNullOrWhiteSpace(description))
+        {
+            list.Add("User can complete the described task end-to-end without manual steps.");
+            list.Add("Voice and keyboard interactions both work (where applicable).");
+            list.Add("Errors are handled with clear feedback.");
+            list.Add("Basic accessibility: screen reader labels and focus order are correct.");
+        }
+        else
+        {
+            list.Add("Feature is discoverable and documented in the UI.");
+            list.Add("Happy path scenario succeeds.");
+            list.Add("At least one negative path is handled.");
+        }
+        return list;
+    }
+
+    private static bool IsCreateIntent(string input)
+    {
+        var s = input.ToLowerInvariant();
+        return s.StartsWith("create") || s.StartsWith("add") || s.Contains("new requirement") || (s.Contains("requirement") && s.Contains("new"));
+    }
+
+    private static bool IsApproval(string text)
+    {
+        var s = text.Trim();
+        return s.Equals("approve", StringComparison.OrdinalIgnoreCase) ||
+               s.Equals("approved", StringComparison.OrdinalIgnoreCase) ||
+               s.Equals("yes", StringComparison.OrdinalIgnoreCase) ||
+               s.Equals("ok", StringComparison.OrdinalIgnoreCase) ||
+               s.Equals("confirm", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool IsCancel(string text)
+    {
+        var s = text.Trim();
+        return s.Equals("cancel", StringComparison.OrdinalIgnoreCase) ||
+               s.Equals("no", StringComparison.OrdinalIgnoreCase) ||
+               s.Equals("reject", StringComparison.OrdinalIgnoreCase) ||
+               s.Equals("decline", StringComparison.OrdinalIgnoreCase);
     }
 
     private async Task<Plan> ComposePlanAsync(string input, CancellationToken ct)
@@ -136,7 +295,7 @@ public sealed class LlmOrchestratorAgentService : IAgentService
         text = " " + text + " ";
         // numeric digits anywhere
         var digits = new string(text.Where(char.IsDigit).ToArray());
-        if (!string.IsNullOrEmpty(digits) && int.TryParse(digits, out var n) && n >0)
+        if (!string.IsNullOrEmpty(digits) && int.TryParse(digits, out var n) && n > 0)
             return n;
         // word numbers
         var map = WordNumbers;
@@ -149,8 +308,17 @@ public sealed class LlmOrchestratorAgentService : IAgentService
 
     private static readonly Dictionary<string, int> WordNumbers = new(StringComparer.OrdinalIgnoreCase)
     {
-        ["zero"] =0, ["one"] =1, ["two"] =2, ["three"] =3, ["four"] =4, ["five"] =5,
-        ["six"] =6, ["seven"] =7, ["eight"] =8, ["nine"] =9, ["ten"] =10
+        ["zero"] = 0,
+        ["one"] = 1,
+        ["two"] = 2,
+        ["three"] = 3,
+        ["four"] = 4,
+        ["five"] = 5,
+        ["six"] = 6,
+        ["seven"] = 7,
+        ["eight"] = 8,
+        ["nine"] = 9,
+        ["ten"] = 10
     };
 
     private static int? ExtractSingleRequirementNumber(string input)
@@ -158,7 +326,7 @@ public sealed class LlmOrchestratorAgentService : IAgentService
         // word number
         foreach (var kv in WordNumbers)
         {
-            if (input.IndexOf(kv.Key, StringComparison.OrdinalIgnoreCase) >=0)
+            if (input.IndexOf(kv.Key, StringComparison.OrdinalIgnoreCase) >= 0)
                 return kv.Value;
         }
         // digits
@@ -201,7 +369,7 @@ public sealed class LlmOrchestratorAgentService : IAgentService
         // list top/first N requirements even without explicit 'list/show'
         if (ContainsPluralRequirements(input) && (text.Contains("top") || text.Contains("first") || text.Contains("limit")))
         {
-            var limit = ParseLimit(input) ??2;
+            var limit = ParseLimit(input) ?? 2;
             var param = JsonSerializer.SerializeToElement(new { root = "requirements", exts = new[] { ".md" }, limit });
             return new Plan { Steps = { new PlanStep { Tool = "fs/list", Parameters = param } } };
         }
@@ -263,9 +431,9 @@ public sealed class LlmOrchestratorAgentService : IAgentService
         // Remove used digits of id
         var digits = new string(id.Where(char.IsDigit).ToArray());
         if (!string.IsNullOrEmpty(digits)) title = title.Replace(digits, string.Empty);
-        // Collapse spaces
+        // Collapse spaces and trim punctuation
         var parts = title.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-        var cleaned = string.Join(' ', parts);
+        var cleaned = string.Join(' ', parts).Trim().TrimEnd('.', '!', '?', ':', ';');
         return string.IsNullOrWhiteSpace(cleaned) ? "New Requirement" : cleaned;
     }
 
@@ -308,7 +476,7 @@ public sealed class LlmOrchestratorAgentService : IAgentService
                 new { role = "system", content = systemPrompt },
                 new { role = "user", content = userText }
             },
-            temperature =0,
+            temperature = 0,
             response_format = new { type = "json_object" },
             model = _useModelsRoute ? _model : null
         };
@@ -337,9 +505,9 @@ public sealed class LlmOrchestratorAgentService : IAgentService
                     var root = StoreRoot.Requirements;
                     var exts = new[] { ".md" };
                     var files = await _mcp.ListAsync(root, exts, ct);
-                    int limit = step.Parameters.TryGetProperty("limit", out var l) && l.TryGetInt32(out var li) && li >0 ? li : int.MaxValue;
+                    int limit = step.Parameters.TryGetProperty("limit", out var l) && l.TryGetInt32(out var li) && li > 0 ? li : int.MaxValue;
                     var sliced = files.Take(limit).ToArray();
-                    return sliced.Length ==0 ? "(none)" : string.Join("\n", sliced);
+                    return sliced.Length == 0 ? "(none)" : string.Join("\n", sliced);
                 }
             case "fs/count":
                 {

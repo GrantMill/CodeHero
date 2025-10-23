@@ -12,5 +12,9 @@ public interface IMcpClient : IAsyncDisposable
     Task<IReadOnlyList<string>> ListAgentsAsync(CancellationToken ct = default);
     Task<JsonElement> GetAgentCapabilitiesAsync(string agent, CancellationToken ct = default);
     Task<string> ScribeCreateRequirementAsync(string id, string title, CancellationToken ct = default);
+    // Approval helpers
+    Task<string> ScribeNextIdAsync(CancellationToken ct = default);
+    Task<(string Id, string File, string Content)> ScribePreviewCreateRequirementAsync(string title, CancellationToken ct = default);
+    Task<string> CodeDiffAsync(StoreRoot root, string name, string content, string? original = null, CancellationToken ct = default);
     Task ShutdownAsync(CancellationToken ct = default);
 }

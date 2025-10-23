@@ -60,7 +60,7 @@ public sealed class McpClient : IMcpClient
         int count = 0;
         while (true)
         {
-            int r = await s.ReadAsync(one.AsMemory(0,1), ct);
+            int r = await s.ReadAsync(one.AsMemory(0, 1), ct);
             if (r == 0) throw new EndOfStreamException();
             header.Write(one, 0, 1);
             last4[count % 4] = one[0];
@@ -147,6 +147,43 @@ public sealed class McpClient : IMcpClient
         var resp = await ReadAsync(_out, ct);
         using var doc = JsonDocument.Parse(resp);
         return doc.RootElement.GetProperty("result").GetProperty("created").GetString() ?? string.Empty;
+    }
+
+    public async Task<string> ScribeNextIdAsync(CancellationToken ct = default)
+    {
+        await SendAsync(_in, new { jsonrpc = "2.0", method = "scribe/nextId", id = "9" }, ct);
+        var resp = await ReadAsync(_out, ct);
+        using var doc = JsonDocument.Parse(resp);
+        return doc.RootElement.GetProperty("result").GetProperty("id").GetString() ?? "REQ-001";
+    }
+
+    public async Task<(string Id, string File, string Content)> ScribePreviewCreateRequirementAsync(string title, CancellationToken ct = default)
+    {
+        await SendAsync(_in, new { jsonrpc = "2.0", method = "scribe/previewCreateRequirement", id = "10", @params = new { title } }, ct);
+        var resp = await ReadAsync(_out, ct);
+        using var doc = JsonDocument.Parse(resp);
+        var root = doc.RootElement.GetProperty("result");
+        var id = root.GetProperty("id").GetString() ?? "REQ-001";
+        var file = root.GetProperty("file").GetString() ?? "REQ-001.md";
+        var content = root.GetProperty("content").GetString() ?? string.Empty;
+        return (id, file, content);
+    }
+
+    public async Task<string> CodeDiffAsync(StoreRoot root, string name, string content, string? original = null, CancellationToken ct = default)
+    {
+        object @params;
+        if (original is null)
+        {
+            @params = new { root = root.ToString().ToLowerInvariant(), name, content };
+        }
+        else
+        {
+            @params = new { root = root.ToString().ToLowerInvariant(), name, content, original };
+        }
+        await SendAsync(_in, new { jsonrpc = "2.0", method = "code/diff", id = "11", @params }, ct);
+        var resp = await ReadAsync(_out, ct);
+        using var doc = JsonDocument.Parse(resp);
+        return doc.RootElement.GetProperty("result").GetProperty("diff").GetString() ?? string.Empty;
     }
 
     public async Task ShutdownAsync(CancellationToken ct = default)

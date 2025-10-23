@@ -30,6 +30,11 @@ public class McpOrchestratorAgentServiceTests
         => Task.FromResult(JsonDocument.Parse("{}").RootElement);
         public Task<string> ScribeCreateRequirementAsync(string id, string title, CancellationToken ct = default)
         => Task.FromResult($"REQ-{id}.md");
+        public Task<string> ScribeNextIdAsync(CancellationToken ct = default) => Task.FromResult("REQ-002");
+        public Task<(string Id, string File, string Content)> ScribePreviewCreateRequirementAsync(string title, CancellationToken ct = default)
+        => Task.FromResult(("REQ-002", "REQ-002.md", $"---\nid: REQ-002\ntitle: {title}\nstatus: draft\n---\nShort description.\n"));
+        public Task<string> CodeDiffAsync(StoreRoot root, string name, string content, string? original = null, CancellationToken ct = default)
+        => Task.FromResult($"--- a/{name}\n+++ b/{name}\n+preview");
         public Task ShutdownAsync(CancellationToken ct = default) => Task.CompletedTask;
     }
 

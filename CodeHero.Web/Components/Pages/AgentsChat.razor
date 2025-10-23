@@ -26,6 +26,31 @@
     <div @ref="bottom"></div>
 </div>
 
+@if (showApproval)
+{
+<div class="modal d-block" tabindex="-1" style="background:rgba(0,0,0,.35)">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Approval required</h5>
+                <button type="button" class="btn-close" aria-label="Close" @onclick="CancelPendingAsync"></button>
+            </div>
+            <div class="modal-body">
+                @if (!string.IsNullOrWhiteSpace(approvalHeader))
+                {
+                <div class="small text-muted mb-2">@approvalHeader</div>
+                }
+                <pre class="border rounded p-2" style="white-space:pre; max-height:50vh; overflow:auto">@approvalDiff</pre>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline-secondary" @onclick="CancelPendingAsync">Cancel</button>
+                <button class="btn btn-primary" @onclick="ApprovePendingAsync">Approve</button>
+            </div>
+        </div>
+    </div>
+</div>
+}
+
 <div class="card mt-3">
     <div class="card-header">Conversational mode</div>
     <div class="card-body">
@@ -77,6 +102,11 @@
     string supportStatus = string.Empty;
     string lastTranscript = string.Empty;
     string agentReply = string.Empty;
+
+    // Approval modal state
+    bool showApproval = false;
+    string? approvalHeader;
+    string? approvalDiff;
 
     // Continuous mode
     bool enableContinuous = false;
@@ -130,6 +160,48 @@
     {
         var b64 = Convert.ToBase64String(bytes);
         await JS.InvokeVoidAsync("codeheroAudio.load", audioRef, "data:audio/wav;base64," + b64);
+    }
+
+    async Task ApprovePendingAsync()
+    {
+        showApproval = false;
+        var http = HttpFactory.CreateClient();
+        if (http.BaseAddress is null) http.BaseAddress = new Uri(Nav.BaseUri, UriKind.Absolute);
+        var you = "approve";
+        messages.Add(new Msg("you", you));
+        var replyResp = await http.PostAsync("api/agent/chat", new StringContent(you));
+        if (replyResp.IsSuccessStatusCode)
+        {
+            var reply = await replyResp.Content.ReadAsStringAsync();
+            messages.Add(new Msg("agent", reply));
+            // Speak non-approval replies
+            if (!reply.StartsWith("[approval]", StringComparison.OrdinalIgnoreCase))
+            {
+                var tts = await http.PostAsync("api/tts?voice=en-US-JennyNeural", new StringContent(reply));
+                if (tts.IsSuccessStatusCode)
+                {
+                    var wav = await tts.Content.ReadAsByteArrayAsync();
+                    await LoadAudioTag(wav);
+                }
+            }
+        }
+        await InvokeAsync(StateHasChanged);
+    }
+
+    async Task CancelPendingAsync()
+    {
+        showApproval = false;
+        var http = HttpFactory.CreateClient();
+        if (http.BaseAddress is null) http.BaseAddress = new Uri(Nav.BaseUri, UriKind.Absolute);
+        var you = "cancel";
+        messages.Add(new Msg("you", you));
+        var replyResp = await http.PostAsync("api/agent/chat", new StringContent(you));
+        if (replyResp.IsSuccessStatusCode)
+        {
+            var reply = await replyResp.Content.ReadAsStringAsync();
+            messages.Add(new Msg("agent", reply));
+        }
+        await InvokeAsync(StateHasChanged);
     }
 
     // Continuous mode helpers
@@ -197,11 +269,20 @@
                 {
                     agentReply = await replyResp.Content.ReadAsStringAsync(linked.Token);
                     messages.Add(new Msg("agent", agentReply));
-                    var tts = await http.PostAsync("api/tts?voice=en-US-JennyNeural", new StringContent(agentReply), linked.Token);
-                    if (tts.IsSuccessStatusCode)
+
+                    // If this is an approval prompt, show dialog and do not TTS
+                    if (agentReply.StartsWith("[approval]", StringComparison.OrdinalIgnoreCase))
                     {
-                        var wav = await tts.Content.ReadAsByteArrayAsync(linked.Token);
-                        await LoadAudioTag(wav);
+                        ShowApproval(agentReply);
+                    }
+                    else
+                    {
+                        var tts = await http.PostAsync("api/tts?voice=en-US-JennyNeural", new StringContent(agentReply), linked.Token);
+                        if (tts.IsSuccessStatusCode)
+                        {
+                            var wav = await tts.Content.ReadAsByteArrayAsync(linked.Token);
+                            await LoadAudioTag(wav);
+                        }
                     }
                 }
             }
@@ -219,6 +300,24 @@
             phase = continuous ? "Listening" : "Idle";
             await InvokeAsync(StateHasChanged);
         }
+    }
+
+    void ShowApproval(string reply)
+    {
+        showApproval = true;
+        // Split header and diff at first newline
+        var idx = reply.IndexOf('\n');
+        if (idx >0)
+        {
+            approvalHeader = reply.Substring(0, idx).Trim();
+            approvalDiff = reply.Substring(idx +1);
+        }
+        else
+        {
+            approvalHeader = "Approval required";
+            approvalDiff = reply;
+        }
+        StateHasChanged();
     }
 
     private sealed class Releaser : IAsyncDisposable, IDisposable
