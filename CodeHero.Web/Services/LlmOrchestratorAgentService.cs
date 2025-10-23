@@ -60,7 +60,13 @@ public sealed class LlmOrchestratorAgentService : IAgentService
                     var saved = _pendingApproval.Name; _pendingApproval = null; _pendingWrite = null; _pendingReq = null;
                     return $"[fs/writeText] Saved: {saved}";
                 }
-                if (IsCancel(text)) { _pendingApproval = null; return "[answer] cancelled"; }
+                if (IsCancel(text))
+                {
+                    _pendingApproval = null;
+                    _pendingReq = null; // clear interactive wizard state on cancel
+                    _pendingWrite = null;
+                    return "[answer] cancelled";
+                }
             }
 
             // Interactive create wizard states
