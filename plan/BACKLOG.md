@@ -3,6 +3,13 @@
 Legend: [A] = Agent can implement via PR, [H] = Human-in-loop (env/UX/product decision or external systems)
 
 Completed (most recent first)
+- [x] [A][REQ-002] Heuristics: list/read/create intents incl. word numbers, "top N", and "last requirement"
+- [x] [A][REQ-002] Foundry models/deployments route support; demo STT ? Agent ? TTS flow
+- [x] [A][REQ-001] Ensure `Expect:100-Continue` on STT/TTS HttpClients
+- [x] [A][REQ-002] Telemetry: traces for plan steps and tool calls
+- [x] [A][REQ-002] Planner returns plan JSON; Executor executes via IMcpClient (read-only tools)
+- [x] [A][REQ-002] Prompt templates (system/developer) including guardrails and plan schema
+- [x] [A][REQ-002] Define tool schema and allowlist for LLM (fs/list, fs/readText, scribe/createRequirement)
 - [x] [H][REQ-001] Feature flag `Features:ContinuousDictation` documentation and defaults
 - [x] [A][REQ-001] Conversational mode: tests for OnPhrase pipeline (bUnit) and integration happy path
 - [x] [A][REQ-002] Unit tests for Orchestrator parsing (list/read/mishears)
@@ -22,10 +29,12 @@ Completed (most recent first)
 
 Planned (priority order – top = next)
 - [ ] [A][REQ-002] Orchestrator LLM (Generalist with Tool Use)
- - [ ] [A][REQ-002] Define tool schema exposed to LLM (fs/list, fs/readText, fs/writeText, scribe/createRequirement)
- - [ ] [A][REQ-002] Prompt templates (system/developer) including guardrails and plan schema
- - [ ] [A][REQ-002] Planner returns plan JSON; Executor executes via IMcpClient, with approval gate for writes
- - [ ] [A][REQ-002] Telemetry: traces for plan steps and tool calls
+ - [x] [A][REQ-002] Define tool schema exposed to LLM (fs/list, fs/readText, scribe/createRequirement)
+ - [x] [A][REQ-002] Prompt templates (system/developer) including guardrails and plan schema
+ - [ ] [A][REQ-002] Approval gate for write tools (preview diff, confirm before apply)
+ - [ ] [A][REQ-004] Diff/preview support: implement `code/diff` and wire into approval flow
+ - [x] [A][REQ-002] Planner returns plan JSON; Executor executes via IMcpClient (read ops)
+ - [x] [A][REQ-002] Telemetry: traces for plan steps and tool calls
 - [ ] [A][REQ-003] RAG over Repo (Docs, Diagrams, Code)
  - [ ] [A][REQ-003] Choose embeddings model/provider and storage (local SQLite/FAISS)
  - [ ] [A][REQ-003] Indexer job to update embeddings on file changes
@@ -35,7 +44,6 @@ Planned (priority order – top = next)
  - [ ] [A][REQ-004] Implement `code/edit` tool with safe patch apply
  - [ ] [A][REQ-004] Implement `code/test` tool and capture results
  - [ ] [A][REQ-004] Wire tools into Orchestrator planner/executor
-- [ ] [A][REQ-001] Ensure `Expect:100-Continue` on STT uploads (verify header observed)
 - [ ] [A][REQ-001] Add locale/voice pickers in `AgentsChat.razor`
 - [ ] [A][REQ-001] Improve `wwwroot/js/audio.js` to guarantee WAV16?bit PCM @16kHz and better error handling
 - [ ] [A][REQ-001] Add locale auto-detect fallback if `language` not provided (server-side)
@@ -45,4 +53,3 @@ Planned (priority order – top = next)
 - [ ] [H][REQ-001] Document endpoint scheme/port troubleshooting and dev cert trust steps
 - [ ] [H][REQ-001] Document speech feature flags and typical dev `appsettings`
 - [ ] [H][REQ-001] Update architecture diagrams to include health checks and named HttpClients
-- [ ] [A][REQ-002] Add Foundry Agent service and demo flow (STT -> Agent -> TTS)
