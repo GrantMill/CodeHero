@@ -202,6 +202,7 @@ static string Handle(string json, IServiceProvider services)
             "fs/writeText" => Serialize(Ok(req.Id, FsWriteText(req.Params, services))),
             // Code tools
             "code/diff" => Serialize(Ok(req.Id, new { diff = CodeDiff(req.Params, services) })),
+            "code/edit" => Serialize(Ok(req.Id, CodeEdit(req.Params, services))),
             _ => Serialize(Error(req.Id, -32601, $"Method not found: {req.Method}"))
         };
     }
@@ -209,6 +210,28 @@ static string Handle(string json, IServiceProvider services)
     {
         return Serialize(Error(req.Id, -32000, ex.Message));
     }
+}
+
+static object CodeEdit(JsonElement? @params, IServiceProvider services)
+{
+    var p = @params ?? throw new InvalidOperationException("params required");
+    var root = ParseRoot(p.GetProperty("root").GetString()!);
+    var name = p.GetProperty("name").GetString()!;
+    var content = p.GetProperty("content").GetString() ?? string.Empty;
+    var hasExpected = p.TryGetProperty("expectedDiff", out var expEl) && expEl.ValueKind == JsonValueKind.String;
+    if (hasExpected)
+    {
+        // Verify expected diff matches current->content
+        var expected = expEl!.GetString() ?? string.Empty;
+        var diff = CodeDiff(JsonSerializer.SerializeToElement(new { root = root.ToString().ToLowerInvariant(), name, content }), services);
+        if (!string.Equals(expected.Trim(), diff.Trim(), StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException("Diff changed since preview. Please refresh and approve again.");
+        }
+    }
+    var store = new FileStore(services.GetRequiredService<IConfiguration>(), services.GetRequiredService<IWebHostEnvironment>());
+    store.WriteText(root, name, content, ".md");
+    return new { ok = true, name };
 }
 
 static string CodeDiff(JsonElement? @params, IServiceProvider services)

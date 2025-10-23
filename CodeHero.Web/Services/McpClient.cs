@@ -186,6 +186,15 @@ public sealed class McpClient : IMcpClient
         return doc.RootElement.GetProperty("result").GetProperty("diff").GetString() ?? string.Empty;
     }
 
+    public async Task CodeEditAsync(StoreRoot root, string name, string content, string? expectedDiff = null, CancellationToken ct = default)
+    {
+        object @params = expectedDiff is null
+            ? new { root = root.ToString().ToLowerInvariant(), name, content }
+            : new { root = root.ToString().ToLowerInvariant(), name, content, expectedDiff };
+        await SendAsync(_in, new { jsonrpc = "2.0", method = "code/edit", id = "12", @params }, ct);
+        _ = await ReadAsync(_out, ct);
+    }
+
     public async Task ShutdownAsync(CancellationToken ct = default)
     {
         try

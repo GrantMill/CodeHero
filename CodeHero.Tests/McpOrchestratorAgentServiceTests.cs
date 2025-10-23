@@ -35,6 +35,8 @@ public class McpOrchestratorAgentServiceTests
         => Task.FromResult(("REQ-002", "REQ-002.md", $"---\nid: REQ-002\ntitle: {title}\nstatus: draft\n---\nShort description.\n"));
         public Task<string> CodeDiffAsync(StoreRoot root, string name, string content, string? original = null, CancellationToken ct = default)
         => Task.FromResult($"--- a/{name}\n+++ b/{name}\n+preview");
+        public Task CodeEditAsync(StoreRoot root, string name, string content, string? expectedDiff = null, CancellationToken ct = default)
+        => Task.CompletedTask;
         public Task ShutdownAsync(CancellationToken ct = default) => Task.CompletedTask;
     }
 

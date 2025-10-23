@@ -16,5 +16,6 @@ public interface IMcpClient : IAsyncDisposable
     Task<string> ScribeNextIdAsync(CancellationToken ct = default);
     Task<(string Id, string File, string Content)> ScribePreviewCreateRequirementAsync(string title, CancellationToken ct = default);
     Task<string> CodeDiffAsync(StoreRoot root, string name, string content, string? original = null, CancellationToken ct = default);
+    Task CodeEditAsync(StoreRoot root, string name, string content, string? expectedDiff = null, CancellationToken ct = default);
     Task ShutdownAsync(CancellationToken ct = default);
 }

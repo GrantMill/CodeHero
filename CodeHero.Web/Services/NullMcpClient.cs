@@ -17,5 +17,6 @@ public sealed class NullMcpClient : IMcpClient
     public Task<(string Id, string File, string Content)> ScribePreviewCreateRequirementAsync(string title, CancellationToken ct = default)
     => Task.FromResult(("REQ-001", "REQ-001.md", $"---\nid: REQ-001\ntitle: {title}\nstatus: draft\n---\nShort description.\n"));
     public Task<string> CodeDiffAsync(StoreRoot root, string name, string content, string? original = null, CancellationToken ct = default) => Task.FromResult(string.Empty);
+    public Task CodeEditAsync(StoreRoot root, string name, string content, string? expectedDiff = null, CancellationToken ct = default) => Task.CompletedTask;
     public Task ShutdownAsync(CancellationToken ct = default) => Task.CompletedTask;
 }
