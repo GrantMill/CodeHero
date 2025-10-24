@@ -57,10 +57,15 @@
 - [ ] [A] [REQ-003] Build RAG indexer over Docs (code/docs/arch/plan summaries)
 - [ ] [A] [REQ-003] Add server endpoint GET /api/rag?q=� returning passages + citations
 - [ ] [A] [REQ-003] Integrate retrieval into planner (pre-tool selection) with citations in replies
-- [ ] [A] [REQ-003] Add unit/integration tests for3 repo questions
-- [ ] [A] [REQ-004] Implement MCP tools: code/diff and code/edit in MCP server
-- [ ] [A] [REQ-004] Implement code/test tool (run subset and collect results)
-- [ ] [H] [REQ-004] Render proposed diff in approval modal (monospace, scrollable)
-- [ ] [A] [REQ-004] Orchestrator uses code/* tools in planning/execution
-- [ ] [H] [REQ-001] Agents page: list agents/tools and view tool parameters (capabilities)
-- [ ] [A] [REQ-001] STT/TTS provider selection finalized (Foundry/Whisper, Azure Speech/HTTP) with secrets
+- [ ] [A] [REQ-003] Add unit & integration tests for3 repo questions
+- [ ] [A] [REQ-003] Provision Azure AI Foundry instance and project in `rg-prod-ai-weu-gms` (validate existing `ai-prod-weu-gms` resource)
+- [ ] [A] [REQ-003] Register and deploy embedding model in Foundry (choose model & deployment name)
+- [ ] [A] [REQ-003] Provision / configure vector-capable search store (Azure Cognitive Search or alternative) and index container
+- [ ] [A] [REQ-003] Create storage & blob container for ingested docs (validate `stazureai...` storage account)
+- [ ] [A] [REQ-003] Create Key Vault secrets for Foundry endpoint/key, Search key, and storage connection string (validate `kv-azureai...`)
+- [ ] [A] [REQ-003] Grant Managed Identity or service principal access to Key Vault, Storage, and Search (assign from App Service / AppHost identity)
+- [ ] [A] [REQ-003] Create index schema: passage text, source file, start/end offsets, embedding vector, metadata (file path, id, section)
+- [ ] [A] [REQ-003] Add CI step (GitHub Actions) to run indexer on push or schedule re-index (store artifacts for debugging)
+- [ ] [A] [REQ-003] Add logging/telemetry for embedding calls, index updates, and retrieval latency (App Insights `appi-azureai...`)
+- [ ] [H] [REQ-003] Document indexing policy: what files to include/exclude, how to handle secrets, redaction rules, and retention
+- [ ] [H] [REQ-003] Create runbook: Key Vault rotation, index rebuild steps, and cost monitoring for Search & Foundry usage
