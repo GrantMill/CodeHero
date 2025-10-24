@@ -1,6 +1,3 @@
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-
 namespace CodeHero.Web.Services;
 
 public static class ServiceRegistration

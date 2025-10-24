@@ -1,5 +1,5 @@
-using System.Text.Json;
 using CodeHero.Web.Services;
+using System.Text.Json;
 
 namespace CodeHero.Tests;
 
@@ -9,6 +9,7 @@ public class McpOrchestratorAgentServiceTests
     private sealed class FakeMcp : IMcpClient
     {
         public List<string> Files { get; } = new() { "REQ-000.md", "REQ-001.md" };
+
         public Dictionary<string, string> FileMap { get; } = new()
         {
             ["REQ-000.md"] = "--- REQ-000 ---\nBootstrap baseline",
@@ -16,27 +17,40 @@ public class McpOrchestratorAgentServiceTests
         };
 
         public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+
         public Task<bool> InitializeAsync(CancellationToken ct = default) => Task.FromResult(true);
+
         public Task<bool> PingAsync(CancellationToken ct = default) => Task.FromResult(true);
+
         public Task<IReadOnlyList<string>> ListAsync(StoreRoot root, string[]? exts = null, CancellationToken ct = default)
         => Task.FromResult((IReadOnlyList<string>)Files.ToArray());
+
         public Task<string> ReadTextAsync(StoreRoot root, string name, string[]? exts = null, CancellationToken ct = default)
         => Task.FromResult(FileMap.TryGetValue(name, out var s) ? s : string.Empty);
+
         public Task WriteTextAsync(StoreRoot root, string name, string content, string[]? exts = null, CancellationToken ct = default)
         => Task.CompletedTask;
+
         public Task<IReadOnlyList<string>> ListAgentsAsync(CancellationToken ct = default)
         => Task.FromResult((IReadOnlyList<string>)Array.Empty<string>());
+
         public Task<JsonElement> GetAgentCapabilitiesAsync(string agent, CancellationToken ct = default)
         => Task.FromResult(JsonDocument.Parse("{}").RootElement);
+
         public Task<string> ScribeCreateRequirementAsync(string id, string title, CancellationToken ct = default)
         => Task.FromResult($"REQ-{id}.md");
+
         public Task<string> ScribeNextIdAsync(CancellationToken ct = default) => Task.FromResult("REQ-002");
+
         public Task<(string Id, string File, string Content)> ScribePreviewCreateRequirementAsync(string title, CancellationToken ct = default)
         => Task.FromResult(("REQ-002", "REQ-002.md", $"---\nid: REQ-002\ntitle: {title}\nstatus: draft\n---\nShort description.\n"));
+
         public Task<string> CodeDiffAsync(StoreRoot root, string name, string content, string? original = null, CancellationToken ct = default)
         => Task.FromResult($"--- a/{name}\n+++ b/{name}\n+preview");
+
         public Task CodeEditAsync(StoreRoot root, string name, string content, string? expectedDiff = null, CancellationToken ct = default)
         => Task.CompletedTask;
+
         public Task ShutdownAsync(CancellationToken ct = default) => Task.CompletedTask;
     }
 

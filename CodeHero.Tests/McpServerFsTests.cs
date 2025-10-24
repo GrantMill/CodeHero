@@ -1,14 +1,13 @@
 using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CodeHero.Tests;
 
 [TestClass]
 public class McpServerFsTests
 {
-    static (Process proc, Stream stdin, Stream stdout) Start(string contentRoot)
+    private static (Process proc, Stream stdin, Stream stdout) Start(string contentRoot)
     {
         var baseDir = AppContext.BaseDirectory; // .../CodeHero.Tests/bin/Debug/net10.0/
         var serverDir = Path.GetFullPath(Path.Combine(baseDir, "..", "..", "..", "..", "CodeHero.McpServer", "bin", "Debug", "net10.0"));
@@ -39,7 +38,7 @@ public class McpServerFsTests
         return (p, p.StandardInput.BaseStream, p.StandardOutput.BaseStream);
     }
 
-    static async Task SendAsync(Stream stdin, object req)
+    private static async Task SendAsync(Stream stdin, object req)
     {
         var json = JsonSerializer.Serialize(req);
         var bytes = Encoding.UTF8.GetBytes(json);
@@ -49,7 +48,7 @@ public class McpServerFsTests
         await stdin.FlushAsync();
     }
 
-    static async Task<string> ReadAsync(Stream stdout)
+    private static async Task<string> ReadAsync(Stream stdout)
     {
         var headerBuf = new MemoryStream();
         var tmp = new byte[1];
@@ -123,7 +122,11 @@ public class McpServerFsTests
     private sealed class TempDir : IDisposable
     {
         public string Path { get; } = System.IO.Path.Combine(System.IO.Path.GetTempPath(), Guid.NewGuid().ToString("n"));
-        public TempDir() { Directory.CreateDirectory(Path); }
-        public void Dispose() { try { Directory.Delete(Path, recursive: true); } catch { } }
+
+        public TempDir()
+        { Directory.CreateDirectory(Path); }
+
+        public void Dispose()
+        { try { Directory.Delete(Path, recursive: true); } catch { } }
     }
 }

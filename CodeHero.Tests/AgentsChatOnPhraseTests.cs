@@ -1,12 +1,8 @@
-using System.Net;
-using System.Net.Http;
-using System.Text;
-using System.Reflection;
 using Bunit;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.JSInterop;
+using System.Reflection;
+using System.Text;
 
 namespace CodeHero.Tests;
 
@@ -62,14 +58,18 @@ public class AgentsChatOnPhraseTests
     private sealed class Factory : IHttpClientFactory
     {
         private readonly HttpClient _client;
+
         public Factory(HttpClient client) => _client = client;
+
         public HttpClient CreateClient(string name) => _client;
     }
 
     private sealed class FakeNav : NavigationManager
     {
         public FakeNav() => Initialize("https://localhost/", "https://localhost/agents/chat");
-        protected override void NavigateToCore(string uri, bool forceLoad) { }
+
+        protected override void NavigateToCore(string uri, bool forceLoad)
+        { }
     }
 
     private sealed class StubHandler : HttpMessageHandler

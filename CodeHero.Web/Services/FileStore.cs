@@ -2,7 +2,8 @@ using System.Text;
 
 namespace CodeHero.Web.Services;
 
-public enum StoreRoot { Requirements, Architecture, Features, Artifacts }
+public enum StoreRoot
+{ Requirements, Architecture, Features, Artifacts }
 
 public sealed class FileStore
 {
@@ -104,6 +105,7 @@ public sealed class FileStore
 
     // Unified backlog helpers
     public string ReadBacklog() => File.Exists(_backlogPath) ? File.ReadAllText(_backlogPath) : string.Empty;
+
     public void WriteBacklog(string content)
         => File.WriteAllText(_backlogPath, content ?? string.Empty, new UTF8Encoding(false));
 

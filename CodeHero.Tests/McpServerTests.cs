@@ -1,14 +1,13 @@
 using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CodeHero.Tests;
 
 [TestClass]
 public class McpServerTests
 {
-    static (Process proc, Stream stdin, Stream stdout) Start()
+    private static (Process proc, Stream stdin, Stream stdout) Start()
     {
         var baseDir = AppContext.BaseDirectory; // .../CodeHero.Tests/bin/Debug/net10.0/
         var serverDir = Path.GetFullPath(Path.Combine(baseDir, "..", "..", "..", "..", "CodeHero.McpServer", "bin", "Debug", "net10.0"));
@@ -28,7 +27,7 @@ public class McpServerTests
         return (p, p.StandardInput.BaseStream, p.StandardOutput.BaseStream);
     }
 
-    static async Task SendAsync(Stream stdin, object req)
+    private static async Task SendAsync(Stream stdin, object req)
     {
         var json = JsonSerializer.Serialize(req);
         var bytes = Encoding.UTF8.GetBytes(json);
@@ -38,7 +37,7 @@ public class McpServerTests
         await stdin.FlushAsync();
     }
 
-    static async Task<string> ReadAsync(Stream stdout)
+    private static async Task<string> ReadAsync(Stream stdout)
     {
         // Read until CRLFCRLF for headers
         var headerBuf = new MemoryStream();

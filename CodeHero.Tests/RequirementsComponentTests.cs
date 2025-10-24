@@ -1,9 +1,8 @@
 using Bunit;
 using CodeHero.Web.Services;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.FileProviders;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.FileProviders;
 
 namespace CodeHero.Tests;
 

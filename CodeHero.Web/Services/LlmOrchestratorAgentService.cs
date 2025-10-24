@@ -1,7 +1,5 @@
 using System.Text;
 using System.Text.Json;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 
 namespace CodeHero.Web.Services;
 
@@ -20,11 +18,15 @@ public sealed class LlmOrchestratorAgentService : IAgentService
 
     // Pending approval state
     private PlanStep? _pendingWrite; // legacy plan-based approval
+
     private PendingApproval? _pendingApproval; // file write approval
     private PendingRequirement? _pendingReq; // interactive create wizard
 
     private sealed record PendingApproval(StoreRoot Root, string Name, string Content, string Diff);
-    private enum ReqStage { None, AwaitingTitle, AwaitingDescription, AwaitingCriteria }
+
+    private enum ReqStage
+    { None, AwaitingTitle, AwaitingDescription, AwaitingCriteria }
+
     private sealed class PendingRequirement
     {
         public ReqStage Stage { get; set; } = ReqStage.None;
@@ -604,6 +606,7 @@ public sealed class LlmOrchestratorAgentService : IAgentService
     {
         public List<PlanStep> Steps { get; set; } = new();
     }
+
     private sealed class PlanStep
     {
         public string Tool { get; set; } = string.Empty;

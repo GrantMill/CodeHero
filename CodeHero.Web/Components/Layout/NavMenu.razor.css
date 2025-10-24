@@ -1,39 +1,118 @@
-:root,[data-bs-theme='light']{
- --nav-toprow-bg:#f8f9fa;
- --nav-text: var(--bs-body-color);
- --nav-active: rgba(0,0,0,.08);
- --nav-hover: rgba(0,0,0,.05);
+:root, [data-bs-theme='light'] {
+    --nav-toprow-bg: #f8f9fa;
+    --nav-text: var(--bs-body-color);
+    --nav-active: rgba(0,0,0,.08);
+    --nav-hover: rgba(0,0,0,.05);
 }
-[data-bs-theme='dark']{
- --nav-toprow-bg:#1f1f1f;
- --nav-text:#e2e2e2;
- --nav-active: rgba(255,255,255,.16);
- --nav-hover: rgba(255,255,255,.10);
+
+[data-bs-theme='dark'] {
+    --nav-toprow-bg: #1f1f1f;
+    --nav-text: #e2e2e2;
+    --nav-active: rgba(255,255,255,.16);
+    --nav-hover: rgba(255,255,255,.10);
 }
 
 /* header */
-.top-row{ min-height:3.5rem; background-color: var(--nav-toprow-bg); }
-.navbar-brand{ font-size:1.1rem; color: inherit; }
+.top-row {
+    min-height: 3.5rem;
+    background-color: var(--nav-toprow-bg);
+}
+
+.navbar-brand {
+    font-size: 1.1rem;
+    color: inherit;
+}
 
 /* toggler uses current color tone */
-.navbar-toggler{ appearance:none; cursor:pointer; width:3.5rem; height:2.5rem; color:inherit; position:absolute; top:.5rem; right:1rem; border:1px solid rgba(0,0,0,.15); background: rgba(0,0,0,.03); }
-[data-bs-theme='dark'] .navbar-toggler{ border-color: rgba(255,255,255,.25); background: rgba(255,255,255,.08); }
+.navbar-toggler {
+    appearance: none;
+    cursor: pointer;
+    width: 3.5rem;
+    height: 2.5rem;
+    color: inherit;
+    position: absolute;
+    top: .5rem;
+    right: 1rem;
+    border: 1px solid rgba(0,0,0,.15);
+    background: rgba(0,0,0,.03);
+}
+
+[data-bs-theme='dark'] .navbar-toggler {
+    border-color: rgba(255,255,255,.25);
+    background: rgba(255,255,255,.08);
+}
 
 /* icons inherit, don't force white */
-.nav-item ::deep .bi{ font-size:1.15rem; width:1.25rem; display:inline-flex; align-items:center; justify-content:center; margin-right:.6rem; line-height:1; color: inherit; }
+.nav-item ::deep .bi {
+    font-size: 1.15rem;
+    width: 1.25rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: .6rem;
+    line-height: 1;
+    color: inherit;
+}
 
-.nav-item{ font-size:.9rem; padding-bottom:.5rem; }
-.nav-item:first-of-type{ padding-top:1rem; }
-.nav-item:last-of-type{ padding-bottom:1rem; }
+.nav-item {
+    font-size: .9rem;
+    padding-bottom: .5rem;
+}
+
+    .nav-item:first-of-type {
+        padding-top: 1rem;
+    }
+
+    .nav-item:last-of-type {
+        padding-bottom: 1rem;
+    }
 
 /* sidebar list */
-.nav-scrollable{ background-color: var(--bs-body-bg); }
-.nav-item ::deep a{ color: var(--nav-text); border-radius:4px; height:3rem; display:flex; align-items:center; line-height:3rem; gap:.4rem; }
-.nav-item ::deep a:hover{ background-color: var(--nav-hover); color: var(--nav-text); }
-.nav-item ::deep a.active{ background-color: var(--nav-active); color: var(--nav-text); }
-.nav-item ::deep a:focus{ outline:2px solid var(--bs-primary); outline-offset:2px; }
+.nav-scrollable {
+    background-color: var(--bs-body-bg);
+}
 
-.nav-scrollable{ display:none; }
-.navbar-toggler:checked ~ .nav-scrollable{ display:block; }
+.nav-item ::deep a {
+    color: var(--nav-text);
+    border-radius: 4px;
+    height: 3rem;
+    display: flex;
+    align-items: center;
+    line-height: 3rem;
+    gap: .4rem;
+}
 
-@media (min-width:641px){ .navbar-toggler{ display:none; } .nav-scrollable{ display:block; height:calc(100vh -3.5rem); overflow-y:auto; } }
+    .nav-item ::deep a:hover {
+        background-color: var(--nav-hover);
+        color: var(--nav-text);
+    }
+
+    .nav-item ::deep a.active {
+        background-color: var(--nav-active);
+        color: var(--nav-text);
+    }
+
+    .nav-item ::deep a:focus {
+        outline: 2px solid var(--bs-primary);
+        outline-offset: 2px;
+    }
+
+.nav-scrollable {
+    display: none;
+}
+
+.navbar-toggler:checked ~ .nav-scrollable {
+    display: block;
+}
+
+@media (min-width:641px) {
+    .navbar-toggler {
+        display: none;
+    }
+
+    .nav-scrollable {
+        display: block;
+        height: calc(100vh -3.5rem);
+        overflow-y: auto;
+    }
+}

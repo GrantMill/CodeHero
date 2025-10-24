@@ -1,5 +1,4 @@
 using Microsoft.Extensions.Logging;
-using System.Net.Http;
 
 namespace CodeHero.Tests;
 

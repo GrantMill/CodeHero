@@ -1,6 +1,6 @@
 using CodeHero.Web.Services;
-using Microsoft.Extensions.Configuration;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.FileProviders;
 
 namespace CodeHero.Tests;

@@ -1,5 +1,3 @@
-using Microsoft.Extensions.Configuration;
-
 namespace CodeHero.Web.Services;
 
 public sealed class AzureFoundryAgentService : IAgentService
