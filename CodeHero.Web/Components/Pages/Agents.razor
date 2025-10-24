@@ -1,4 +1,4 @@
-@page "/agents"
+﻿@page "/agents"
 @rendermode InteractiveServer
 
 @using CodeHero.Web.Services
@@ -6,8 +6,29 @@
 @inject IMcpClient Client
 @inject IHttpClientFactory HttpFactory
 @inject NavigationManager Nav
+@inject IWebHostEnvironment Env
+@inject IJSRuntime JS
+@inject FileStore Store
 
 <h3>Agents</h3>
+
+<!-- REQ-002 orchestration flow diagram -->
+<div class="card mb-3">
+ <div class="card-header">REQ-002 Orchestrator (planner → approval → executor → MCP)</div>
+ <div class="card-body">
+ <div class="row g-3">
+ <div class="col-12 col-lg-7">
+ <div class="mermaid">@orchestratorMmd</div>
+ </div>
+ <div class="col-12 col-lg-5">
+ <div class="small text-muted mb-1">Prompt & Guardrails</div>
+ <textarea class="form-control" style="height:45vh" readonly>@orchestratorPromptText</textarea>
+ <div class="mt-2"><a href="#" @onclick="CopyOrchestratorPrompt">Copy</a></div>
+ </div>
+ </div>
+ <div class="small text-muted mt-2">Diagram and prompt are loaded from docs/architecture.</div>
+ </div>
+</div>
 
 <div class="mb-3">
  <button class="btn btn-primary" @onclick="Ping">Ping MCP</button>
@@ -99,7 +120,7 @@
  <div class="col-12 col-lg-6">
  <h6 class="fw-semibold">Orchestrator</h6>
  <div class="input-group">
- <input class="form-control" placeholder="Say something�" @bind="orchestratorPrompt" />
+ <input class="form-control" placeholder="Say something…" @bind="orchestratorPrompt" />
  <button class="btn btn-primary" @onclick="SendOrchestratorAsync">Send</button>
  </div>
  @if (!string.IsNullOrWhiteSpace(orchestratorReply))
@@ -138,6 +159,10 @@
  List<string> files = new();
  List<string> agents = new();
 
+ // orchestrator assets
+ string orchestratorMmd = string.Empty;
+ string orchestratorPromptText = string.Empty;
+
  // structured capabilities state
  AgentCaps? selectedCaps;
  string? selectedAgent;
@@ -153,6 +178,52 @@
  string ttsText = string.Empty;
  string ttsVoice = "en-US-JennyNeural";
  string? ttsSrc;
+
+ // Prompts & guardrails (.agent)
+ List<string> roleFiles = new();
+ List<string> toolFiles = new();
+ string? selectedPromptText;
+ string? selectedPromptPath;
+
+ protected override void OnInitialized()
+ {
+ // Discover .agent files
+ try
+ {
+ var root = Env.ContentRootPath;
+ var roles = Path.Combine(root, ".agent", "roles");
+ var tools = Path.Combine(root, ".agent", "tools");
+ if (Directory.Exists(roles)) roleFiles = Directory.EnumerateFiles(roles, "*.*", SearchOption.TopDirectoryOnly)
+ .Where(f => f.EndsWith(".yml", StringComparison.OrdinalIgnoreCase) || f.EndsWith(".yaml", StringComparison.OrdinalIgnoreCase) || f.EndsWith(".md", StringComparison.OrdinalIgnoreCase))
+ .OrderBy(Path.GetFileName).ToList();
+ if (Directory.Exists(tools)) toolFiles = Directory.EnumerateFiles(tools, "*.*", SearchOption.TopDirectoryOnly)
+ .Where(f => f.EndsWith(".yml", StringComparison.OrdinalIgnoreCase) || f.EndsWith(".yaml", StringComparison.OrdinalIgnoreCase) || f.EndsWith(".md", StringComparison.OrdinalIgnoreCase))
+ .OrderBy(Path.GetFileName).ToList();
+ }
+ catch { }
+
+ // Load architecture assets
+ try { orchestratorMmd = Store.ReadText(StoreRoot.Architecture, "orchestrator.mmd", ".mmd", ".md"); }
+ catch { orchestratorMmd = "flowchart LR\nA[missing orchestrator.mmd]"; }
+ try { orchestratorPromptText = Store.ReadText(StoreRoot.Architecture, "orchestrator.prompt.md", ".md", ".txt"); }
+ catch { orchestratorPromptText = string.Empty; }
+ }
+
+ void LoadPrompt(string path)
+ {
+ try { selectedPromptText = System.IO.File.ReadAllText(path); selectedPromptPath = path; }
+ catch { selectedPromptText = ""; selectedPromptPath = path; }
+ }
+
+ async Task CopyPrompt()
+ {
+ try { await JS.InvokeVoidAsync("navigator.clipboard.writeText", selectedPromptText ?? string.Empty); } catch { }
+ }
+
+ async Task CopyOrchestratorPrompt()
+ {
+ try { await JS.InvokeVoidAsync("navigator.clipboard.writeText", orchestratorPromptText ?? string.Empty); } catch { }
+ }
 
  async Task Ping()
  {

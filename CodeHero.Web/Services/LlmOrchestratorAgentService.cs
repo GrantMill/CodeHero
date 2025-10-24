@@ -16,6 +16,7 @@ public sealed class LlmOrchestratorAgentService : IAgentService
     private readonly string _model; // for models route
     private readonly string _apiVersion; // used for deployments route
     private readonly bool _useModelsRoute;
+    private readonly FileStore _store; // for reading externalized prompts
 
     // Pending approval state
     private PlanStep? _pendingWrite; // legacy plan-based approval
@@ -32,9 +33,9 @@ public sealed class LlmOrchestratorAgentService : IAgentService
         public List<string> Criteria { get; } = new();
     }
 
-    public LlmOrchestratorAgentService(IMcpClient mcp, IConfiguration cfg, ILogger<LlmOrchestratorAgentService> log, IHttpClientFactory http)
+    public LlmOrchestratorAgentService(IMcpClient mcp, IConfiguration cfg, ILogger<LlmOrchestratorAgentService> log, IHttpClientFactory http, FileStore store)
     {
-        _mcp = mcp; _log = log; _http = http;
+        _mcp = mcp; _log = log; _http = http; _store = store;
         var ep = (cfg["AzureAI:Foundry:Endpoint"] ?? string.Empty).TrimEnd('/');
         _endpoint = ep;
         _key = cfg["AzureAI:Foundry:Key"] ?? string.Empty;
@@ -475,6 +476,15 @@ public sealed class LlmOrchestratorAgentService : IAgentService
 
     private string GetSystemPrompt()
     {
+        // First try externalized prompt under Architecture: orchestrator.prompt.md
+        try
+        {
+            var text = _store.ReadText(StoreRoot.Architecture, "orchestrator.prompt.md", ".md", ".txt");
+            if (!string.IsNullOrWhiteSpace(text)) return text;
+        }
+        catch { }
+
+        // Fallback to built-in prompt
         var sb = new StringBuilder();
         sb.AppendLine("You are the Orchestrator. Plan a minimal sequence of tool calls to satisfy the user request.");
         sb.AppendLine("Rules:");

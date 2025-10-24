@@ -1,0 +1,17 @@
+flowchart TB
+ U[User] --> UI[AgentsChat UI]
+ UI --> P[Planner - RAG]
+ P -->|plan| A{Approval needed?}
+ A -- No --> E[Executor]
+ A -- Yes --> D[Show diff + ask]
+ D -- Approve --> E
+ D -- Cancel --> UI
+ E -->|code/diff| MCP[MCP Server]
+ E -->|code/edit| MCP
+ MCP -->|fs/*, code/*| Repo[Repo files]
+ E -->|code/test| Test[Build/Test]
+ E -->|trace| T[Telemetry]
+ E -->|result| UI
+ UI --> U
+ classDef store fill:#eef,stroke:#99f,color:#000;
+ class Repo,T store;

@@ -1,55 +1,66 @@
-# Unified Backlog (Kanban-style)
-
-Legend: [A] = Agent can implement via PR, [H] = Human-in-loop (env/UX/product decision or external systems)
-
-Completed (most recent first)
-- [x] [A][REQ-002] Heuristics: list/read/create intents incl. word numbers, "top N", and "last requirement"
-- [x] [A][REQ-002] Foundry models/deployments route support; demo STT ? Agent ? TTS flow
-- [x] [A][REQ-001] Ensure `Expect:100-Continue` on STT/TTS HttpClients
-- [x] [A][REQ-002] Telemetry: traces for plan steps and tool calls
-- [x] [A][REQ-002] Planner returns plan JSON; Executor executes via IMcpClient (read-only tools)
-- [x] [A][REQ-002] Prompt templates (system/developer) including guardrails and plan schema
-- [x] [A][REQ-002] Define tool schema and allowlist for LLM (fs/list, fs/readText, scribe/createRequirement)
-- [x] [H][REQ-001] Feature flag `Features:ContinuousDictation` documentation and defaults
-- [x] [A][REQ-001] Conversational mode: tests for OnPhrase pipeline (bUnit) and integration happy path
-- [x] [A][REQ-002] Unit tests for Orchestrator parsing (list/read/mishears)
-- [x] [A][REQ-002] Wire MCP Orchestrator agent and make it the default `IAgentService` (fallback)
-- [x] [A][REQ-001] Conversational scaffolding: Continuous UI toggle + VAD callbacks wired (client-side); phase chips; feature flag
-- [x] [A][REQ-001] Integration tests for `/api/stt` and `/api/tts` (behind feature flag)
-- [x] [A][REQ-001] Add targeted retries (connect/read only) and a circuit breaker for STT/TTS; no retry on4xx or large bodies
-- [x] [A][REQ-001] Use `HttpCompletionOption.ResponseHeadersRead` for TTS and cap response size
-- [x] [A][REQ-001] Make `webfrontend` `.WaitFor(stt)` and `.WaitFor(tts)` in AppHost (after health exists)
-- [x] [A][REQ-001] Wire `WithHttpHealthCheck("/health")` for `stt-whisper` and `tts-http` in AppHost
-- [x] [H][REQ-001] Add `/health` endpoints to Whisper and TTS containers (return200 when ready)
-- [x] [A][REQ-001] Add diagnostics page showing current `Speech:Endpoint`/`Tts:Endpoint` and last call status
-- [x] [A][REQ-001] Emit OpenTelemetry dependency traces and basic metrics for STT/TTS
-- [x] [A][REQ-001] Add structured logs for STT/TTS calls (duration, status, sizes)
-- [x] [A][REQ-001] Add request size limits and cancellation timeouts on `api/stt` and `api/tts`
-- [x] [A][REQ-001] Disable output cache for `api/stt` and `api/tts` routes
-
-Planned (priority order – top = next)
-- [ ] [A][REQ-002] Orchestrator LLM (Generalist with Tool Use)
- - [x] [A][REQ-002] Define tool schema exposed to LLM (fs/list, fs/readText, scribe/createRequirement)
- - [x] [A][REQ-002] Prompt templates (system/developer) including guardrails and plan schema
- - [ ] [A][REQ-002] Approval gate for write tools (preview diff, confirm before apply)
- - [ ] [A][REQ-004] Diff/preview support: implement `code/diff` and wire into approval flow
- - [x] [A][REQ-002] Planner returns plan JSON; Executor executes via IMcpClient (read ops)
- - [x] [A][REQ-002] Telemetry: traces for plan steps and tool calls
-- [ ] [A][REQ-003] RAG over Repo (Docs, Diagrams, Code)
- - [ ] [A][REQ-003] Choose embeddings model/provider and storage (local SQLite/FAISS)
- - [ ] [A][REQ-003] Indexer job to update embeddings on file changes
- - [ ] [A][REQ-003] Retrieval and citation formatting for answers
-- [ ] [A][REQ-004] MCP Tooling for Code Changes (Plan, Edit, Diff)
- - [ ] [A][REQ-004] Implement `code/diff` tool
- - [ ] [A][REQ-004] Implement `code/edit` tool with safe patch apply
- - [ ] [A][REQ-004] Implement `code/test` tool and capture results
- - [ ] [A][REQ-004] Wire tools into Orchestrator planner/executor
-- [ ] [A][REQ-001] Add locale/voice pickers in `AgentsChat.razor`
-- [ ] [A][REQ-001] Improve `wwwroot/js/audio.js` to guarantee WAV16?bit PCM @16kHz and better error handling
-- [ ] [A][REQ-001] Add locale auto-detect fallback if `language` not provided (server-side)
-- [ ] [A][REQ-001] Implement streaming transcription endpoint (server push partials) [future]
-- [ ] [A][REQ-001] Add endpoint to stream TTS audio for immediate playback [future]
-- [ ] [H][REQ-001] Define requirement IDs policy (REQ-### format, uniqueness, authoring rules)
-- [ ] [H][REQ-001] Document endpoint scheme/port troubleshooting and dev cert trust steps
-- [ ] [H][REQ-001] Document speech feature flags and typical dev `appsettings`
-- [ ] [H][REQ-001] Update architecture diagrams to include health checks and named HttpClients
+- [x] [A] [REQ-002] Heuristics: list/read/create intents incl. word numbers, "top N", and "last requirement"
+- [x] [A] [REQ-002] Foundry models/deployments route support; demo STT ? Agent ? TTS flow
+- [x] [A] [REQ-001] Ensure `Expect:100-Continue` on STT/TTS HttpClients
+- [x] [A] [REQ-002] Telemetry: traces for plan steps and tool calls
+- [x] [A] [REQ-002] Planner returns plan JSON; Executor executes via IMcpClient (read-only tools)
+- [x] [A] [REQ-002] Prompt templates (system/developer) including guardrails and plan schema
+- [x] [A] [REQ-002] Define tool schema and allowlist for LLM (fs/list, fs/readText, scribe/createRequirement)
+- [x] [H] [REQ-001] Feature flag `Features:ContinuousDictation` documentation and defaults
+- [x] [A] [REQ-001] Conversational mode: tests for OnPhrase pipeline (bUnit) and integration happy path
+- [x] [A] [REQ-002] Unit tests for Orchestrator parsing (list/read/mishears)
+- [x] [A] [REQ-002] Wire MCP Orchestrator agent and make it the default `IAgentService` (fallback)
+- [x] [A] [REQ-001] Conversational scaffolding: Continuous UI toggle + VAD callbacks wired (client-side); phase chips; feature flag
+- [x] [A] [REQ-001] Integration tests for `/api/stt` and `/api/tts` (behind feature flag)
+- [x] [A] [REQ-001] Add targeted retries (connect/read only) and a circuit breaker for STT/TTS; no retry on4xx or large bodies
+- [x] [A] [REQ-001] Use `HttpCompletionOption.ResponseHeadersRead` for TTS and cap response size
+- [x] [A] [REQ-001] Make `webfrontend` `.WaitFor(stt)` and `.WaitFor(tts)` in AppHost (after health exists)
+- [x] [A] [REQ-001] Wire `WithHttpHealthCheck("/health")` for `stt-whisper` and `tts-http` in AppHost
+- [x] [H] [REQ-001] Add `/health` endpoints to Whisper and TTS containers (return200 when ready)
+- [x] [A] [REQ-001] Add diagnostics page showing current `Speech:Endpoint`/`Tts:Endpoint` and last call status
+- [x] [A] [REQ-001] Emit OpenTelemetry dependency traces and basic metrics for STT/TTS
+- [x] [A] [REQ-001] Add structured logs for STT/TTS calls (duration, status, sizes)
+- [x] [A] [REQ-001] Add request size limits and cancellation timeouts on `api/stt` and `api/tts`
+- [x] [A] [REQ-001] Disable output cache for `api/stt` and `api/tts` routes
+- [x] [A] [REQ-002] Orchestrator LLM (Generalist with Tool Use)
+- [x] [A] [REQ-002] Define tool schema exposed to LLM (fs/list, fs/readText, scribe/createRequirement)
+- [x] [A] [REQ-002] Prompt templates (system/developer) including guardrails and plan schema
+- [x] [A] [REQ-002] Approval gate for write tools (preview diff, confirm before apply)
+- [x] [A] [REQ-004] Diff/preview support: implement `code/diff` and wire into approval flow
+- [x] [A] [REQ-002] Planner returns plan JSON; Executor executes via IMcpClient (read ops)
+- [x] [A] [REQ-002] Telemetry: traces for plan steps and tool calls
+- [ ] [A] [REQ-003] RAG over Repo (Docs, Diagrams, Code)
+- [ ] [A] [REQ-003] Choose embeddings model/provider and storage (local SQLite/FAISS)
+- [ ] [A] [REQ-003] Indexer job to update embeddings on file changes
+- [ ] [A] [REQ-003] Retrieval and citation formatting for answers
+- [ ] [A] [REQ-004] MCP Tooling for Code Changes (Plan, Edit, Diff)
+- [ ] [A] [REQ-004] Implement `code/diff` tool
+- [ ] [A] [REQ-004] Implement `code/edit` tool with safe patch apply
+- [ ] [A] [REQ-004] Implement `code/test` tool and capture results
+- [ ] [A] [REQ-004] Wire tools into Orchestrator planner/executor
+- [ ] [A] [REQ-001] Add locale/voice pickers in `AgentsChat.razor`
+- [ ] [A] [REQ-001] Improve `wwwroot/js/audio.js` to guarantee WAV16?bit PCM @16kHz and better error handling
+- [ ] [A] [REQ-001] Add locale auto-detect fallback if `language` not provided (server-side)
+- [ ] [A] [REQ-001] Implement streaming transcription endpoint (server push partials) [future]
+- [ ] [A] [REQ-001] Add endpoint to stream TTS audio for immediate playback [future]
+- [ ] [H] [REQ-001] Define requirement IDs policy (REQ-### format, uniqueness, authoring rules)
+- [ ] [H] [REQ-001] Document endpoint scheme/port troubleshooting and dev cert trust steps
+- [ ] [H] [REQ-001] Document speech feature flags and typical dev `appsettings`
+- [ ] [H] [REQ-001] Update architecture diagrams to include health checks and named HttpClients
+- [x] [A] [REQ-001] Continuous dictation UX wired (auto STT ? agent ? TTS)
+- [x] [A] [REQ-001] AgentsChat OnPhrase and integration tests added
+- [x] [H] [REQ-001] Theme toggle made persistent; light/dark tokens fixed across pages
+- [x] [H] [REQ-001] Features documented: EnableSpeechApi, EnableAgentApi
+- [ ] [A] [REQ-002] Planner scaffold (LLM prompt + plan schema) and stub executor
+- [ ] [A] [REQ-002] Integrate approval dialog for write ops with diff preview
+- [ ] [A] [REQ-002] Wire IMcpClient tool allowlist and guardrails into executor
+- [ ] [H] [REQ-002] Telemetry: trace plan steps and tool calls
+- [ ] [A] [REQ-003] Build RAG indexer over Docs (code/docs/arch/plan summaries)
+- [ ] [A] [REQ-003] Add server endpoint GET /api/rag?q=ï¿½ returning passages + citations
+- [ ] [A] [REQ-003] Integrate retrieval into planner (pre-tool selection) with citations in replies
+- [ ] [A] [REQ-003] Add unit/integration tests for3 repo questions
+- [ ] [A] [REQ-004] Implement MCP tools: code/diff and code/edit in MCP server
+- [ ] [A] [REQ-004] Implement code/test tool (run subset and collect results)
+- [ ] [H] [REQ-004] Render proposed diff in approval modal (monospace, scrollable)
+- [ ] [A] [REQ-004] Orchestrator uses code/* tools in planning/execution
+- [ ] [H] [REQ-001] Agents page: list agents/tools and view tool parameters (capabilities)
+- [ ] [A] [REQ-001] STT/TTS provider selection finalized (Foundry/Whisper, Azure Speech/HTTP) with secrets
