@@ -1,0 +1,91 @@
+name: Provision Azure Cognitive Search and Set Secrets
+
+on:
+ workflow_dispatch:
+
+jobs:
+ provision-search:
+ runs-on: ubuntu-latest
+ permissions:
+ contents: read
+ id-token: write
+
+ steps:
+ - name: Checkout
+ uses: actions/checkout@v4
+
+ - name: Login to Azure
+ uses: azure/login@v2
+ with:
+ client-id: ${{ secrets.AZURE_CLIENT_ID }}
+ tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+ subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+ - name: Create Azure Cognitive Search (Standard_v2 vector enabled)
+ env:
+ AZURE_RESOURCE_GROUP: ${{ github.event.inputs.resourceGroup }}
+ AZURE_LOCATION: ${{ github.event.inputs.location }}
+ AZURE_SEARCH_NAME: ${{ github.event.inputs.searchServiceName }}
+ run: |
+ az search service create \
+ --name "$AZURE_SEARCH_NAME" \
+ --resource-group "$AZURE_RESOURCE_GROUP" \
+ --sku Standard_v2 \
+ --location "$AZURE_LOCATION" \
+ --partition-count1 \
+ --replica-count1 \
+ --enable-vector-search
+
+ - name: Create storage container
+ env:
+ AZURE_RESOURCE_GROUP: ${{ github.event.inputs.resourceGroup }}
+ AZURE_STORAGE_ACCOUNT: ${{ github.event.inputs.storageAccount }}
+ AZURE_CONTAINER_NAME: ${{ github.event.inputs.containerName }}
+ run: |
+ # requires storage account existing
+ az storage container create --name "$AZURE_CONTAINER_NAME" --account-name "$AZURE_STORAGE_ACCOUNT" --public-access off
+
+ - name: Get Search admin key
+ id: get-search-key
+ env:
+ AZURE_RESOURCE_GROUP: ${{ github.event.inputs.resourceGroup }}
+ AZURE_SEARCH_NAME: ${{ github.event.inputs.searchServiceName }}
+ run: |
+ key=$(az search admin-key show --resource-group "$AZURE_RESOURCE_GROUP" --service-name "$AZURE_SEARCH_NAME" --query primaryKey -o tsv)
+ echo "::set-output name=searchKey::$key"
+
+ - name: Get Storage connection string
+ id: get-storage-conn
+ env:
+ AZURE_STORAGE_ACCOUNT: ${{ github.event.inputs.storageAccount }}
+ AZURE_RESOURCE_GROUP: ${{ github.event.inputs.resourceGroup }}
+ run: |
+ conn=$(az storage account show-connection-string --name "$AZURE_STORAGE_ACCOUNT" --resource-group "$AZURE_RESOURCE_GROUP" --query connectionString -o tsv)
+ echo "::set-output name=connStr::$conn"
+
+ - name: Set Key Vault secrets
+ env:
+ AZURE_KEYVAULT: ${{ github.event.inputs.keyVault }}
+ run: |
+ az keyvault secret set --vault-name "$AZURE_KEYVAULT" --name "SearchAdminKey" --value "${{ steps.get-search-key.outputs.searchKey }}"
+ az keyvault secret set --vault-name "$AZURE_KEYVAULT" --name "StorageConnectionString" --value "${{ steps.get-storage-conn.outputs.connStr }}"
+
+ - name: Grant managed identity access to Key Vault
+ env:
+ AZURE_KEYVAULT: ${{ github.event.inputs.keyVault }}
+ MANAGED_ID_PRINCIPAL_ID: ${{ github.event.inputs.managedIdentityPrincipalId }}
+ run: |
+ az keyvault set-policy --name "$AZURE_KEYVAULT" --object-id "$MANAGED_ID_PRINCIPAL_ID" --secret-permissions get list set
+
+ - name: Assign Storage role to managed identity
+ env:
+ SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+ RESOURCE_GROUP: ${{ github.event.inputs.resourceGroup }}
+ STORAGE_ACCOUNT: ${{ github.event.inputs.storageAccount }}
+ MANAGED_ID_PRINCIPAL_ID: ${{ github.event.inputs.managedIdentityPrincipalId }}
+ run: |
+ scope="/subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RESOURCE_GROUP/providers/Microsoft.Storage/storageAccounts/$STORAGE_ACCOUNT"
+ az role assignment create --assignee "$MANAGED_ID_PRINCIPAL_ID" --role "Storage Blob Data Contributor" --scope "$scope"
+
+ outputs:
+ searchService: ${{ github.event.inputs.searchServiceName }}
