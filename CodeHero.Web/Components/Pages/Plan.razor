@@ -2,7 +2,9 @@
 @rendermode InteractiveServer
 @using System.Text.RegularExpressions
 @using CodeHero.Web.Services
+@using Markdig
 @inject FileStore Store
+@inject Markdig.MarkdownPipeline Md
 
 <h3>Backlog</h3>
 
@@ -17,12 +19,22 @@
 
 <div class="card">
  <div class="card-body">
- @foreach (var item in items.Select((v,i) => (v,i)))
+ @for (int i =0; i < items.Count; i++)
  {
- <div class="d-flex align-items-center gap-2 mb-1">
- <span class="fs-5 @(item.v.IsAgent ? "bi bi-robot text-warning" : "bi bi-person-badge text-info")" title="@(item.v.IsAgent ? "Agent" : "Human")"></span>
- <input type="checkbox" class="form-check-input" checked="@item.v.Checked" @onchange="(e)=>Toggle(item.i, e.Value)" />
- <span>@item.v.Text</span>
+ var item = items[i];
+ <div class="mb-1">
+ @if (item.IsTask)
+ {
+ <div class="d-flex align-items-center gap-2">
+ <span class="fs-5 @(item.IsAgent ? "bi bi-robot text-warning" : "bi bi-person-badge text-info")" title="@(item.IsAgent ? "Agent" : "Human")"></span>
+ <input type="checkbox" class="form-check-input" checked="@item.Checked" @onchange="(e)=>Toggle(i, e.Value)" />
+                        <span class="ms-2">@((MarkupString)Markdig.Markdown.ToHtml(item.Text, Md))</span>
+ </div>
+ }
+ else
+ {
+                    <div class="text-muted small">@((MarkupString)Markdig.Markdown.ToHtml(item.Text, Md))</div>
+ }
  </div>
  }
  <button class="btn btn-primary mt-2" @onclick="Save">Save Backlog</button>
@@ -31,13 +43,16 @@
 </div>
 
 @code {
- record TaskItem(string Text, bool Checked, bool IsAgent);
- List<TaskItem> items = new();
+ record LineItem(int LineNumber, string Original, bool IsTask, bool Checked, bool IsAgent, string Text);
+ List<LineItem> items = new();
  string roadmap = "";
+ string[] originalLines = Array.Empty<string>();
 
  protected override void OnInitialized()
  {
- items = ParseTasks(Store.ReadBacklog());
+ var md = Store.ReadBacklog();
+ originalLines = md.Replace("\r\n","\n").Split('\n');
+ items = ParseLines(originalLines).ToList();
  roadmap = Store.ReadRoadmap();
  if (string.IsNullOrWhiteSpace(roadmap))
  {
@@ -45,32 +60,50 @@
  }
  }
 
- static List<TaskItem> ParseTasks(string md)
+ static IEnumerable<LineItem> ParseLines(string[] lines)
  {
- var list = new List<TaskItem>();
- foreach (var line in md.Split('\n'))
+ var list = new List<LineItem>();
+ var taskRegex = new Regex(@"^\s*-\s*\[( |x|X)\]\s*\[(A|H)\]\s*(.*)$");
+ for (int i =0; i < lines.Length; i++)
  {
- var m = Regex.Match(line, @"^\s*-\s*\[( |x|X)\]\s*\[(A|H)\]\s*(.*)$");
+ var line = lines[i];
+ var m = taskRegex.Match(line);
  if (m.Success)
  {
  var isChecked = m.Groups[1].Value.Equals("x", StringComparison.OrdinalIgnoreCase);
  var isAgent = m.Groups[2].Value.Equals("A", StringComparison.OrdinalIgnoreCase);
  var text = m.Groups[3].Value;
- list.Add(new TaskItem(text, isChecked, isAgent));
+ list.Add(new LineItem(i, line, true, isChecked, isAgent, text));
+ }
+ else
+ {
+ // keep other markdown/comments/headers as-is
+ list.Add(new LineItem(i, line, false, false, false, line));
  }
  }
  return list;
  }
 
- static string SerializeTasks(IEnumerable<TaskItem> tasks)
- => string.Join("\n", tasks.Select(t => $"- [{(t.Checked ? "x" : " ")}] [{(t.IsAgent ? "A" : "H")}] {t.Text}")) + "\n";
-
  void Toggle(int index, object? value)
  {
- var current = items[index];
+ var it = items[index];
  var isChecked = value is bool b && b;
- items[index] = current with { Checked = isChecked };
+ items[index] = it with { Checked = isChecked };
  }
 
- void Save() => Store.WriteBacklog(SerializeTasks(items));
+ void Save()
+ {
+ // update originalLines for task lines only
+ foreach (var it in items)
+ {
+ if (it.IsTask)
+ {
+ var checkbox = it.Checked ? "x" : " ";
+ var kind = it.IsAgent ? "A" : "H";
+ originalLines[it.LineNumber] = $"- [{checkbox}] [{kind}] {it.Text}";
+ }
+ }
+ var outMd = string.Join("\n", originalLines) + "\n";
+ Store.WriteBacklog(outMd);
+ }
 }

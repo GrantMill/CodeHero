@@ -1,6 +1,7 @@
 using CodeHero.Web;
 using CodeHero.Web.Components;
 using CodeHero.Web.Services;
+using Markdig;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.ResponseCompression;
 using Polly;
@@ -16,6 +17,14 @@ builder.AddServiceDefaults();
 // Add services to the container.
 builder.Services.AddRazorComponents()
  .AddInteractiveServerComponents();
+
+// Register Markdig MarkdownPipeline for injection into components
+builder.Services.AddSingleton<Markdig.MarkdownPipeline>(sp =>
+{
+    return new Markdig.MarkdownPipelineBuilder()
+    .UseAdvancedExtensions()
+    .Build();
+});
 
 // Response compression for SignalR (_blazor) payloads
 builder.Services.AddResponseCompression(options =>
@@ -364,7 +373,7 @@ app.MapDefaultEndpoints();
 app.Run();
 
 // small helper to avoid null checks for feature-setting
-file static class FeatureExt
+internal static class FeatureExt
 {
     public static void Let<T>(this T? obj, Action<T> action) where T : class
     {
