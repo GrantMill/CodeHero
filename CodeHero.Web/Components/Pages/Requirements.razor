@@ -2,63 +2,138 @@
 @rendermode InteractiveServer
 @namespace CodeHero.Web.Components.Pages
 @using CodeHero.Web.Services
+@using System.IO
 @inject FileStore Store
 
 <h3>Requirements</h3>
 
 @if (selected is null)
 {
-    <button class="btn btn-sm btn-outline-primary mb-2" @onclick="CreateNew">New requirement (REQ-001)</button>
-    <ul>
-        @foreach (var f in Store.List(StoreRoot.Requirements, ".md"))
-        {
-            <li>
-                <button type="button" class="btn btn-link p-0 align-baseline" @onclick="() => Load(f)">@f</button>
-            </li>
-        }
-    </ul>
+ <button class="btn btn-sm btn-outline-primary mb-2" @onclick="CreateNew">New requirement (REQ-001)</button>
+ <ul class="list-unstyled">
+ @foreach (var item in items)
+ {
+ <li class="mb-1 d-flex align-items-baseline">
+ <button type="button" class="btn btn-link p-0 align-baseline" @onclick="() => Load(item.File)">@item.Id</button>
+ <span class="text-muted ms-2">@item.Title</span>
+ </li>
+ }
+ </ul>
 }
 else
 {
-    <h5>@selected</h5>
-    <textarea class="form-control" style="height:45vh" @bind="text"></textarea>
-    <div class="mt-2">
-        <button class="btn btn-primary" @onclick="Save">Save</button>
-        <button class="btn btn-secondary ms-2" @onclick="Back">Back</button>
-    </div>
+ <h5>@selected</h5>
+ <textarea class="form-control" style="height:45vh" @bind="text"></textarea>
+ <div class="mt-2">
+ <button class="btn btn-primary" @onclick="Save">Save</button>
+ <button class="btn btn-secondary ms-2" @onclick="Back">Back</button>
+ </div>
 }
 
 @code {
-    string? selected;
-    string? text;
+ string? selected;
+ string? text;
 
-    void Load(string f)
-    {
-        selected = f;
-        text = Store.ReadText(StoreRoot.Requirements, f, ".md");
-    }
+ private sealed class ReqItem
+ {
+ public string File { get; set; } = string.Empty;
+ public string Id { get; set; } = string.Empty;
+ public string Title { get; set; } = string.Empty;
+ }
 
-    void Save()
-    {
-        if (selected is not null && text is not null)
-        {
-            Store.WriteText(StoreRoot.Requirements, selected, text, ".md");
-        }
-    }
+ List<ReqItem> items = new();
 
-    void Back()
-    {
-        selected = null; text = null;
-    }
+ protected override void OnInitialized()
+ {
+ RefreshList();
+ }
 
-    void CreateNew()
-    {
-        const string file = "REQ-001.md";
-        var existing = Store.List(StoreRoot.Requirements, ".md").Any(f => string.Equals(f, file, StringComparison.OrdinalIgnoreCase));
-        if (!existing)
-        {
-            var content = "---\nid: REQ-001\ntitle: New Requirement\nstatus: draft\n---\nShort description.\n";
-            Store.WriteText(StoreRoot.Requirements, file, content, ".md");
-        }
-    }
+ void RefreshList()
+ {
+ items = Store.List(StoreRoot.Requirements, ".md")
+ .Select(f => new ReqItem
+ {
+ File = f,
+ Id = Path.GetFileNameWithoutExtension(f),
+ Title = ExtractTitleSafe(f)
+ })
+ .OrderBy(i => i.Id)
+ .ToList();
+ }
+
+ string ExtractTitleSafe(string file)
+ {
+ try
+ {
+ var content = Store.ReadText(StoreRoot.Requirements, file, ".md");
+ var title = ExtractTitleFromFrontmatter(content);
+ return string.IsNullOrWhiteSpace(title) ? "" : title!;
+ }
+ catch { return string.Empty; }
+ }
+
+ static string? ExtractTitleFromFrontmatter(string content)
+ {
+ if (string.IsNullOrWhiteSpace(content)) return null;
+ var lines = content.Replace("\r\n", "\n").Replace('\r', '\n').Split('\n');
+ if (lines.Length ==0) return null;
+ int i =0;
+ if (lines[0].Trim() == "---")
+ {
+ for (i =1; i < lines.Length; i++)
+ {
+ var ln = lines[i].TrimEnd();
+ if (ln.Trim() == "---") break; // end of frontmatter
+ if (ln.StartsWith("title:", StringComparison.OrdinalIgnoreCase))
+ {
+ var raw = ln.Substring("title:".Length).Trim();
+ return TrimQuotes(raw);
+ }
+ }
+ }
+ return null;
+ }
+
+ static string TrimQuotes(string s)
+ {
+ if (string.IsNullOrEmpty(s)) return s;
+ if ((s.StartsWith("\"") && s.EndsWith("\"")) || (s.StartsWith("'") && s.EndsWith("'")))
+ {
+ return s.Length >=2 ? s.Substring(1, s.Length -2) : string.Empty;
+ }
+ return s;
+ }
+
+ void Load(string f)
+ {
+ selected = f;
+ text = Store.ReadText(StoreRoot.Requirements, f, ".md");
+ }
+
+ void Save()
+ {
+ if (selected is not null && text is not null)
+ {
+ Store.WriteText(StoreRoot.Requirements, selected, text, ".md");
+ RefreshList();
+ }
+ }
+
+ void Back()
+ {
+ selected = null; text = null;
+ RefreshList();
+ }
+
+ void CreateNew()
+ {
+ const string file = "REQ-001.md";
+ var existing = Store.List(StoreRoot.Requirements, ".md").Any(f => string.Equals(f, file, StringComparison.OrdinalIgnoreCase));
+ if (!existing)
+ {
+ var content = "---\nid: REQ-001\ntitle: New Requirement\nstatus: draft\n---\nShort description.\n";
+ Store.WriteText(StoreRoot.Requirements, file, content, ".md");
+ }
+ RefreshList();
+ }
 }
