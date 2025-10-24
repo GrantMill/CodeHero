@@ -9,23 +9,23 @@
 @inject NavigationManager Nav
 @inject IConfiguration Cfg
 
-<h3>Scribe Chat (MVP)</h3>
+<h3 class="text-body">Scribe Chat (MVP)</h3>
 
 @if (!string.IsNullOrWhiteSpace(alertMessage))
 {
  <div class="alert alert-@alertKind" role="alert">@alertMessage</div>
 }
 
-<div class="border rounded p-2" style="height:50vh; overflow:auto; background:#fafafa">
+<div class="border rounded p-2 bg-body-tertiary" style="height:50vh; overflow:auto;">
  @if (messages.Count ==0)
  {
- <div class="text-muted">Say “list requirements” or “read requirement zero zero one”.</div>
+ <div class="text-secondary">Say “list requirements” or “read requirement zero zero one”.</div>
  }
  @foreach (var m in messages)
  {
  <div class="mb-2">
- <strong>@m.Role:</strong>
- <pre class="mb-0" style="white-space:pre-wrap">@m.Text</pre>
+ <strong class="text-body">@m.Role:</strong>
+ <pre class="mb-0 bg-transparent text-body" style="white-space:pre-wrap">@m.Text</pre>
  </div>
  }
  <div @ref="bottom"></div>
@@ -37,15 +37,15 @@
  <div class="modal-dialog modal-lg modal-dialog-centered">
  <div class="modal-content">
  <div class="modal-header">
- <h5 class="modal-title">Approval required</h5>
+ <h5 class="modal-title text-body">Approval required</h5>
  <button type="button" class="btn-close" aria-label="Close" @onclick="CancelPendingAsync"></button>
  </div>
  <div class="modal-body">
  @if (!string.IsNullOrWhiteSpace(approvalHeader))
  {
- <div class="small text-muted mb-2">@approvalHeader</div>
+ <div class="small text-secondary mb-2">@approvalHeader</div>
  }
- <pre class="border rounded p-2" style="white-space:pre; max-height:50vh; overflow:auto">@approvalDiff</pre>
+ <pre class="border rounded p-2 bg-body text-body" style="white-space:pre; max-height:50vh; overflow:auto">@approvalDiff</pre>
  </div>
  <div class="modal-footer">
  <button class="btn btn-outline-secondary" @onclick="CancelPendingAsync">Cancel</button>
@@ -67,7 +67,7 @@
  }
  else
  {
- <span class="text-muted">Continuous mode is disabled by configuration.</span>
+ <span class="text-secondary">Continuous mode is disabled by configuration.</span>
  }
  </div>
 
@@ -77,24 +77,24 @@
  <div class="col">
  <label class="form-label mb-1">Sensitivity (lower = more sensitive)</label>
  <input type="range" class="form-range" min="0.001" max="0.05" step="0.001" @bind-value="vadThreshold" @bind-value:event="oninput" @onchange="ApplyContinuousSettings" />
- <div class="small text-muted">threshold=@vadThreshold:F3</div>
+ <div class="small text-secondary">threshold=@vadThreshold:F3</div>
  </div>
  <div class="col">
  <label class="form-label mb-1">Silence window (ms)</label>
  <input type="range" class="form-range" min="200" max="2000" step="50" @bind-value="vadSilenceMs" @bind-value:event="oninput" @onchange="ApplyContinuousSettings" />
- <div class="small text-muted">minSilenceMs=@vadSilenceMs</div>
+ <div class="small text-secondary">minSilenceMs=@vadSilenceMs</div>
  </div>
  </div>
  }
 
- <div class="mt-2 small text-muted">@recStatus</div>
+ <div class="mt-2 small text-secondary">@recStatus</div>
  @if (!string.IsNullOrWhiteSpace(supportStatus))
  {
- <div class="small text-muted">@supportStatus</div>
+ <div class="small text-secondary">@supportStatus</div>
  }
  <audio class="mt-2 w-100" controls @ref="audioRef"></audio>
  </div>
- <div class="card-footer text-muted">Continuous On will listen, transcribe, call the agent, and play the reply.</div>
+ <div class="card-footer text-secondary">Continuous On will listen, transcribe, call the agent, and play the reply.</div>
 </div>
 
 @code {

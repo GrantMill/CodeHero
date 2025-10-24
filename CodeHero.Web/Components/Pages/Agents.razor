@@ -2,140 +2,304 @@
 @rendermode InteractiveServer
 
 @using CodeHero.Web.Services
+@using Microsoft.AspNetCore.Components.Forms
 @inject IMcpClient Client
+@inject IHttpClientFactory HttpFactory
+@inject NavigationManager Nav
 
 <h3>Agents</h3>
 
 <div class="mb-3">
-    <button class="btn btn-primary" @onclick="Ping">Ping MCP</button>
-    <span class="ms-2">@status</span>
+ <button class="btn btn-primary" @onclick="Ping">Ping MCP</button>
+ <span class="ms-2">@status</span>
 </div>
 
 <div class="card">
-    <div class="card-header">List requirements via MCP</div>
-    <div class="card-body">
-        <button class="btn btn-secondary" @onclick="ListReqs">List .md</button>
-        <ul>
-            @foreach (var f in files)
-            {
-                <li>@f</li>
-            }
-        </ul>
-    </div>
-    <div class="card-footer text-muted">Experimental stdio client (process-based)</div>
-    </div>
+ <div class="card-header">List requirements via MCP</div>
+ <div class="card-body">
+ <button class="btn btn-primary" @onclick="ListReqs">List .md</button>
+ <ul>
+ @foreach (var f in files)
+ {
+ <li>@f</li>
+ }
+ </ul>
+ </div>
+ <div class="card-footer text-muted">Experimental stdio client (process-based)</div>
+</div>
 
 <div class="card mt-3">
-    <div class="card-header">Agents</div>
-    <div class="card-body">
-        <button class="btn btn-outline-secondary" @onclick="ListAgents">List Agents</button>
-        <ul>
-            @foreach (var a in agents)
-            {
-                <li>@a <button class="btn btn-link" @onclick="() => ShowCaps(a)">capabilities</button></li>
-            }
-        </ul>
-        @if (!string.IsNullOrEmpty(capsJson))
-        {
-            <pre>@capsJson</pre>
-        }
+ <div class="card-header">Agents (from MCP)</div>
+ <div class="card-body">
+ <button class="btn btn-primary" @onclick="ListAgents">List Agents</button>
+ <ul class="mt-2">
+ @foreach (var a in agents)
+ {
+ <li>
+ <span class="fw-semibold">@a</span>
+ <button class="btn btn-link" @onclick="() => ShowCaps(a)">view tools</button>
+ </li>
+ }
+ </ul>
 
-        <h6 class="mt-3">Scribe: Create Requirement</h6>
-        <div class="row g-2">
-            <div class="col"><input class="form-control" placeholder="REQ-002" @bind="newId" /></div>
-            <div class="col"><input class="form-control" placeholder="Title" @bind="newTitle" /></div>
-            <div class="col-auto"><button class="btn btn-success" @onclick="CreateReq">Create</button></div>
-        </div>
-        @if (!string.IsNullOrEmpty(createdFile))
-        {
-            <div class="alert alert-info mt-2">Created: @createdFile</div>
-        }
-    </div>
+ @if (selectedCaps is not null)
+ {
+ <div class="mt-3">
+ <h5 class="mb-2">@selectedCaps.agent tools (@selectedCaps.tools.Count)</h5>
+ @foreach (var t in selectedCaps.tools)
+ {
+ <div class="card mb-2">
+ <div class="card-header d-flex justify-content-between align-items-center">
+ <span class="fw-semibold">@t.name</span>
+ <span class="text-muted small">@t.description</span>
+ </div>
+ <div class="card-body">
+ <div class="small text-uppercase text-muted">Parameters</div>
+ @if (t.parameters.HasValue && t.parameters!.Value.ValueKind == System.Text.Json.JsonValueKind.Object)
+ {
+ <table class="table table-sm table-striped mb-0">
+ <tbody>
+ @foreach (var p in t.parameters!.Value.EnumerateObject())
+ {
+ <tr>
+ <td class="w-25"><code>@p.Name</code></td>
+ <td>@(p.Value.ValueKind == System.Text.Json.JsonValueKind.String ? p.Value.GetString() : p.Value.ToString())</td>
+ </tr>
+ }
+ </tbody>
+ </table>
+ }
+ else
+ {
+ <div class="text-muted">none</div>
+ }
+ </div>
+ </div>
+ }
+ </div>
+ }
+
+ <h6 class="mt-4">Scribe: Create Requirement</h6>
+ <div class="row g-2">
+ <div class="col"><input class="form-control" placeholder="REQ-002" @bind="newId" /></div>
+ <div class="col"><input class="form-control" placeholder="Title" @bind="newTitle" /></div>
+ <div class="col-auto"><button class="btn btn-primary" @onclick="CreateReq">Create</button></div>
+ </div>
+ @if (!string.IsNullOrEmpty(createdFile))
+ {
+ <div class="alert alert-info mt-2">Created: @createdFile</div>
+ }
+ </div>
+</div>
+
+<div class="card mt-3">
+ <div class="card-header">Local agents (Web)</div>
+ <div class="card-body">
+ <div class="row g-3">
+ <div class="col-12 col-lg-6">
+ <h6 class="fw-semibold">Orchestrator</h6>
+ <div class="input-group">
+ <input class="form-control" placeholder="Say something…" @bind="orchestratorPrompt" />
+ <button class="btn btn-primary" @onclick="SendOrchestratorAsync">Send</button>
+ </div>
+ @if (!string.IsNullOrWhiteSpace(orchestratorReply))
+ {
+ <pre class="mt-2" style="white-space:pre-wrap">@orchestratorReply</pre>
+ }
+ </div>
+ <div class="col-12 col-lg-6">
+ <h6 class="fw-semibold">Speech to Text (STT)</h6>
+ <InputFile OnChange="OnAudioSelected" accept="audio/*" />
+ @if (!string.IsNullOrWhiteSpace(sttText))
+ {
+ <div class="mt-2 alert alert-secondary">@sttText</div>
+ }
+ </div>
+ <div class="col-12 col-lg-6">
+ <h6 class="fw-semibold">Text to Speech (TTS)</h6>
+ <div class="row g-2">
+ <div class="col-8"><input class="form-control" placeholder="Text to synthesize" @bind="ttsText" /></div>
+ <div class="col-3">
+ <select class="form-select" @bind="ttsVoice">
+ <option value="en-US-JennyNeural">en-US-JennyNeural</option>
+ <option value="en-US-GuyNeural">en-US-GuyNeural</option>
+ </select>
+ </div>
+ <div class="col-1"><button class="btn btn-primary w-100" @onclick="SynthesizeAsync">Go</button></div>
+ </div>
+ <audio class="mt-2 w-100" controls src="@ttsSrc"></audio>
+ </div>
+ </div>
+ </div>
 </div>
 
 @code {
-    string status = string.Empty;
-    List<string> files = new();
-    List<string> agents = new();
-    string capsJson = string.Empty;
-    string newId = "REQ-002";
-    string newTitle = "New Requirement";
-    string createdFile = string.Empty;
+ string status = string.Empty;
+ List<string> files = new();
+ List<string> agents = new();
 
-    async Task Ping()
-    {
-        try
-        {
-            if (await Client.InitializeAsync())
-            {
-                status = await Client.PingAsync() ? "pong" : "no pong";
-            }
-            else status = "init failed";
-        }
-        catch (Exception ex)
-        {
-            status = ex.Message;
-        }
-    }
+ // structured capabilities state
+ AgentCaps? selectedCaps;
+ string? selectedAgent;
 
-    async Task ListReqs()
-    {
-        try
-        {
-            if (await Client.InitializeAsync())
-            {
-                files = (await Client.ListAsync(StoreRoot.Requirements, new[] { ".md" })).ToList();
-            }
-        }
-        catch (Exception ex)
-        {
-            status = ex.Message;
-        }
-    }
+ string newId = "REQ-002";
+ string newTitle = "New Requirement";
+ string createdFile = string.Empty;
 
-    async Task ListAgents()
-    {
-        try
-        {
-            if (await Client.InitializeAsync())
-            {
-                agents = (await Client.ListAgentsAsync()).ToList();
-            }
-        }
-        catch (Exception ex)
-        {
-            status = ex.Message;
-        }
-    }
+ // local agents state
+ string orchestratorPrompt = string.Empty;
+ string orchestratorReply = string.Empty;
+ string sttText = string.Empty;
+ string ttsText = string.Empty;
+ string ttsVoice = "en-US-JennyNeural";
+ string? ttsSrc;
 
-    async Task ShowCaps(string agent)
-    {
-        try
-        {
-            if (await Client.InitializeAsync())
-            {
-                var caps = await Client.GetAgentCapabilitiesAsync(agent);
-                capsJson = caps.GetRawText();
-            }
-        }
-        catch (Exception ex)
-        {
-            status = ex.Message;
-        }
-    }
+ async Task Ping()
+ {
+ try
+ {
+ if (await Client.InitializeAsync())
+ {
+ status = await Client.PingAsync() ? "pong" : "no pong";
+ }
+ else status = "init failed";
+ }
+ catch (Exception ex)
+ {
+ status = ex.Message;
+ }
+ }
 
-    async Task CreateReq()
-    {
-        try
-        {
-            if (await Client.InitializeAsync())
-            {
-                createdFile = await Client.ScribeCreateRequirementAsync(newId, newTitle);
-            }
-        }
-        catch (Exception ex)
-        {
-            status = ex.Message;
-        }
-    }
+ async Task ListReqs()
+ {
+ try
+ {
+ if (await Client.InitializeAsync())
+ {
+ files = (await Client.ListAsync(StoreRoot.Requirements, new[] { ".md" })).ToList();
+ }
+ }
+ catch (Exception ex)
+ {
+ status = ex.Message;
+ }
+ }
+
+ async Task ListAgents()
+ {
+ try
+ {
+ if (await Client.InitializeAsync())
+ {
+ agents = (await Client.ListAgentsAsync()).ToList();
+ }
+ }
+ catch (Exception ex)
+ {
+ status = ex.Message;
+ }
+ }
+
+ async Task ShowCaps(string agent)
+ {
+ try
+ {
+ if (await Client.InitializeAsync())
+ {
+ var capsEl = await Client.GetAgentCapabilitiesAsync(agent);
+ selectedCaps = System.Text.Json.JsonSerializer.Deserialize<AgentCaps>(capsEl.GetRawText(), new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web));
+ selectedAgent = agent;
+ }
+ }
+ catch (Exception ex)
+ {
+ status = ex.Message;
+ }
+ }
+
+ async Task CreateReq()
+ {
+ try
+ {
+ if (await Client.InitializeAsync())
+ {
+ createdFile = await Client.ScribeCreateRequirementAsync(newId, newTitle);
+ }
+ }
+ catch (Exception ex)
+ {
+ status = ex.Message;
+ }
+ }
+
+ async Task SendOrchestratorAsync()
+ {
+ try
+ {
+ var http = HttpFactory.CreateClient();
+ if (http.BaseAddress is null) http.BaseAddress = new Uri(Nav.BaseUri, UriKind.Absolute);
+ var resp = await http.PostAsync("api/agent/chat", new StringContent(orchestratorPrompt));
+ orchestratorReply = resp.IsSuccessStatusCode ? (await resp.Content.ReadAsStringAsync()) : resp.StatusCode.ToString();
+ }
+ catch (Exception ex)
+ {
+ orchestratorReply = ex.Message;
+ }
+ }
+
+ async Task OnAudioSelected(InputFileChangeEventArgs e)
+ {
+ try
+ {
+ var file = e.File;
+ using var ms = new MemoryStream();
+ await file.OpenReadStream(maxAllowedSize:20 *1024 *1024).CopyToAsync(ms);
+ var http = HttpFactory.CreateClient();
+ if (http.BaseAddress is null) http.BaseAddress = new Uri(Nav.BaseUri, UriKind.Absolute);
+ using var content = new ByteArrayContent(ms.ToArray());
+ content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("audio/wav");
+ var resp = await http.PostAsync("api/stt", content);
+ sttText = resp.IsSuccessStatusCode ? (await resp.Content.ReadAsStringAsync()) : resp.StatusCode.ToString();
+ }
+ catch (Exception ex)
+ {
+ sttText = ex.Message;
+ }
+ }
+
+ async Task SynthesizeAsync()
+ {
+ try
+ {
+ var http = HttpFactory.CreateClient();
+ if (http.BaseAddress is null) http.BaseAddress = new Uri(Nav.BaseUri, UriKind.Absolute);
+ var resp = await http.PostAsync($"api/tts?voice={Uri.EscapeDataString(ttsVoice)}", new StringContent(ttsText));
+ if (resp.IsSuccessStatusCode)
+ {
+ var bytes = await resp.Content.ReadAsByteArrayAsync();
+ ttsSrc = "data:audio/wav;base64," + Convert.ToBase64String(bytes);
+ }
+ else
+ {
+ ttsSrc = null; status = resp.StatusCode.ToString();
+ }
+ }
+ catch (Exception ex)
+ {
+ ttsSrc = null; status = ex.Message;
+ }
+ }
+
+ // DTOs for capabilities
+ private sealed class AgentCaps
+ {
+ public string agent { get; set; } = string.Empty;
+ public List<ToolDef> tools { get; set; } = new();
+ }
+ private sealed class ToolDef
+ {
+ public string name { get; set; } = string.Empty;
+ public string? description { get; set; }
+ public System.Text.Json.JsonElement? parameters { get; set; }
+ }
 }

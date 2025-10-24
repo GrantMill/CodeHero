@@ -5,29 +5,87 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <base href="/" />
-    <link rel="stylesheet" href="@Assets["lib/bootstrap/dist/css/bootstrap.min.css"]" />
+
+    <script>
+        // Apply theme as early as possible to avoid FOUC
+        (function () {
+            function getPreferred() {
+                try { var saved = localStorage.getItem('theme'); if (saved === 'light' || saved === 'dark') return saved; } catch { }
+                return (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+            }
+            var t = getPreferred();
+            document.documentElement.setAttribute('data-bs-theme', t);
+            try { document.body && document.body.setAttribute('data-bs-theme', t); } catch { }
+        })();
+    </script>
+
+    <!-- Bootstrap5.3 CSS (has data-bs-theme support) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        crossorigin="anonymous" />
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+
     <link rel="stylesheet" href="@Assets["app.css"]" />
     <link rel="stylesheet" href="@Assets["CodeHero.Web.styles.css"]" />
     <ImportMap />
     <link rel="icon" type="image/png" href="favicon.png" />
     <HeadOutlet />
+
+    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
     <script src="/js/audio.js"></script>
+
     <script>
+        // Mermaid lazy init + rerun when nodes with class .mermaid are added
         mermaid.initialize({ startOnLoad: true });
-        (function(){
-            function run(){ try { mermaid.run({ querySelector: '.mermaid' }); } catch (e) { /* no-op */ } }
-            document.addEventListener('DOMContentLoaded', run);
-            const obs = new MutationObserver(function(muts){
-                for (const m of muts){
-                    for (const n of m.addedNodes){
-                        if (n && n.nodeType === 1 && n.classList && n.classList.contains('mermaid')) { run(); return; }
+        (function () {
+            function runMermaid() { try { mermaid.run({ querySelector: '.mermaid' }); } catch { }
+            }
+            document.addEventListener('DOMContentLoaded', runMermaid);
+            var obs = new MutationObserver(function (muts) {
+                for (var i = 0; i < muts.length; i++) {
+                    var added = muts[i].addedNodes || [];
+                    for (var j = 0; j < added.length; j++) {
+                        var n = added[j];
+                        if (n && n.nodeType === 1 && n.classList && n.classList.contains('mermaid')) { runMermaid(); return; }
                     }
                 }
             });
             obs.observe(document.documentElement || document.body, { childList: true, subtree: true });
+        })();
+
+        // Plain global theme helpers for Blazor interop
+        (function () {
+            function applyTheme(theme) {
+                var t = (theme === 'dark') ? 'dark' : 'light';
+                document.documentElement.setAttribute('data-bs-theme', t);
+                try { document.body && document.body.setAttribute('data-bs-theme', t); } catch { }
+                try { localStorage.setItem('theme', t); } catch { }
+                return t;
+            }
+            function getTheme() { return document.documentElement.getAttribute('data-bs-theme') || 'light'; }
+            window.codeheroTheme_get = getTheme;
+            window.codeheroTheme_set = function (t) { return applyTheme(t); };
+            window.codeheroTheme_toggle = function () { var cur = getTheme(); return applyTheme(cur === 'dark' ? 'light' : 'dark'); };
+
+            // Re-apply theme after internal navigations or if attribute is lost
+            function applyFromStorage() {
+                var t = (localStorage.getItem('theme') === 'dark') ? 'dark' : 'light';
+                applyTheme(t);
+            }
+            window.addEventListener('popstate', applyFromStorage);
+            document.addEventListener('click', function (e) {
+                var a = e.target.closest && e.target.closest('a');
+                if (a && a.href && a.target !== '_blank') { setTimeout(applyFromStorage, 0); }
+            }, true);
+            new MutationObserver(function (muts) {
+                for (var i = 0; i < muts.length; i++) {
+                    if (muts[i].attributeName === 'data-bs-theme' && !document.documentElement.getAttribute('data-bs-theme')) {
+                        applyFromStorage();
+                        break;
+                    }
+                }
+            }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-bs-theme'] });
         })();
     </script>
 </head>

@@ -1,6 +1,10 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
-    <div class="container-fluid">
+﻿@rendermode InteractiveServer
+<div class="top-row ps-3 navbar navbar-dark">
+    <div class="container-fluid d-flex justify-content-between align-items-center">
         <a class="navbar-brand" href="">CodeHero</a>
+        <button class="btn btn-sm btn-outline-light" @onclick="ToggleTheme" title="Toggle light/dark" type="button">
+            <span class="bi @(currentTheme=="dark"?"bi-moon":"bi-brightness-high")"></span>
+        </button>
     </div>
 </div>
 
@@ -51,3 +55,20 @@
         </div>
     </nav>
 </div>
+
+@code {
+    [Inject] private IJSRuntime JS { get; set; } = default!;
+    private string currentTheme = "light";
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try { currentTheme = await JS.InvokeAsync<string>("codeheroTheme_get"); StateHasChanged(); } catch { }
+        }
+    }
+    private async Task ToggleTheme()
+    {
+        try { await JS.InvokeVoidAsync("codeheroTheme_toggle"); currentTheme = await JS.InvokeAsync<string>("codeheroTheme_get"); StateHasChanged(); }
+        catch { await JS.InvokeVoidAsync("eval", "(function(){var e=document.documentElement.getAttribute('data-bs-theme')==='dark'?'light':'dark';document.documentElement.setAttribute('data-bs-theme',e);try{localStorage.setItem('theme',e);}catch{}})()"); }
+    }
+}
