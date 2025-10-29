@@ -58,8 +58,10 @@ jobs:
           fi
           az version
 
-      - name: Ensure Azure CLI 'cognitivesearch' extension installed
-        run: az extension add --name cognitivesearch --upgrade --yes
+      - name: Verify az cognitivesearch availability
+        run: |
+          az --version
+          az cognitivesearch --help >/dev/null 2>&1 || { echo "cognitivesearch group missing"; exit 1; }
 
       # Check if a free-tier Search service already exists
       - name: Check for existing Free-tier service
