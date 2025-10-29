@@ -89,14 +89,21 @@ jobs:
             echo "Service already exists; skipping create."
             echo "created=false" >> $GITHUB_OUTPUT
           else
+            echo "Creating Free-tier Azure Cognitive Search service..."
             az resource create \
               --resource-group "$RG" \
               --resource-type "Microsoft.Search/searchServices" \
               --name "$SEARCH" \
-              --location "$LOC" \
-              --properties '{}' \
-              --sku name=free \
-              -o none
+              --is-full-object \
+              --properties "{
+                \"location\": \"$LOC\",
+                \"sku\": {\"name\": \"free\"},
+                \"properties\": {
+                  \"hostingMode\": \"default\",
+                  \"partitionCount\": 1,
+                  \"replicaCount\": 1
+                }
+              }"
             echo "created=true" >> $GITHUB_OUTPUT
           fi
 
