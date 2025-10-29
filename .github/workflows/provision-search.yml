@@ -47,27 +47,20 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      - name: Ensure recent Azure CLI (with cognitivesearch)
+      # Optional: keep this if you want the very latest az; safe to remove otherwise.
+      - name: Ensure recent Azure CLI
         run: |
           set -e
-          # Try in-place upgrade (works on GitHub Ubuntu runners)
           sudo az upgrade --yes --only-show-errors || true
-          # If upgrade isn't supported, install latest from Microsoft repo
-          if ! az version | grep -q '"azure-cli"'; then
-            curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
-          fi
-          az version
-
-      - name: Verify az cognitivesearch availability
-        run: |
           az --version
-          az cognitivesearch --help >/dev/null 2>&1 || { echo "cognitivesearch group missing"; exit 1; }
 
-      # Check if a free-tier Search service already exists
+      # Check if a free-tier Search service already exists (subscription-wide)
       - name: Check for existing Free-tier service
         id: check-free
         run: |
-          existing=$(az cognitivesearch service list --query "[?sku.name=='free'].name" -o tsv)
+          existing=$(az resource list \
+            --resource-type "Microsoft.Search/searchServices" \
+            --query "[?sku.name=='free'].name" -o tsv)
           if [ -n "$existing" ]; then
             echo "found=true" >> $GITHUB_OUTPUT
             echo "existing_name=$existing" >> $GITHUB_OUTPUT
@@ -81,7 +74,6 @@ jobs:
           echo "::error::A Free-tier Search service already exists in this subscription: '${{ steps.check-free.outputs.existing_name }}'. Free tier allows only one per subscription."
           exit 1
 
-      # No extension needed — Azure CLI includes Cognitive Search natively
       - name: Create Azure Cognitive Search (Free, idempotent)
         id: create-search
         env:
@@ -90,16 +82,21 @@ jobs:
           SEARCH: ${{ github.event.inputs.searchServiceName }}
         run: |
           set -e
-          if az cognitivesearch service show --name "$SEARCH" --resource-group "$RG" >/dev/null 2>&1; then
+          if az resource show \
+               --resource-group "$RG" \
+               --resource-type "Microsoft.Search/searchServices" \
+               --name "$SEARCH" >/dev/null 2>&1; then
             echo "Service already exists; skipping create."
             echo "created=false" >> $GITHUB_OUTPUT
           else
-            az cognitivesearch service create \
-              --name "$SEARCH" \
+            az resource create \
               --resource-group "$RG" \
-              --sku free \
+              --resource-type "Microsoft.Search/searchServices" \
+              --name "$SEARCH" \
               --location "$LOC" \
-              --vector-search-configs "[{'name':'default','kind':'vectorSearch'}]"
+              --properties '{}' \
+              --sku name=free \
+              -o none
             echo "created=true" >> $GITHUB_OUTPUT
           fi
 
@@ -135,7 +132,18 @@ jobs:
           RG: ${{ github.event.inputs.resourceGroup }}
           SEARCH: ${{ github.event.inputs.searchServiceName }}
         run: |
-          key=$(az cognitivesearch admin-key show --resource-group "$RG" --service-name "$SEARCH" --query primaryKey -o tsv)
+          SUBS=${AZURE_SUBSCRIPTION_ID:-$(az account show --query id -o tsv)}
+          # Try newest API, fall back once if needed
+          for api in 2024-03-01 2023-11-01; do
+            key=$(az rest \
+              --method POST \
+              --url "https://management.azure.com/subscriptions/$SUBS/resourceGroups/$RG/providers/Microsoft.Search/searchServices/$SEARCH/listAdminKeys?api-version=$api" \
+              --query primaryKey -o tsv) && break || true
+          done
+          if [ -z "$key" ]; then
+            echo "::error::Failed to fetch admin key for '$SEARCH'."
+            exit 1
+          fi
           echo "searchKey=$key" >> $GITHUB_OUTPUT
 
       - name: Get Storage connection string
