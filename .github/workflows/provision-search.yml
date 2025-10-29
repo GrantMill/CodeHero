@@ -47,6 +47,9 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
+      - name: Ensure Azure CLI 'cognitivesearch' extension installed
+        run: az extension add --name cognitivesearch --upgrade --yes
+
       # Check if a free-tier Search service already exists
       - name: Check for existing Free-tier service
         id: check-free
