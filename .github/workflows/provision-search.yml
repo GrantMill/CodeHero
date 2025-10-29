@@ -1,35 +1,170 @@
-name: Provision Azure Cognitive Search and Set Secrets
+﻿name: Provision Azure Cognitive Search (Free) + KV + Storage (Public Safe)
 
 on:
- workflow_dispatch:
+  workflow_dispatch:
+    inputs:
+      resourceGroup:
+        description: "Azure Resource Group"
+        required: true
+        default: "rg-prod-ai-weu-gms"
+      location:
+        description: "Azure Region"
+        required: true
+        default: "westeurope"
+      searchServiceName:
+        description: "Globally unique Search service name"
+        required: true
+      storageAccount:
+        description: "Existing Storage account name"
+        required: true
+      containerName:
+        description: "New or existing storage container"
+        required: true
+        default: "codehero-rag-data"
+      keyVault:
+        description: "Key Vault name"
+        required: true
+      managedIdentityName:
+        description: "Name of the user-assigned Managed Identity in the same RG"
+        required: true
+        default: "mi-codehero"
 
 jobs:
- provision-search:
- runs-on: ubuntu-latest
- permissions:
- contents: read
- id-token: write
+  provision:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
 
- steps:
- - name: Checkout
- uses: actions/checkout@v4
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
- - name: Login to Azure
- uses: azure/login@v2
- with:
- client-id: ${{ secrets.AZURE_CLIENT_ID }}
- tenant-id: ${{ secrets.AZURE_TENANT_ID }}
- subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      - name: Login to Azure using Federated Identity
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
- - name: Create Azure Cognitive Search (Free tier)
- env:
- AZURE_RESOURCE_GROUP: ${{ github.event.inputs.resourceGroup }}
- AZURE_LOCATION: ${{ github.event.inputs.location }}
- AZURE_SEARCH_NAME: ${{ github.event.inputs.searchServiceName }}
- run: |
- # Free tier supports a single small index; one free service per subscription
- az search service create \
- --name "$AZURE_SEARCH_NAME" \
- --resource-group "$AZURE_RESOURCE_GROUP" \
- --sku free \
- --location "$AZURE_LOCATION"
+      - name: Ensure Azure CLI 'search' extension installed
+        run: az extension add --name search --upgrade --yes
+
+      # Check if a free-tier Search service already exists
+      - name: Check for existing Free-tier service
+        id: check-free
+        run: |
+          existing=$(az search service list --query "[?sku.name=='free'].name" -o tsv)
+          if [ -n "$existing" ]; then
+            echo "found=true" >> $GITHUB_OUTPUT
+            echo "existing_name=$existing" >> $GITHUB_OUTPUT
+          else
+            echo "found=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Fail if another Free-tier Search service exists
+        if: steps.check-free.outputs.found == 'true' && github.event.inputs.searchServiceName != steps.check-free.outputs.existing_name
+        run: |
+          echo "::error::A Free-tier Search service already exists in this subscription: '${{ steps.check-free.outputs.existing_name }}'. Free tier allows only one per subscription."
+          exit 1
+
+      - name: Create Azure Cognitive Search (Free, idempotent)
+        id: create-search
+        env:
+          RG: ${{ github.event.inputs.resourceGroup }}
+          LOC: ${{ github.event.inputs.location }}
+          SEARCH: ${{ github.event.inputs.searchServiceName }}
+        run: |
+          set -e
+          if az search service show --name "$SEARCH" --resource-group "$RG" >/dev/null 2>&1; then
+            echo "created=false" >> $GITHUB_OUTPUT
+            echo "Service already exists; skipping create."
+          else
+            az search service create \
+              --name "$SEARCH" \
+              --resource-group "$RG" \
+              --sku free \
+              --location "$LOC" \
+              --vector-search-configs "[{'name':'default','kind':'vectorSearch'}]"
+            echo "created=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Resolve Managed Identity objectId from name
+        id: mi
+        env:
+          RG: ${{ github.event.inputs.resourceGroup }}
+          MI_NAME: ${{ github.event.inputs.managedIdentityName }}
+        run: |
+          objId=$(az identity show -g "$RG" -n "$MI_NAME" --query principalId -o tsv)
+          if [ -z "$objId" ]; then
+            echo "::error::Managed Identity '$MI_NAME' not found in RG '$RG'."
+            exit 1
+          fi
+          echo "principalId=$objId" >> $GITHUB_OUTPUT
+
+      - name: Create private Blob container (idempotent)
+        env:
+          RG: ${{ github.event.inputs.resourceGroup }}
+          STORAGE: ${{ github.event.inputs.storageAccount }}
+          CONTAINER: ${{ github.event.inputs.containerName }}
+        run: |
+          az storage container create \
+            --name "$CONTAINER" \
+            --account-name "$STORAGE" \
+            --auth-mode login \
+            --public-access off \
+            --only-show-errors
+
+      - name: Get Search admin key (masked)
+        id: get-search-key
+        env:
+          RG: ${{ github.event.inputs.resourceGroup }}
+          SEARCH: ${{ github.event.inputs.searchServiceName }}
+        run: |
+          key=$(az search admin-key show --resource-group "$RG" --service-name "$SEARCH" --query primaryKey -o tsv)
+          echo "searchKey=$key" >> $GITHUB_OUTPUT
+
+      - name: Get Storage connection string
+        id: get-storage-conn
+        env:
+          RG: ${{ github.event.inputs.resourceGroup }}
+          STORAGE: ${{ github.event.inputs.storageAccount }}
+        run: |
+          conn=$(az storage account show-connection-string --name "$STORAGE" --resource-group "$RG" --query connectionString -o tsv)
+          echo "connStr=$conn" >> $GITHUB_OUTPUT
+
+      - name: Store secrets in Key Vault
+        env:
+          KV: ${{ github.event.inputs.keyVault }}
+        run: |
+          az keyvault secret set --vault-name "$KV" --name "CodeHero-SearchAdminKey" --value "${{ steps.get-search-key.outputs.searchKey }}" --only-show-errors
+          az keyvault secret set --vault-name "$KV" --name "CodeHero-StorageConnectionString" --value "${{ steps.get-storage-conn.outputs.connStr }}" --only-show-errors
+
+      - name: Grant Managed Identity access to Key Vault (secrets)
+        env:
+          KV: ${{ github.event.inputs.keyVault }}
+        run: |
+          az keyvault set-policy \
+            --name "$KV" \
+            --object-id "${{ steps.mi.outputs.principalId }}" \
+            --secret-permissions get list --only-show-errors
+
+      - name: Assign Storage Blob Data Contributor to Managed Identity
+        env:
+          SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          RG: ${{ github.event.inputs.resourceGroup }}
+          STORAGE: ${{ github.event.inputs.storageAccount }}
+        run: |
+          scope="/subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RG/providers/Microsoft.Storage/storageAccounts/$STORAGE"
+          az role assignment create \
+            --assignee "${{ steps.mi.outputs.principalId }}" \
+            --role "Storage Blob Data Contributor" \
+            --scope "$scope" \
+            --only-show-errors
+
+      - name: Summary
+        run: |
+          echo "✅ Azure Cognitive Search provisioned: ${{ github.event.inputs.searchServiceName }}"
+          echo "✅ Storage container ensured: ${{ github.event.inputs.containerName }}"
+          echo "✅ Secrets stored in Key Vault: ${{ github.event.inputs.keyVault }}"
+          echo "✅ Managed Identity granted KV + Blob permissions"
