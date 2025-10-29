@@ -47,14 +47,11 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      - name: Ensure Azure CLI 'search' extension installed
-        run: az extension add --name search --upgrade --yes
-
       # Check if a free-tier Search service already exists
       - name: Check for existing Free-tier service
         id: check-free
         run: |
-          existing=$(az search service list --query "[?sku.name=='free'].name" -o tsv)
+          existing=$(az cognitivesearch service list --query "[?sku.name=='free'].name" -o tsv)
           if [ -n "$existing" ]; then
             echo "found=true" >> $GITHUB_OUTPUT
             echo "existing_name=$existing" >> $GITHUB_OUTPUT
@@ -68,6 +65,7 @@ jobs:
           echo "::error::A Free-tier Search service already exists in this subscription: '${{ steps.check-free.outputs.existing_name }}'. Free tier allows only one per subscription."
           exit 1
 
+      # No extension needed — Azure CLI includes Cognitive Search natively
       - name: Create Azure Cognitive Search (Free, idempotent)
         id: create-search
         env:
@@ -76,11 +74,11 @@ jobs:
           SEARCH: ${{ github.event.inputs.searchServiceName }}
         run: |
           set -e
-          if az search service show --name "$SEARCH" --resource-group "$RG" >/dev/null 2>&1; then
-            echo "created=false" >> $GITHUB_OUTPUT
+          if az cognitivesearch service show --name "$SEARCH" --resource-group "$RG" >/dev/null 2>&1; then
             echo "Service already exists; skipping create."
+            echo "created=false" >> $GITHUB_OUTPUT
           else
-            az search service create \
+            az cognitivesearch service create \
               --name "$SEARCH" \
               --resource-group "$RG" \
               --sku free \
@@ -121,7 +119,7 @@ jobs:
           RG: ${{ github.event.inputs.resourceGroup }}
           SEARCH: ${{ github.event.inputs.searchServiceName }}
         run: |
-          key=$(az search admin-key show --resource-group "$RG" --service-name "$SEARCH" --query primaryKey -o tsv)
+          key=$(az cognitivesearch admin-key show --resource-group "$RG" --service-name "$SEARCH" --query primaryKey -o tsv)
           echo "searchKey=$key" >> $GITHUB_OUTPUT
 
       - name: Get Storage connection string
