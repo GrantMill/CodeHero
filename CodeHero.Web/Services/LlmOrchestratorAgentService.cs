@@ -295,10 +295,35 @@ public sealed class LlmOrchestratorAgentService : IAgentService
                 using var act = AgentTelemetry.Activity.StartActivity("plan.llm");
                 var sys = GetSystemPrompt();
                 var json = await ChatJsonAsync(sys, input, ct);
-                var plan = JsonSerializer.Deserialize<Plan>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new Plan();
-                // basic validation: tool allowlist
-                plan.Steps = plan.Steps.Where(s => s is not null && IsAllowedTool(s.Tool)).ToList();
-                return plan;
+
+                // Try strict JSON deserialization first
+                try
+                {
+                    var plan = JsonSerializer.Deserialize<Plan>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new Plan();
+                    plan.Steps = plan.Steps.Where(s => s is not null && IsAllowedTool(s.Tool)).ToList();
+                    return plan;
+                }
+                catch (JsonException)
+                {
+                    // Attempt to extract the first JSON object/array from the model output
+                    var m = System.Text.RegularExpressions.Regex.Match(json, @"({[\s\S]*}|\[[\s\S]*\])");
+                    if (m.Success)
+                    {
+                        try
+                        {
+                            var extracted = m.Groups[1].Value;
+                            var plan = JsonSerializer.Deserialize<Plan>(extracted, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new Plan();
+                            plan.Steps = plan.Steps.Where(s => s is not null && IsAllowedTool(s.Tool)).ToList();
+                            return plan;
+                        }
+                        catch (JsonException ex)
+                        {
+                            _log.LogWarning(ex, "Failed to parse extracted JSON from Foundry response. Response: {Json}", json);
+                        }
+                    }
+
+                    _log.LogWarning("LLM returned non-JSON or unexpected JSON for planning. Response: {Json}", json);
+                }
             }
             catch (Exception ex)
             {
@@ -517,6 +542,34 @@ public sealed class LlmOrchestratorAgentService : IAgentService
         using var client = _http.CreateClient();
         client.DefaultRequestHeaders.Add("api-key", _key);
 
+        // Prefer an explicit json_schema response_format so the model returns a strict JSON object
+        var responseFormat = new
+        {
+            type = "json_schema",
+            json_schema = new
+            {
+                type = "object",
+                properties = new
+                {
+                    steps = new
+                    {
+                        type = "array",
+                        items = new
+                        {
+                            type = "object",
+                            properties = new
+                            {
+                                tool = new { type = "string" },
+                                parameters = new { type = "object" }
+                            },
+                            required = new[] { "tool", "parameters" }
+                        }
+                    }
+                },
+                required = new[] { "steps" }
+            }
+        };
+
         object payload = new
         {
             messages = new object[]
@@ -524,8 +577,8 @@ public sealed class LlmOrchestratorAgentService : IAgentService
                 new { role = "system", content = systemPrompt },
                 new { role = "user", content = userText }
             },
-            temperature = 0,
-            response_format = new { type = "json_object" },
+            temperature =0,
+            response_format = responseFormat,
             model = _useModelsRoute ? _model : null
         };
 
@@ -539,9 +592,38 @@ public sealed class LlmOrchestratorAgentService : IAgentService
         var body = await resp.Content.ReadAsStringAsync(ct);
         if (!resp.IsSuccessStatusCode)
             throw new InvalidOperationException($"Foundry chat failed: {(int)resp.StatusCode} {resp.ReasonPhrase} - {body}");
-        using var doc = JsonDocument.Parse(body);
-        var contentEl = doc.RootElement.GetProperty("choices")[0].GetProperty("message").GetProperty("content");
-        return contentEl.GetString() ?? "{}";
+
+        try
+        {
+            using var doc = JsonDocument.Parse(body);
+            // Some Foundry/chat deployments put the structured content under message.content (string) or directly as content
+            var choice = doc.RootElement.GetProperty("choices")[0];
+            // Try message.content (chat style)
+            if (choice.TryGetProperty("message", out var msg) && msg.TryGetProperty("content", out var contentEl))
+            {
+                // content might be a string or an object; prefer object
+                if (contentEl.ValueKind == JsonValueKind.Object || contentEl.ValueKind == JsonValueKind.Array)
+                    return contentEl.GetRawText();
+                if (contentEl.ValueKind == JsonValueKind.String)
+                    return contentEl.GetString() ?? "{}";
+            }
+            // Fallback: try 'content' directly
+            if (choice.TryGetProperty("content", out var directContent))
+            {
+                if (directContent.ValueKind == JsonValueKind.Object || directContent.ValueKind == JsonValueKind.Array)
+                    return directContent.GetRawText();
+                if (directContent.ValueKind == JsonValueKind.String)
+                    return directContent.GetString() ?? "{}";
+            }
+
+            // Last resort: return the whole body so callers can attempt to extract JSON
+            return body;
+        }
+        catch (JsonException)
+        {
+            // If parsing the response metadata failed, return raw body for caller to inspect
+            return body;
+        }
     }
 
     private async Task<string> ExecuteAsync(PlanStep step, CancellationToken ct)
