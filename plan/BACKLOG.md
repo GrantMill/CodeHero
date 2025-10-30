@@ -41,10 +41,10 @@
 - [x] [H] [REQ-003] Confirm storage account connection string (validate `stazureaiaip893893803122`)
 
 ### Phase1 — Provision minimal RAG infra & embedding deployment
-- [ ] [H] [REQ-003] Register/deploy embedding model in Azure AI Foundry (choose model & deployment name)
+- [x] [H] [REQ-003] Register/deploy embedding model in Azure AI Foundry (choose model & deployment name)
 - [x] [H] [REQ-003] Provision or confirm vector-capable index store (Azure Cognitive Search preferred)
-- [ ] [H] [REQ-003] Create storage blob container for ingested docs (use `stazureaiaip893893803122`)
-- [ ] [H] [REQ-003] Add Key Vault secrets for Foundry endpoint/key, Search key, and storage connection string
+- [x] [H] [REQ-003] Create storage blob container for ingested docs (use `stazureaiaip893893803122`)
+- [x] [H] [REQ-003] Add Key Vault secrets for Foundry endpoint/key, Search key, and storage connection string
 - [ ] [H] [REQ-003] Grant Managed Identity/service principal access to Key Vault, Storage, and Search
 
 ### Phase2 — Indexer implementation & CI
@@ -88,4 +88,5 @@
 Notes
 - Priorities: unblockers first (Phase0), then infra (Phase1), indexer & CI (Phase2), retrieval API & observability (Phase3), orchestrator integration (Phase4), then code tooling and hardening.
 - I removed duplicate/overlapping backlog entries and consolidated REQ-002/REQ-003 workstreams into the phased plan above.
+
 
