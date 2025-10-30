@@ -177,19 +177,20 @@ jobs:
             --name "$KV" \
             --object-id "${{ steps.mi.outputs.principalId }}" \
             --secret-permissions get list --only-show-errors
-
-      - name: Assign Storage Blob Data Contributor to Managed Identity
-        env:
-          SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          RG: ${{ github.event.inputs.resourceGroup }}
-          STORAGE: ${{ github.event.inputs.storageAccount }}
-        run: |
-          scope="/subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RG/providers/Microsoft.Storage/storageAccounts/$STORAGE"
-          az role assignment create \
-            --assignee "${{ steps.mi.outputs.principalId }}" \
-            --role "Storage Blob Data Contributor" \
-            --scope "$scope" \
-            --only-show-errors
+      
+      # Optional: Grant Managed Identity access to Storage Blob Data Contributor (or manual step by owner)
+      # - name: Assign Storage Blob Data Contributor to Managed Identity
+      #   env:
+      #     SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      #     RG: ${{ github.event.inputs.resourceGroup }}
+      #     STORAGE: ${{ github.event.inputs.storageAccount }}
+      #   run: |
+      #     scope="/subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RG/providers/Microsoft.Storage/storageAccounts/$STORAGE"
+      #     az role assignment create \
+      #       --assignee "${{ steps.mi.outputs.principalId }}" \
+      #       --role "Storage Blob Data Contributor" \
+      #       --scope "$scope" \
+      #       --only-show-errors
 
       - name: Summary
         run: |
