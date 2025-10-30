@@ -27,7 +27,8 @@
  {
  <div class="d-flex align-items-center gap-2">
  <span class="fs-5 @(item.IsAgent ? "bi bi-robot text-warning" : "bi bi-person-badge text-info")" title="@(item.IsAgent ? "Agent" : "Human")"></span>
- <input type="checkbox" class="form-check-input" checked="@item.Checked" @onchange="(e)=>Toggle(i, e.Value)" />
+ <input type="checkbox" class="form-check-input" checked="@item.Checked"
+       @onchange="(ChangeEventArgs e) => Toggle(items.IndexOf(item), e.Value)" />
                         <span class="ms-2">@((MarkupString)Markdig.Markdown.ToHtml(item.Text, Md))</span>
  </div>
  }

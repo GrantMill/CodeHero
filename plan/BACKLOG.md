@@ -36,9 +36,9 @@
 ## Outstanding work (prioritized phases)
 
 ### Phase0 — Validate Azure resources & access (blockers)
-- [ ] [A] [REQ-003] Validate resources in `rg-prod-ai-weu-gms` (Foundry, Key Vault, Storage, App Insights, Search)
-- [ ] [A] [REQ-003] Ensure Key Vault access: grant `get,list` to developer or service principal
-- [ ] [A] [REQ-003] Confirm storage account connection string (validate `stazureaiaip893893803122`)
+- [x] [A] [REQ-003] Validate resources in `rg-prod-ai-weu-gms` (Foundry, Key Vault, Storage, App Insights, Search)
+- [x] [A] [REQ-003] Ensure Key Vault access: grant `get,list` to developer or service principal
+- [x] [A] [REQ-003] Confirm storage account connection string (validate `stazureaiaip893893803122`)
 
 ### Phase1 — Provision minimal RAG infra & embedding deployment
 - [ ] [A] [REQ-003] Register/deploy embedding model in Azure AI Foundry (choose model & deployment name)
@@ -88,3 +88,4 @@
 Notes
 - Priorities: unblockers first (Phase0), then infra (Phase1), indexer & CI (Phase2), retrieval API & observability (Phase3), orchestrator integration (Phase4), then code tooling and hardening.
 - I removed duplicate/overlapping backlog entries and consolidated REQ-002/REQ-003 workstreams into the phased plan above.
+
