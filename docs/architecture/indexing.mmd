@@ -1,0 +1,56 @@
+flowchart TB
+ subgraph Local_Run[Run locally from CodeHero]
+ Dev[Developer / Maintainer] -->|click: Upload docs| CodeHeroApp[CodeHero App UI / CLI]
+ CodeHeroApp -->|upload files| Blob[Blob Container -codehero-rag-data]
+ CodeHeroApp -->|optionally: trigger indexer| LocalIndexer[Local Indexer - dotnet console / Function
+ - reads repo & docs
+ - chunks text
+ - computes embeddings]
+ LocalIndexer --> Foundry[Embedding API -Azure AI Foundry / embeddings endpoint]
+ Foundry --> VectorDocs[Processed passages w/ embedding + metadata]
+ VectorDocs --> Search[Azure Cognitive Search - vector index]
+ end
+
+ subgraph CI_GitHub[CI: GitHub Actions / Scheduled]
+ Repo[GitHub Repo] -->|push / PR / schedule| CIAction[GitHub Action: indexer job]
+ CIAction -->|upload to| Blob
+ CIAction -->|upsert embeddings ->| Search
+ end
+
+ subgraph Triggering[Change Detection & Triggers]
+ Blob -->|Event Grid / Queue| IndexerQueue[Indexer Trigger - Event Grid / Queue]
+ Repo -->|push| CIAction
+ IndexerQueue -->|invoke| ServerIndexer[Indexer Service - Azure Function / Container]
+ ServerIndexer --> Foundry
+ ServerIndexer --> Search
+ end
+
+ subgraph Retrieval[Runtime use]
+ Client[AgentsChat / API / Users] -->|query| RetrievalAPI[/api/rag?q=.../]
+ RetrievalAPI -->|vector search| Search
+ Search -->|passages + citations| RetrievalAPI
+ RetrievalAPI -->|context| LlmOrch[LlmOrchestratorAgentService]
+ LlmOrch -->|prompt + citations| FoundryChat[Foundry Chat + LLM]
+ end
+
+ subgraph Security[Secrets & Auth]
+ KeyVault[Azure Key Vault] --- Foundry
+ KeyVault --- Search
+ KeyVault --- Storage
+ ManagedIdentity[User-assigned / System MI] -->|access| KeyVault
+ ManagedIdentity -->|access| Blob
+ ManagedIdentity -->|access| Search 
+ end
+
+ classDef infra fill:#eef,stroke:#99f,color:#000;
+ class Blob,Search,Foundry,KeyVault infra;
+
+ %% Notes
+ note_local["Notes:\n• Initial upload: use CodeHero UI/CLI to push docs to Blob for the first run.\n• Local run: start Local Indexer which reads blobs or repo files and computes embeddings - Foundry - and upserts to Search.\n• CI run: on push or schedule, GitHub Action runs same indexer logic (headless) and upserts new/changed docs."]
+ note_local --> CodeHeroApp
+
+ note_sync["Sync/Update strategies:\n1) CI-triggered: GitHub Actions run indexer on repo push; ideal for code/doc changes.\n2) Blob-event-driven: Blob Event Grid -> Indexer Function processes single-file changes.\n3) Periodic reindex: scheduled job (daily/weekly) to rebuild or refresh embeddings and handle drift.\n4) Local/manual: Developer runs indexer locally for dev/testing."]
+ note_sync --> CIAction
+
+ note_embed["Embeddings production & freshness:\n• Chunking: split documents into passages - ~200-500 tokens - with source+offset metadata.\n• Embeddings: call Foundry embeddings endpoint - or other provider -  for each passage; store vector.\n• Upsert: indexer upserts passages to Cognitive Search with embedding vector field and metadata (file, offset, hash).\n• Freshness: keep a content hash/ETag per passage to avoid re-embedding unchanged text.\n• Deletions: detect removed files and remove documents from index by file/id.\n• Monitoring: instrument ingestion counts, latencies, failures in App Insights.\n"]
+ note_embed --> LocalIndexer
