@@ -36,16 +36,16 @@
 ## Outstanding work (prioritized phases)
 
 ### Phase0 — Validate Azure resources & access (blockers)
-- [x] [A] [REQ-003] Validate resources in `rg-prod-ai-weu-gms` (Foundry, Key Vault, Storage, App Insights, Search)
-- [x] [A] [REQ-003] Ensure Key Vault access: grant `get,list` to developer or service principal
-- [x] [A] [REQ-003] Confirm storage account connection string (validate `stazureaiaip893893803122`)
+- [x] [H] [REQ-003] Validate resources in `rg-prod-ai-weu-gms` (Foundry, Key Vault, Storage, App Insights, Search)
+- [x] [H] [REQ-003] Ensure Key Vault access: grant `get,list` to developer or service principal
+- [x] [H] [REQ-003] Confirm storage account connection string (validate `stazureaiaip893893803122`)
 
 ### Phase1 — Provision minimal RAG infra & embedding deployment
-- [ ] [A] [REQ-003] Register/deploy embedding model in Azure AI Foundry (choose model & deployment name)
-- [ ] [A] [REQ-003] Provision or confirm vector-capable index store (Azure Cognitive Search preferred)
-- [ ] [A] [REQ-003] Create storage blob container for ingested docs (use `stazureaiaip893893803122`)
-- [ ] [A] [REQ-003] Add Key Vault secrets for Foundry endpoint/key, Search key, and storage connection string
-- [ ] [A] [REQ-003] Grant Managed Identity/service principal access to Key Vault, Storage, and Search
+- [ ] [H] [REQ-003] Register/deploy embedding model in Azure AI Foundry (choose model & deployment name)
+- [x] [H] [REQ-003] Provision or confirm vector-capable index store (Azure Cognitive Search preferred)
+- [ ] [H] [REQ-003] Create storage blob container for ingested docs (use `stazureaiaip893893803122`)
+- [ ] [H] [REQ-003] Add Key Vault secrets for Foundry endpoint/key, Search key, and storage connection string
+- [ ] [H] [REQ-003] Grant Managed Identity/service principal access to Key Vault, Storage, and Search
 
 ### Phase2 — Indexer implementation & CI
 - [ ] [A] [REQ-003] Define index schema: passage text, source file, offsets, embedding vector, metadata
