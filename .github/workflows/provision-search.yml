@@ -169,31 +169,31 @@ jobs:
           az keyvault secret set --vault-name "$KV" --name "CodeHero-SearchAdminKey" --value "${{ steps.get-search-key.outputs.searchKey }}" --only-show-errors
           az keyvault secret set --vault-name "$KV" --name "CodeHero-StorageConnectionString" --value "${{ steps.get-storage-conn.outputs.connStr }}" --only-show-errors
 
-      - name: Grant Managed Identity access to Key Vault (RBAC-friendly)
-        env:
-          KV: ${{ github.event.inputs.keyVault }}
-          RG: ${{ github.event.inputs.resourceGroup }}
-        run: |
-          set -e
-          # Resolve Key Vault resource id (required for RBAC role assignment scope)
-          vaultId=$(az keyvault show -g "$RG" -n "$KV" --query id -o tsv)
-          if [ -z "$vaultId" ]; then
-            echo "::error::Key Vault '$KV' not found in RG '$RG'."
-            exit 1
-          fi
+      # - name: Grant Managed Identity access to Key Vault (RBAC-friendly)
+      #   env:
+      #     KV: ${{ github.event.inputs.keyVault }}
+      #     RG: ${{ github.event.inputs.resourceGroup }}
+      #   run: |
+      #     set -e
+      #     # Resolve Key Vault resource id (required for RBAC role assignment scope)
+      #     vaultId=$(az keyvault show -g "$RG" -n "$KV" --query id -o tsv)
+      #     if [ -z "$vaultId" ]; then
+      #       echo "::error::Key Vault '$KV' not found in RG '$RG'."
+      #       exit 1
+      #     fi
 
-          PRINCIPAL="${{ steps.mi.outputs.principalId }}"
-          ROLE="Key Vault Secrets User"
+      #     PRINCIPAL="${{ steps.mi.outputs.principalId }}"
+      #     ROLE="Key Vault Secrets User"
 
-          # Check if role assignment already exists (idempotent)
-          existing=$(az role assignment list --assignee "$PRINCIPAL" --role "$ROLE" --scope "$vaultId" --query "[0].id" -o tsv || true)
+      #     # Check if role assignment already exists (idempotent)
+      #     existing=$(az role assignment list --assignee "$PRINCIPAL" --role "$ROLE" --scope "$vaultId" --query "[0].id" -o tsv || true)
 
-          if [ -n "$existing" ]; then
-            echo "Role assignment already exists: $existing"
-          else
-            echo "Creating role assignment: $ROLE on $vaultId for principal $PRINCIPAL"
-            az role assignment create --assignee "$PRINCIPAL" --role "$ROLE" --scope "$vaultId" --only-show-errors
-          fi
+      #     if [ -n "$existing" ]; then
+      #       echo "Role assignment already exists: $existing"
+      #     else
+      #       echo "Creating role assignment: $ROLE on $vaultId for principal $PRINCIPAL"
+      #       az role assignment create --assignee "$PRINCIPAL" --role "$ROLE" --scope "$vaultId" --only-show-errors
+      #     fi
       
       # Optional: Grant Managed Identity access to Storage Blob Data Contributor (or manual step by owner)
       # - name: Assign Storage Blob Data Contributor to Managed Identity
