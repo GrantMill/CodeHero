@@ -6,7 +6,7 @@ on:
       - 'docs/**'
       - 'CodeHero.Indexer/**'
   schedule:
-    - cron: '02 * * *' # daily at02:00 UTC
+    - cron: '0 2 * * *' # daily at02:00 UTC
   workflow_dispatch:
 
 permissions:
