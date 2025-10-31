@@ -1,0 +1,66 @@
+﻿name: Indexer CI
+
+on:
+  push:
+    paths:
+      - 'docs/**'
+      - 'CodeHero.Indexer/**'
+  schedule:
+    - cron: '0 2 * * *' # daily at 02:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: indexer-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build-and-run-indexer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+      DOTNET_SKIP_FIRST_TIME_EXPERIENCE: '1'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Use 1 if you don't need history
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'      # or: dotnet-version-file: global.json
+          cache: true
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build solution (Release)
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Publish indexer app
+        run: dotnet publish CodeHero.Indexer/CodeHero.Indexer.csproj -c Release -o out --no-build
+
+      - name: Prepare output directory
+        run: mkdir -p data
+
+      - name: Run published indexer
+        run: |
+          echo "Running CodeHero.Indexer from published output..."
+          ./out/CodeHero.Indexer
+
+      - name: Verify index output
+        run: |
+          test -s data/indexed.json && echo "✅ Indexed file found" || (echo "❌ indexed.json missing or empty" && exit 1)
+
+      - name: Upload indexed artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: indexed-json
+          path: data/indexed.json
+          if-no-files-found: error
+          retention-days: 7
