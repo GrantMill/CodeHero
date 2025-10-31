@@ -35,11 +35,11 @@ jobs:
         with:
           dotnet-version: '10.0.x' # match repo TFM
 
-      - name: Restore dependencies
-        run: dotnet restore
+      - name: Restore indexer project dependencies
+        run: dotnet restore CodeHero.Indexer/CodeHero.Indexer.csproj
 
-      - name: Build solution (Release)
-        run: dotnet build --configuration Release --no-restore
+      - name: Build indexer project (Release)
+        run: dotnet build CodeHero.Indexer/CodeHero.Indexer.csproj --configuration Release --no-restore
 
       - name: Publish indexer app
         run: dotnet publish CodeHero.Indexer/CodeHero.Indexer.csproj -c Release -o out --no-build
