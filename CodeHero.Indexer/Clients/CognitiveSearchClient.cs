@@ -4,6 +4,8 @@ using Azure.Search.Documents.Models;
 using CodeHero.Indexer.Interfaces;
 using CodeHero.Indexer.Models;
 using Microsoft.Extensions.Configuration;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace CodeHero.Indexer.Clients;
 
@@ -26,26 +28,29 @@ public class CognitiveSearchClient : ISearchClient
 
     public async System.Threading.Tasks.Task UpsertAsync(IEnumerable<Passage> docs)
     {
-        var objs = docs.Select(d => new object
-        {
-            id = d.Id,
-            text = d.Text,
-            source = d.Source,
-            offset = d.Offset,
-            hash = d.Hash,
-            vector = d.Vector
-        }).ToArray();
-        var actions = objs.Select(o => IndexDocumentsAction.Upload(o)).ToArray();
-        var batch = IndexDocumentsBatch.Create<object>(actions);
+        var docsArray = docs.Select(d =>
+            new Dictionary<string, object>
+            {
+                ["id"] = d.Id,
+                ["text"] = d.Text,
+                ["source"] = d.Source,
+                ["offset"] = d.Offset,
+                ["hash"] = d.Hash,
+                ["vector"] = d.Vector
+            }
+        ).ToArray();
+
+        var actions = docsArray.Select(o => IndexDocumentsAction.Upload(o)).ToArray();
+        var batch = IndexDocumentsBatch.Create(actions);
         var res = await _client.IndexDocumentsAsync(batch);
         Console.WriteLine($"[CognitiveSearch] Upserted {docs.Count()} docs");
     }
 
     public async System.Threading.Tasks.Task DeleteAsync(IEnumerable<string> ids)
     {
-        var objs = ids.Select(id => new { id }).ToArray<object>();
+        var objs = ids.Select(id => new Dictionary<string, object> { ["id"] = id }).ToArray();
         var actions = objs.Select(o => IndexDocumentsAction.Delete(o)).ToArray();
-        var batch = IndexDocumentsBatch.Create<object>(actions);
+        var batch = IndexDocumentsBatch.Create(actions);
         var res = await _client.IndexDocumentsAsync(batch);
         Console.WriteLine($"[CognitiveSearch] Deleted {ids.Count()} docs");
     }
