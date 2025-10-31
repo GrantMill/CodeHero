@@ -2,8 +2,12 @@
   <Folder Name="/docs/">
     <File Path="Initial Context.md" />
   </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+  </Folder>
   <Project Path="CodeHero.ApiService/CodeHero.ApiService.csproj" />
   <Project Path="CodeHero.AppHost/CodeHero.AppHost.csproj" />
+  <Project Path="CodeHero.Indexer/CodeHero.Indexer.csproj" />
   <Project Path="CodeHero.McpServer/CodeHero.McpServer.csproj" />
   <Project Path="CodeHero.ServiceDefaults/CodeHero.ServiceDefaults.csproj" />
   <Project Path="CodeHero.Tests/CodeHero.Tests.csproj" />

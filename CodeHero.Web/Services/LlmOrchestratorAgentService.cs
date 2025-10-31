@@ -577,7 +577,7 @@ public sealed class LlmOrchestratorAgentService : IAgentService
                 new { role = "system", content = systemPrompt },
                 new { role = "user", content = userText }
             },
-            temperature =0,
+            temperature = 0,
             response_format = responseFormat,
             model = _useModelsRoute ? _model : null
         };

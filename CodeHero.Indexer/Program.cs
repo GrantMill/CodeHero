@@ -1,10 +1,42 @@
 using System.Text.Json;
 using System.Security.Cryptography;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Http;
+using System.Text;
+using CodeHero.Indexer.Models;
+using CodeHero.Indexer.Clients;
+using CodeHero.Indexer.Interfaces;
 
-Console.WriteLine("CodeHero Indexer - Phase2 (local mock + pluggable clients)");
+var config = new ConfigurationBuilder()
+ .AddEnvironmentVariables()
+ .Build();
 
-var root = Directory.GetCurrentDirectory();
-var repoRoot = Path.GetFullPath(Path.Combine(root, ".."));
+var services = new ServiceCollection();
+services.AddHttpClient();
+services.AddSingleton<IConfiguration>(config);
+
+// choose implementations based on env var
+var useReal = config["USE_REAL_PROVIDERS"] == "1";
+if (useReal)
+{
+ // wire real providers
+ services.AddSingleton<IEmbeddingClient, FoundryEmbeddingClient>();
+ services.AddSingleton<ISearchClient, CognitiveSearchClient>();
+}
+else
+{
+ services.AddSingleton<IEmbeddingClient, MockEmbeddingClient>();
+ services.AddSingleton<ISearchClient, MockSearchClient>();
+}
+
+var provider = services.BuildServiceProvider();
+var embedding = provider.GetRequiredService<IEmbeddingClient>();
+var search = provider.GetRequiredService<ISearchClient>();
+
+Console.WriteLine("CodeHero Indexer - Phase2 (pluggable clients)");
+
+var repoRoot = Directory.GetParent(Directory.GetCurrentDirectory())!.FullName;
 var docsDir = Path.Combine(repoRoot, "docs");
 var outputDir = Path.Combine(repoRoot, "data");
 Directory.CreateDirectory(outputDir);
@@ -17,7 +49,7 @@ var files = Directory.Exists(docsDir)
 
 Console.WriteLine($"Found {files.Length} files under {docsDir}");
 
-var passages = new List<object>();
+var passages = new List<Passage>();
 
 foreach (var file in files)
 {
@@ -27,22 +59,37 @@ foreach (var file in files)
  {
  var chunk = chunks[i];
  var id = GenerateId(file, i, chunk);
- var vector = MockEmbedding(chunk);
+ var vector = embedding.Embed(chunk);
  var hash = ComputeHash(chunk);
- passages.Add(new {
- id,
- text = chunk,
- source = Path.GetRelativePath(repoRoot, file).Replace("\\","/"),
- offset = i,
- hash,
- vector
+ passages.Add(new Passage
+ {
+ Id = id,
+ Text = chunk,
+ Source = Path.GetRelativePath(repoRoot, file).Replace("\\", "/"),
+ Offset = i,
+ Hash = hash,
+ Vector = vector
  });
  }
 }
 
+// incremental: compare with existing index file (if present)
 var outPath = Path.Combine(outputDir, "indexed.json");
+var existing = File.Exists(outPath) ? JsonSerializer.Deserialize<List<Passage>>(File.ReadAllText(outPath)) ?? new List<Passage>() : new List<Passage>();
+
+var toUpsert = passages.Where(p => !existing.Any(e => e.Hash == p.Hash && e.Source == p.Source && e.Offset == p.Offset)).ToList();
+var toDelete = existing.Where(e => !passages.Any(p => p.Hash == e.Hash && p.Source == e.Source && p.Offset == e.Offset)).ToList();
+
+Console.WriteLine($"Total passages: {passages.Count}, to upsert: {toUpsert.Count}, to delete: {toDelete.Count}");
+
+// call search client (mock or real) to upsert/delete
+if (toUpsert.Any()) await search.UpsertAsync(toUpsert);
+if (toDelete.Any()) await search.DeleteAsync(toDelete.Select(d => d.Id));
+
 File.WriteAllText(outPath, JsonSerializer.Serialize(passages, new JsonSerializerOptions { WriteIndented = true }));
 Console.WriteLine($"Wrote {passages.Count} passages to {outPath}");
+
+// --- helpers ---
 
 static List<string> ChunkText(string text, int approxSize)
 {
@@ -58,29 +105,14 @@ static List<string> ChunkText(string text, int approxSize)
 static string GenerateId(string file, int index, string chunk)
 {
  using var sha = SHA1.Create();
- var input = System.Text.Encoding.UTF8.GetBytes(file + index + chunk);
+ var input = Encoding.UTF8.GetBytes(file + index + chunk);
  var hash = sha.ComputeHash(input);
  return string.Concat(hash.Select(b => b.ToString("x2")));
-}
-
-static float[] MockEmbedding(string s)
-{
- // deterministic pseudo-embedding: histogram of char codes mod100
- var v = new float[128];
- foreach (var c in s)
- {
- v[c %128] +=1;
- }
- // normalize
- var norm = (float)Math.Sqrt(v.Sum(x => x * x));
- if (norm >0)
- for (int i =0; i < v.Length; i++) v[i] /= norm;
- return v;
 }
 
 static string ComputeHash(string s)
 {
  using var sha = SHA256.Create();
- var h = sha.ComputeHash(System.Text.Encoding.UTF8.GetBytes(s));
+ var h = sha.ComputeHash(Encoding.UTF8.GetBytes(s));
  return string.Concat(h.Select(b => b.ToString("x2")));
 }
