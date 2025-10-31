@@ -12,6 +12,8 @@ public class FoundryEmbeddingClient : IEmbeddingClient
     private readonly IHttpClientFactory _httpFactory;
     private readonly string _endpoint;
     private readonly string _key;
+    private readonly int _batchSize;
+    private readonly string _model;
 
     public FoundryEmbeddingClient(IConfiguration config, IHttpClientFactory http)
     {
@@ -19,122 +21,95 @@ public class FoundryEmbeddingClient : IEmbeddingClient
         _httpFactory = http;
         _endpoint = config["Foundry:Endpoint"] ?? string.Empty;
         _key = config["Foundry:Key"] ?? string.Empty;
-
-        if (string.IsNullOrEmpty(_endpoint) || string.IsNullOrEmpty(_key))
-        {
-            // We'll throw on first use; allow DI to construct the type
-        }
+        _batchSize = int.TryParse(config["Foundry:BatchSize"], out var b) ? b : 8;
+        _model = config["Foundry:Model"] ?? string.Empty;
     }
 
     public async System.Threading.Tasks.Task<float[]> EmbedAsync(string text)
     {
+        var arr = await EmbedBatchAsync(new[] { text });
+        return arr.Length > 0 ? arr[0] : await new MockEmbeddingClient().EmbedAsync(text);
+    }
+
+    public async System.Threading.Tasks.Task<float[][]> EmbedBatchAsync(IEnumerable<string> texts)
+    {
         if (string.IsNullOrEmpty(_endpoint) || string.IsNullOrEmpty(_key))
             throw new InvalidOperationException("Foundry endpoint/key not configured");
 
-        // Simple retry policy
-        int maxRetries = 3;
-        int attempt = 0;
-        var backoff = TimeSpan.FromMilliseconds(200);
+        var inputs = texts.ToArray();
+        var results = new List<float[]>();
 
-        while (true)
+        // send in batches
+        for (int start = 0; start < inputs.Length; start += _batchSize)
         {
-            attempt++;
+            var batch = inputs.Skip(start).Take(_batchSize).ToArray();
+            var payload = new Dictionary<string, object>
+            {
+                ["input"] = batch,
+            };
+            if (!string.IsNullOrEmpty(_model)) payload["model"] = _model;
+            var body = JsonSerializer.Serialize(payload);
+
+            using var client = _httpFactory.CreateClient();
+            client.Timeout = TimeSpan.FromSeconds(60);
+            client.DefaultRequestHeaders.ExpectContinue = true;
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _key);
+
+            using var content = new StringContent(body, Encoding.UTF8, "application/json");
+            using var resp = await client.PostAsync(_endpoint, content);
+            var respText = await resp.Content.ReadAsStringAsync();
+
+            if (!resp.IsSuccessStatusCode)
+            {
+                Console.WriteLine($"[FoundryEmbeddingClient] HTTP {(int)resp.StatusCode} response: {respText}");
+                // fallback: produce mock for each input
+                foreach (var _ in batch) results.Add(await new MockEmbeddingClient().EmbedAsync(""));
+                continue;
+            }
+
             try
             {
-                using var client = _httpFactory.CreateClient();
-                client.Timeout = TimeSpan.FromSeconds(60);
-                client.DefaultRequestHeaders.ExpectContinue = true;
-                if (!string.IsNullOrEmpty(_key))
+                using var doc = JsonDocument.Parse(respText);
+                var root = doc.RootElement;
+
+                // expected: { data: [ { embedding: [...] }, ... ] } or { embeddings: [...] }
+                if (root.TryGetProperty("data", out var data) && data.ValueKind == JsonValueKind.Array)
                 {
-                    // Default to Authorization: Bearer <key>. Adjust if your Foundry expects a different header.
-                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _key);
-                }
-
-                // Build request payload. Many embedding endpoints accept { "input": "..." } or { "input": ["..."] }.
-                var payload = new { input = text };
-                var body = JsonSerializer.Serialize(payload);
-                using var content = new StringContent(body, Encoding.UTF8, "application/json");
-
-                using var resp = await client.PostAsync(_endpoint, content);
-                var respText = await resp.Content.ReadAsStringAsync();
-
-                if (!resp.IsSuccessStatusCode)
-                {
-                    Console.WriteLine($"[FoundryEmbeddingClient] HTTP {(int)resp.StatusCode} response: {respText}");
-                    if (attempt > maxRetries) break;
-                    await Task.Delay(backoff);
-                    backoff = backoff * 2;
-                    continue;
-                }
-
-                // Try parsing common response shapes
-                try
-                {
-                    using var doc = JsonDocument.Parse(respText);
-                    var root = doc.RootElement;
-
-                    // shape: { "data": [ { "embedding": [..] } ] }
-                    if (root.TryGetProperty("data", out var data) && data.ValueKind == JsonValueKind.Array && data.GetArrayLength() > 0)
+                    foreach (var item in data.EnumerateArray())
                     {
-                        var first = data[0];
-                        if (first.TryGetProperty("embedding", out var emb) && emb.ValueKind == JsonValueKind.Array)
+                        if (item.TryGetProperty("embedding", out var emb) && emb.ValueKind == JsonValueKind.Array)
                         {
-                            return emb.EnumerateArray().Select(e => (float)e.GetDouble()).ToArray();
+                            results.Add(emb.EnumerateArray().Select(e => (float)e.GetDouble()).ToArray());
+                        }
+                        else
+                        {
+                            results.Add(await new MockEmbeddingClient().EmbedAsync(""));
                         }
                     }
-
-                    // shape: { "embedding": [..] }
-                    if (root.TryGetProperty("embedding", out var embRoot) && embRoot.ValueKind == JsonValueKind.Array)
-                    {
-                        return embRoot.EnumerateArray().Select(e => (float)e.GetDouble()).ToArray();
-                    }
-
-                    // shape: { "outputs": [ { "data": { "embedding": [..] } } ] }
-                    if (root.TryGetProperty("outputs", out var outputs) && outputs.ValueKind == JsonValueKind.Array && outputs.GetArrayLength() > 0)
-                    {
-                        var out0 = outputs[0];
-                        if (out0.TryGetProperty("data", out var outData))
-                        {
-                            if (outData.ValueKind == JsonValueKind.Object && outData.TryGetProperty("embedding", out var emb2) && emb2.ValueKind == JsonValueKind.Array)
-                            {
-                                return emb2.EnumerateArray().Select(e => (float)e.GetDouble()).ToArray();
-                            }
-
-                            if (outData.ValueKind == JsonValueKind.Array && outData.GetArrayLength() > 0)
-                            {
-                                var maybe = outData[0];
-                                if (maybe.TryGetProperty("embedding", out var emb3) && emb3.ValueKind == JsonValueKind.Array)
-                                {
-                                    return emb3.EnumerateArray().Select(e => (float)e.GetDouble()).ToArray();
-                                }
-                            }
-                        }
-                    }
-
-                    // Unable to parse embedding
-                    Console.WriteLine("[FoundryEmbeddingClient] Unable to parse embedding from response; falling back to mock.");
-                    return await new MockEmbeddingClient().EmbedAsync(text);
                 }
-                catch (JsonException je)
+                else if (root.TryGetProperty("embeddings", out var embs) && embs.ValueKind == JsonValueKind.Array)
                 {
-                    Console.WriteLine($"[FoundryEmbeddingClient] JSON parse error: {je.Message}");
-                    return await new MockEmbeddingClient().EmbedAsync(text);
+                    foreach (var emb in embs.EnumerateArray())
+                    {
+                        if (emb.ValueKind == JsonValueKind.Array)
+                            results.Add(emb.EnumerateArray().Select(e => (float)e.GetDouble()).ToArray());
+                        else
+                            results.Add(await new MockEmbeddingClient().EmbedAsync(""));
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("[FoundryEmbeddingClient] Unexpected response shape, falling back to mock for this batch.");
+                    foreach (var _ in batch) results.Add(await new MockEmbeddingClient().EmbedAsync(""));
                 }
             }
-            catch (Exception ex)
+            catch (JsonException je)
             {
-                Console.WriteLine($"[FoundryEmbeddingClient] request failed (attempt {attempt}): {ex.Message}");
-                if (attempt > maxRetries)
-                {
-                    Console.WriteLine("[FoundryEmbeddingClient] Max retries exceeded; falling back to mock embedding.");
-                    return await new MockEmbeddingClient().EmbedAsync(text);
-                }
-                await Task.Delay(backoff);
-                backoff = backoff * 2;
+                Console.WriteLine($"[FoundryEmbeddingClient] JSON parse error: {je.Message}");
+                foreach (var _ in batch) results.Add(await new MockEmbeddingClient().EmbedAsync(""));
             }
         }
 
-        // fallback
-        return await new MockEmbeddingClient().EmbedAsync(text);
+        return results.ToArray();
     }
 }

@@ -16,4 +16,14 @@ public class MockEmbeddingClient : IEmbeddingClient
             for (int i = 0; i < v.Length; i++) v[i] /= norm;
         return System.Threading.Tasks.Task.FromResult(v);
     }
+
+    public async System.Threading.Tasks.Task<float[][]> EmbedBatchAsync(IEnumerable<string> texts)
+    {
+        var list = new List<float[]>();
+        foreach (var t in texts)
+        {
+            list.Add(await EmbedAsync(t));
+        }
+        return list.ToArray();
+    }
 }

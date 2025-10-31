@@ -51,6 +51,7 @@ var files = Directory.Exists(docsDir)
 Console.WriteLine($"Found {files.Length} files under {docsDir}");
 
 var passages = new List<Passage>();
+var chunkTexts = new List<string>();
 
 foreach (var file in files)
 {
@@ -60,18 +61,25 @@ foreach (var file in files)
     {
         var chunk = chunks[i];
         var id = GenerateId(file, i, chunk);
-        var vector = await embedding.EmbedAsync(chunk);
         var hash = ComputeHash(chunk);
-        passages.Add(new Passage
+        var p = new Passage
         {
             Id = id,
             Text = chunk,
             Source = Path.GetRelativePath(repoRoot, file).Replace("\\", "/"),
             Offset = i,
             Hash = hash,
-            Vector = vector
-        });
+        };
+        passages.Add(p);
+        chunkTexts.Add(chunk);
     }
+}
+
+// compute embeddings in batch
+var allVectors = await embedding.EmbedBatchAsync(chunkTexts);
+for (int i = 0; i < passages.Count && i < allVectors.Length; i++)
+{
+    passages[i].Vector = allVectors[i];
 }
 
 // incremental: compare with existing index file (if present)
