@@ -36,7 +36,8 @@ var search = provider.GetRequiredService<ISearchClient>();
 
 Console.WriteLine("CodeHero Indexer - Phase2 (pluggable clients)");
 
-var repoRoot = Directory.GetParent(Directory.GetCurrentDirectory())!.FullName;
+// Use current directory as repo root when running published binary from repo root (CI)
+var repoRoot = Directory.GetCurrentDirectory();
 var docsDir = Path.Combine(repoRoot, "docs");
 var outputDir = Path.Combine(repoRoot, "data");
 Directory.CreateDirectory(outputDir);
