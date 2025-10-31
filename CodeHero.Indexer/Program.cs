@@ -12,13 +12,34 @@ var config = new ConfigurationBuilder()
  .AddEnvironmentVariables()
  .Build();
 
+// Startup validation for real providers
+var enableReal = config["USE_REAL_PROVIDERS"] == "1";
+if (enableReal)
+{
+    var missing = new List<string>();
+    if (string.IsNullOrWhiteSpace(config["Foundry:Endpoint"])) missing.Add("Foundry:Endpoint (env: Foundry__Endpoint / secret FOUNDRY_ENDPOINT)");
+    if (string.IsNullOrWhiteSpace(config["Foundry:Key"])) missing.Add("Foundry:Key (env: Foundry__Key / secret FOUNDRY_KEY)");
+    if (string.IsNullOrWhiteSpace(config["Foundry:Model"])) missing.Add("Foundry:Model (env: Foundry__Model / secret FOUNDRY_MODEL)");
+    if (string.IsNullOrWhiteSpace(config["Search:Endpoint"])) missing.Add("Search:Endpoint (env: Search__Endpoint / secret SEARCH_ENDPOINT)");
+    if (string.IsNullOrWhiteSpace(config["Search:IndexName"])) missing.Add("Search:IndexName (env: Search__IndexName / secret SEARCH_INDEX_NAME)");
+    if (string.IsNullOrWhiteSpace(config["Search:ApiKey"])) missing.Add("Search:ApiKey (env: Search__ApiKey / secret SEARCH_API_KEY)");
+
+    if (missing.Any())
+    {
+        Console.Error.WriteLine("ERROR: USE_REAL_PROVIDERS=1 but the following required settings are missing:");
+        foreach (var m in missing) Console.Error.WriteLine(" - " + m);
+        Console.Error.WriteLine("Set the corresponding GitHub Actions secrets or environment variables before enabling real providers.");
+        // Exit with non-zero to fail CI fast
+        Environment.Exit(2);
+    }
+}
+
 var services = new ServiceCollection();
 services.AddHttpClient();
 services.AddSingleton<IConfiguration>(config);
 
 // choose implementations based on env var
-var useReal = config["USE_REAL_PROVIDERS"] == "1";
-if (useReal)
+if (enableReal)
 {
     // wire real providers
     services.AddSingleton<IEmbeddingClient, FoundryEmbeddingClient>();
