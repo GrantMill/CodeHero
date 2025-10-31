@@ -20,14 +20,14 @@ services.AddSingleton<IConfiguration>(config);
 var useReal = config["USE_REAL_PROVIDERS"] == "1";
 if (useReal)
 {
- // wire real providers
- services.AddSingleton<IEmbeddingClient, FoundryEmbeddingClient>();
- services.AddSingleton<ISearchClient, CognitiveSearchClient>();
+    // wire real providers
+    services.AddSingleton<IEmbeddingClient, FoundryEmbeddingClient>();
+    services.AddSingleton<ISearchClient, CognitiveSearchClient>();
 }
 else
 {
- services.AddSingleton<IEmbeddingClient, MockEmbeddingClient>();
- services.AddSingleton<ISearchClient, MockSearchClient>();
+    services.AddSingleton<IEmbeddingClient, MockEmbeddingClient>();
+    services.AddSingleton<ISearchClient, MockSearchClient>();
 }
 
 var provider = services.BuildServiceProvider();
@@ -53,24 +53,24 @@ var passages = new List<Passage>();
 
 foreach (var file in files)
 {
- var text = File.ReadAllText(file);
- var chunks = ChunkText(text,1000);
- for (int i =0; i < chunks.Count; i++)
- {
- var chunk = chunks[i];
- var id = GenerateId(file, i, chunk);
- var vector = embedding.Embed(chunk);
- var hash = ComputeHash(chunk);
- passages.Add(new Passage
- {
- Id = id,
- Text = chunk,
- Source = Path.GetRelativePath(repoRoot, file).Replace("\\", "/"),
- Offset = i,
- Hash = hash,
- Vector = vector
- });
- }
+    var text = File.ReadAllText(file);
+    var chunks = ChunkText(text, 1000);
+    for (int i = 0; i < chunks.Count; i++)
+    {
+        var chunk = chunks[i];
+        var id = GenerateId(file, i, chunk);
+        var vector = await embedding.EmbedAsync(chunk);
+        var hash = ComputeHash(chunk);
+        passages.Add(new Passage
+        {
+            Id = id,
+            Text = chunk,
+            Source = Path.GetRelativePath(repoRoot, file).Replace("\\", "/"),
+            Offset = i,
+            Hash = hash,
+            Vector = vector
+        });
+    }
 }
 
 // incremental: compare with existing index file (if present)
@@ -93,26 +93,26 @@ Console.WriteLine($"Wrote {passages.Count} passages to {outPath}");
 
 static List<string> ChunkText(string text, int approxSize)
 {
- var parts = new List<string>();
- for (int i =0; i < text.Length; i += approxSize)
- {
- int len = Math.Min(approxSize, text.Length - i);
- parts.Add(text.Substring(i, len));
- }
- return parts;
+    var parts = new List<string>();
+    for (int i = 0; i < text.Length; i += approxSize)
+    {
+        int len = Math.Min(approxSize, text.Length - i);
+        parts.Add(text.Substring(i, len));
+    }
+    return parts;
 }
 
 static string GenerateId(string file, int index, string chunk)
 {
- using var sha = SHA1.Create();
- var input = Encoding.UTF8.GetBytes(file + index + chunk);
- var hash = sha.ComputeHash(input);
- return string.Concat(hash.Select(b => b.ToString("x2")));
+    using var sha = SHA1.Create();
+    var input = Encoding.UTF8.GetBytes(file + index + chunk);
+    var hash = sha.ComputeHash(input);
+    return string.Concat(hash.Select(b => b.ToString("x2")));
 }
 
 static string ComputeHash(string s)
 {
- using var sha = SHA256.Create();
- var h = sha.ComputeHash(Encoding.UTF8.GetBytes(s));
- return string.Concat(h.Select(b => b.ToString("x2")));
+    using var sha = SHA256.Create();
+    var h = sha.ComputeHash(Encoding.UTF8.GetBytes(s));
+    return string.Concat(h.Select(b => b.ToString("x2")));
 }
