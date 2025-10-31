@@ -14,6 +14,7 @@ public class FoundryEmbeddingClient : IEmbeddingClient
     private readonly string _key;
     private readonly int _batchSize;
     private readonly string _model;
+    private readonly string _apiVersion;
 
     public FoundryEmbeddingClient(IConfiguration config, IHttpClientFactory http)
     {
@@ -23,6 +24,7 @@ public class FoundryEmbeddingClient : IEmbeddingClient
         _key = config["Foundry:Key"] ?? string.Empty;
         _batchSize = int.TryParse(config["Foundry:BatchSize"], out var b) ? b : 8;
         _model = config["Foundry:Model"] ?? string.Empty;
+        _apiVersion = config["Foundry:ApiVersion"] ?? "2023-06-01-preview"; // adjustable
     }
 
     public async System.Threading.Tasks.Task<float[]> EmbedAsync(string text)
@@ -33,11 +35,24 @@ public class FoundryEmbeddingClient : IEmbeddingClient
 
     public async System.Threading.Tasks.Task<float[][]> EmbedBatchAsync(IEnumerable<string> texts)
     {
-        if (string.IsNullOrEmpty(_endpoint) || string.IsNullOrEmpty(_key))
-            throw new InvalidOperationException("Foundry endpoint/key not configured");
+        if (string.IsNullOrEmpty(_endpoint) || string.IsNullOrEmpty(_key) || string.IsNullOrEmpty(_model))
+            throw new InvalidOperationException("Foundry endpoint/key/model not configured");
 
         var inputs = texts.ToArray();
         var results = new List<float[]>();
+
+        // compute URL: if endpoint already contains "/openai/" assume it's the full path; otherwise build deployment embeddings path
+        string baseUrl = _endpoint.TrimEnd('/');
+        string embeddingsUrl;
+        if (baseUrl.Contains("/openai/", StringComparison.OrdinalIgnoreCase))
+        {
+            embeddingsUrl = baseUrl; // assume user provided full URL
+        }
+        else
+        {
+            // Azure OpenAI style: https://{endpoint}/openai/deployments/{deployment}/embeddings?api-version={version}
+            embeddingsUrl = $"{baseUrl}/openai/deployments/{_model}/embeddings?api-version={_apiVersion}";
+        }
 
         // send in batches
         for (int start = 0; start < inputs.Length; start += _batchSize)
@@ -47,16 +62,17 @@ public class FoundryEmbeddingClient : IEmbeddingClient
             {
                 ["input"] = batch,
             };
-            if (!string.IsNullOrEmpty(_model)) payload["model"] = _model;
             var body = JsonSerializer.Serialize(payload);
 
             using var client = _httpFactory.CreateClient();
-            client.Timeout = TimeSpan.FromSeconds(60);
+            client.Timeout = TimeSpan.FromSeconds(120);
             client.DefaultRequestHeaders.ExpectContinue = true;
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _key);
+            // Azure OpenAI / Foundry expects 'api-key' header for Azure-hosted endpoints
+            client.DefaultRequestHeaders.Remove("api-key");
+            client.DefaultRequestHeaders.Add("api-key", _key);
 
             using var content = new StringContent(body, Encoding.UTF8, "application/json");
-            using var resp = await client.PostAsync(_endpoint, content);
+            using var resp = await client.PostAsync(embeddingsUrl, content);
             var respText = await resp.Content.ReadAsStringAsync();
 
             if (!resp.IsSuccessStatusCode)
@@ -72,7 +88,9 @@ public class FoundryEmbeddingClient : IEmbeddingClient
                 using var doc = JsonDocument.Parse(respText);
                 var root = doc.RootElement;
 
-                // expected: { data: [ { embedding: [...] }, ... ] } or { embeddings: [...] }
+                // expected shapes:
+                // Azure OpenAI: { "data": [ { "embedding": [...] }, ... ] }
+                // some providers: { "embeddings": [ [...], ... ] }
                 if (root.TryGetProperty("data", out var data) && data.ValueKind == JsonValueKind.Array)
                 {
                     foreach (var item in data.EnumerateArray())

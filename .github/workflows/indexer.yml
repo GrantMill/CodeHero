@@ -6,7 +6,7 @@ on:
       - 'docs/**'
       - 'CodeHero.Indexer/**'
   schedule:
-    - cron: '0 2 * * *' # daily at 02:00 UTC
+    - cron: '02 * * *' # daily at02:00 UTC
   workflow_dispatch:
 
 permissions:
@@ -23,6 +23,23 @@ jobs:
     env:
       DOTNET_CLI_TELEMETRY_OPTOUT: '1'
       DOTNET_SKIP_FIRST_TIME_EXPERIENCE: '1'
+      # Enable real providers in CI (set to '1' to call Foundry + Cognitive Search)
+      USE_REAL_PROVIDERS: '1'
+      # Foundry (embeddings)
+      Foundry__Endpoint: ${{ secrets.FOUNDRY_ENDPOINT }}
+      Foundry__Key: ${{ secrets.FOUNDRY_KEY }}
+      Foundry__Model: ${{ secrets.FOUNDRY_MODEL }}
+      Foundry__BatchSize: ${{ secrets.FOUNDRY_BATCH_SIZE }}
+      # Cognitive Search
+      Search__Endpoint: ${{ secrets.SEARCH_ENDPOINT }}
+      Search__IndexName: ${{ secrets.SEARCH_INDEX_NAME }}
+      Search__ApiKey: ${{ secrets.SEARCH_API_KEY }}
+      # Optional: Azure service principal credentials for other operations (uncomment if used)
+      # AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
+      # or individual values:
+      # AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      # AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+      # AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
 
     steps:
       - name: Checkout repository
@@ -48,6 +65,7 @@ jobs:
         run: mkdir -p data
 
       - name: Run published indexer
+        working-directory: ${{ github.workspace }}
         run: |
           echo "Running CodeHero.Indexer from published output..."
           ./out/CodeHero.Indexer
