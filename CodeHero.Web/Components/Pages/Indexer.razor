@@ -4,6 +4,7 @@
 @inject HttpClient Http
 @inject NavigationManager Nav
 @inject IConfiguration Configuration
+@inject IJSRuntime JS
 
 <h3>Repository Indexer</h3>
 
@@ -15,9 +16,17 @@
     <div class="mt-2 alert alert-secondary" style="white-space:pre-wrap; font-family:monospace;">Raw response: @rawResponse</div>
 }
 
-@if (history?.Any() ?? false)
+<h4 class="mt-3">History</h4>
+@if (history is null)
 {
-    <h4 class="mt-3">History</h4>
+    <p>Loading history…</p>
+}
+else if (!history.Any())
+{
+    <p class="text-muted">No history found.</p>
+}
+else
+{
     <table class="table table-sm">
         <thead>
             <tr>
@@ -29,10 +38,10 @@
             </tr>
         </thead>
         <tbody>
-            @foreach (var r in history)
+            @foreach (var r in history.OrderByDescending(h => h.Timestamp))
             {
                 <tr>
-                    <td>@r.Timestamp.ToLocalTime()</td>
+                    <td>@r.Timestamp.ToUniversalTime()</td>
                     <td>@(r.Success ? "Yes" : "No")</td>
                     <td>@r.DocumentsIndexed</td>
                     <td style="word-break:break-word">@r.Message</td>
@@ -44,6 +53,9 @@
 }
 
 @code {
+    private const string HistoryStorageKey = "codehero.indexer.history";
+    private IJSObjectReference? _storageModule;
+
     private bool isRunning;
     private string statusMessage = string.Empty;
     private string rawResponse = string.Empty;
@@ -51,29 +63,65 @@
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadHistory();
+        await LoadHistoryFromLocalStorage(); // show immediately
+        await LoadHistory();                 // then sync from server (if available)
+    }
+
+    private async Task EnsureStorageModule()
+    {
+        _storageModule ??= await JS.InvokeAsync<IJSObjectReference>("import", "./js/localStorage.js");
+    }
+
+    private async Task SaveHistoryToLocalStorage()
+    {
+        try
+        {
+            await EnsureStorageModule();
+            var opts = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+            var payload = JsonSerializer.Serialize(history ?? Array.Empty<IndexerRunResult>(), opts);
+            await _storageModule!.InvokeVoidAsync("set", HistoryStorageKey, payload);
+        }
+        catch
+        {
+            // best effort; ignore client storage errors
+        }
+    }
+
+    private async Task LoadHistoryFromLocalStorage()
+    {
+        try
+        {
+            await EnsureStorageModule();
+            var json = await _storageModule!.InvokeAsync<string>("get", HistoryStorageKey);
+            if (!string.IsNullOrWhiteSpace(json))
+            {
+                var opts = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                history = JsonSerializer.Deserialize<IndexerRunResult[]>(json, opts) ?? Array.Empty<IndexerRunResult>();
+                StateHasChanged();
+            }
+        }
+        catch
+        {
+            // ignore client storage errors
+        }
     }
 
     private Uri BuildFallbackUri(string relative)
     {
-        var baseUrl = Configuration["ApiService:BaseUrl"]; // e.g. https://localhost:7186
+        var baseUrl = Configuration["ApiService:BaseUrl"]; // e.g. https://localhost:7186 or 7525
         if (string.IsNullOrWhiteSpace(baseUrl)) return Nav.ToAbsoluteUri(relative);
         return new Uri(new Uri(baseUrl.TrimEnd('/')), relative.TrimStart('/'));
     }
 
-    private async Task<HttpResponseMessage> TryRequestWithFallback(Func<Uri, Task<HttpResponseMessage>> action)
+    private async Task<HttpResponseMessage> TryRequestWithFallback(string relative, Func<Uri, Task<HttpResponseMessage>> action)
     {
         // try same-origin first
-        var defaultUri = Nav.ToAbsoluteUri("/api/search/indexer/run");
+        var defaultUri = Nav.ToAbsoluteUri(relative);
         var resp = await action(defaultUri);
         if (resp.StatusCode == System.Net.HttpStatusCode.NotFound || resp.StatusCode == System.Net.HttpStatusCode.MethodNotAllowed)
         {
-            var baseUrl = Configuration["ApiService:BaseUrl"];
-            if (!string.IsNullOrWhiteSpace(baseUrl))
-            {
-                var fallbackUri = new Uri(new Uri(baseUrl.TrimEnd('/')), "/api/search/indexer/run");
-                resp = await action(fallbackUri);
-            }
+            var fallbackUri = BuildFallbackUri(relative);
+            resp = await action(fallbackUri);
         }
         return resp;
     }
@@ -82,18 +130,7 @@
     {
         try
         {
-            // try same-origin first, then fallback
-            var defaultUri = Nav.ToAbsoluteUri("/api/search/indexer/history");
-            var resp = await Http.GetAsync(defaultUri);
-            if (resp.StatusCode == System.Net.HttpStatusCode.NotFound)
-            {
-                var baseUrl = Configuration["ApiService:BaseUrl"];
-                if (!string.IsNullOrWhiteSpace(baseUrl))
-                {
-                    var fallback = new Uri(new Uri(baseUrl.TrimEnd('/')), "/api/search/indexer/history");
-                    resp = await Http.GetAsync(fallback);
-                }
-            }
+            var resp = await TryRequestWithFallback("/api/search/indexer/history", uri => Http.GetAsync(uri));
 
             if (resp.IsSuccessStatusCode)
             {
@@ -102,24 +139,29 @@
                 {
                     try
                     {
-                        history = System.Text.Json.JsonSerializer.Deserialize<IndexerRunResult[]>(txt);
+                        var opts = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                        var server = JsonSerializer.Deserialize<IndexerRunResult[]>(txt, opts) ?? Array.Empty<IndexerRunResult>();
+
+                        // Merge with local (prefer server by Id, then local unique)
+                        var local = history ?? Array.Empty<IndexerRunResult>();
+                        var merged = server.Concat(local.Where(l => !server.Any(s => s.Id == l.Id)))
+                                           .OrderByDescending(h => h.Timestamp)
+                                           .ToArray();
+                        history = merged;
+                        await SaveHistoryToLocalStorage();
                     }
                     catch
                     {
-                        history = Array.Empty<IndexerRunResult>();
+                        // Failed to parse server payload; keep whatever we had locally
                     }
                 }
-                else history = Array.Empty<IndexerRunResult>();
-            }
-            else
-            {
-                history = Array.Empty<IndexerRunResult>();
             }
         }
         catch
         {
-            history = Array.Empty<IndexerRunResult>();
+            // network error; keep local
         }
+        StateHasChanged();
     }
 
     private async Task RunIndex()
@@ -130,33 +172,33 @@
         StateHasChanged();
         try
         {
-            // POST with fallback
-            HttpResponseMessage res = await TryRequestWithFallback(async uri => await Http.PostAsync(uri, null));
-
+            var res = await TryRequestWithFallback("/api/search/indexer/run", uri => Http.PostAsync(uri, null));
             rawResponse = await res.Content.ReadAsStringAsync();
 
-            if (string.IsNullOrWhiteSpace(rawResponse))
+            // Try parse JSON result from run
+            IndexerRunResult? json = null;
+            try
             {
-                statusMessage = res.IsSuccessStatusCode ? "Indexer ran (no details returned)." : $"Failed: {res.ReasonPhrase}";
+                var opts = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                json = JsonSerializer.Deserialize<IndexerRunResult>(rawResponse, opts);
+            }
+            catch (JsonException) { }
+
+            if (json != null)
+            {
+                statusMessage = (res.IsSuccessStatusCode ? "Success: " : "Failed: ") + (json.Message ?? string.Empty);
+
+                // Persist locally (in case server doesn't persist history yet)
+                var list = (history?.ToList() ?? new List<IndexerRunResult>());
+                if (!list.Any(x => x.Id == json.Id))
+                    list.Add(json);
+
+                history = list.OrderByDescending(x => x.Timestamp).ToArray();
+                await SaveHistoryToLocalStorage();
             }
             else
             {
-                try
-                {
-                    var json = System.Text.Json.JsonSerializer.Deserialize<IndexerRunResult>(rawResponse);
-                    if (json != null)
-                    {
-                        statusMessage = (res.IsSuccessStatusCode ? "Success: " : "Failed: ") + json.Message;
-                    }
-                    else
-                    {
-                        statusMessage = res.IsSuccessStatusCode ? "Indexer ran (no details)." : $"Failed: {rawResponse}";
-                    }
-                }
-                catch (System.Text.Json.JsonException)
-                {
-                    statusMessage = res.IsSuccessStatusCode ? $"Success: {rawResponse}" : $"Failed: {rawResponse}";
-                }
+                statusMessage = res.IsSuccessStatusCode ? "Success" : ($"Failed: {res.ReasonPhrase}");
             }
         }
         catch (Exception ex)
@@ -167,6 +209,7 @@
         finally
         {
             isRunning = false;
+            // Try to refresh from server too (if it now persists)
             await LoadHistory();
             StateHasChanged();
         }
