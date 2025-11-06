@@ -1,0 +1,147 @@
+@page "/document-map"
+@rendermode InteractiveServer
+@inject HttpClient Http
+@inject IConfiguration Configuration
+@inject NavigationManager Nav
+@using System.Text.Json
+@using CodeHero.Web.Models
+
+<h3>Document Map</h3>
+<h3>Document Map <button class="btn btn-sm btn-outline-secondary ms-2" @onclick="LoadMap">Refresh</button></h3>
+<input @bind="search" placeholder="Search..." class="form-control mb-2" />
+<div class="row">
+    <div class="col-4" style="max-height:70vh; overflow:auto; border-right:1px solid #ddd; padding-right:1rem;">
+        @if (map == null)
+        {
+            <div>Loading...</div>
+        }
+        else if (!map.Any())
+        {
+            <div>No documents found.</div>
+        }
+        else
+        {
+            <ul class="list-unstyled">
+                @foreach (var item in Filtered)
+                {
+                    <li class="mb-1">
+                        <a href="#" @onclick="() => Select(item)">@item.RelativePath</a>
+                        <div class="text-muted small">@item.Title</div>
+                    </li>
+                }
+            </ul>
+        }
+    </div>
+    <div class="col-8" style="max-height:70vh; overflow:auto; padding-left:1rem;">
+        @if (selected is null)
+        {
+            <div class="text-muted">Select a document to preview metadata and headings.</div>
+        }
+        else
+        {
+            <h5>@selected.RelativePath</h5>
+            <div><strong>Title:</strong> @selected.Title</div>
+            <div><strong>Tags:</strong> @string.Join(", ", selected.Tags ?? Array.Empty<string>())</div>
+            <div><strong>Last Modified:</strong> @selected.LastModified</div>
+            <div class="mt-2"><strong>Headings</strong>
+                <ul>
+                    @foreach (var h in selected.Headings ?? Array.Empty<string>())
+                    {
+                        <li>@h</li>
+                    }
+                </ul>
+            </div>
+            <div class="mt-2"><strong>Links</strong>
+                <ul>
+                    @foreach (var l in selected.Links ?? Array.Empty<string>())
+                    {
+                        <li>@l</li>
+                    }
+                </ul>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private DocInfo[]? map;
+    private DocInfo? selected;
+    private string search = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadMap();
+    }
+
+    private Uri BuildFallbackUri(string relative)
+    {
+        var baseUrl = Configuration["ApiService:BaseUrl"]; // e.g. https://localhost:7525
+        if (string.IsNullOrWhiteSpace(baseUrl)) return Nav.ToAbsoluteUri(relative);
+        return new Uri(new Uri(baseUrl.TrimEnd('/')), relative.TrimStart('/'));
+    }
+
+    private async Task LoadMap()
+    {
+        try
+        {
+            // try same-origin first
+            var defaultUri = Nav.ToAbsoluteUri("/api/document-map");
+            var resp = await Http.GetAsync(defaultUri);
+            if (resp.StatusCode == System.Net.HttpStatusCode.NotFound || resp.StatusCode == System.Net.HttpStatusCode.MethodNotAllowed)
+            {
+                var baseUrl = Configuration["ApiService:BaseUrl"];
+                if (!string.IsNullOrWhiteSpace(baseUrl))
+                {
+                    var fallbackUri = new Uri(new Uri(baseUrl.TrimEnd('/')), "/api/document-map");
+                    resp = await Http.GetAsync(fallbackUri);
+                }
+            }
+
+            if (resp.IsSuccessStatusCode)
+            {
+                var txt = await resp.Content.ReadAsStringAsync();
+                if (string.IsNullOrWhiteSpace(txt))
+                {
+                    map = Array.Empty<DocInfo>();
+                }
+                else
+                {
+                    try
+                    {
+                        var opts = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                        map = JsonSerializer.Deserialize<DocInfo[]>(txt, opts) ?? Array.Empty<DocInfo>();
+                    }
+                    catch (JsonException)
+                    {
+                        // Response wasn't valid JSON (could be HTML error page). Treat as empty.
+                        map = Array.Empty<DocInfo>();
+                    }
+                }
+            }
+            else
+            {
+                map = Array.Empty<DocInfo>();
+            }
+        }
+        catch
+        {
+            map = Array.Empty<DocInfo>();
+        }
+        selected = null;
+        StateHasChanged();
+    }
+
+    private IEnumerable<DocInfo> Filtered => string.IsNullOrWhiteSpace(search)
+        ? (map ?? Array.Empty<DocInfo>())
+        : (map ?? Array.Empty<DocInfo>()).Where(e =>
+        {
+            var path = e.RelativePath ?? string.Empty;
+            var title = e.Title ?? string.Empty;
+            return path.Contains(search, StringComparison.OrdinalIgnoreCase) || title.Contains(search, StringComparison.OrdinalIgnoreCase);
+        });
+
+    private void Select(DocInfo item)
+    {
+        selected = item;
+    }
+}

@@ -1,0 +1,184 @@
+﻿@page "/indexer"
+@rendermode InteractiveServer
+@using System.Text.Json
+@inject HttpClient Http
+@inject NavigationManager Nav
+@inject IConfiguration Configuration
+
+<h3>Repository Indexer</h3>
+
+<button class="btn btn-primary" @onclick="RunIndex" disabled="@isRunning">Run Indexer</button>
+<span class="ml-2">@statusMessage</span>
+
+@if (!string.IsNullOrEmpty(rawResponse))
+{
+    <div class="mt-2 alert alert-secondary" style="white-space:pre-wrap; font-family:monospace;">Raw response: @rawResponse</div>
+}
+
+@if (history?.Any() ?? false)
+{
+    <h4 class="mt-3">History</h4>
+    <table class="table table-sm">
+        <thead>
+            <tr>
+                <th>Time (UTC)</th>
+                <th>Success</th>
+                <th>Docs</th>
+                <th>Message</th>
+                <th>Error Details</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var r in history)
+            {
+                <tr>
+                    <td>@r.Timestamp.ToLocalTime()</td>
+                    <td>@(r.Success ? "Yes" : "No")</td>
+                    <td>@r.DocumentsIndexed</td>
+                    <td style="word-break:break-word">@r.Message</td>
+                    <td style="word-break:break-word">@r.ErrorDetails</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private bool isRunning;
+    private string statusMessage = string.Empty;
+    private string rawResponse = string.Empty;
+    private IndexerRunResult[]? history;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadHistory();
+    }
+
+    private Uri BuildFallbackUri(string relative)
+    {
+        var baseUrl = Configuration["ApiService:BaseUrl"]; // e.g. https://localhost:7186
+        if (string.IsNullOrWhiteSpace(baseUrl)) return Nav.ToAbsoluteUri(relative);
+        return new Uri(new Uri(baseUrl.TrimEnd('/')), relative.TrimStart('/'));
+    }
+
+    private async Task<HttpResponseMessage> TryRequestWithFallback(Func<Uri, Task<HttpResponseMessage>> action)
+    {
+        // try same-origin first
+        var defaultUri = Nav.ToAbsoluteUri("/api/search/indexer/run");
+        var resp = await action(defaultUri);
+        if (resp.StatusCode == System.Net.HttpStatusCode.NotFound || resp.StatusCode == System.Net.HttpStatusCode.MethodNotAllowed)
+        {
+            var baseUrl = Configuration["ApiService:BaseUrl"];
+            if (!string.IsNullOrWhiteSpace(baseUrl))
+            {
+                var fallbackUri = new Uri(new Uri(baseUrl.TrimEnd('/')), "/api/search/indexer/run");
+                resp = await action(fallbackUri);
+            }
+        }
+        return resp;
+    }
+
+    private async Task LoadHistory()
+    {
+        try
+        {
+            // try same-origin first, then fallback
+            var defaultUri = Nav.ToAbsoluteUri("/api/search/indexer/history");
+            var resp = await Http.GetAsync(defaultUri);
+            if (resp.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                var baseUrl = Configuration["ApiService:BaseUrl"];
+                if (!string.IsNullOrWhiteSpace(baseUrl))
+                {
+                    var fallback = new Uri(new Uri(baseUrl.TrimEnd('/')), "/api/search/indexer/history");
+                    resp = await Http.GetAsync(fallback);
+                }
+            }
+
+            if (resp.IsSuccessStatusCode)
+            {
+                var txt = await resp.Content.ReadAsStringAsync();
+                if (!string.IsNullOrWhiteSpace(txt))
+                {
+                    try
+                    {
+                        history = System.Text.Json.JsonSerializer.Deserialize<IndexerRunResult[]>(txt);
+                    }
+                    catch
+                    {
+                        history = Array.Empty<IndexerRunResult>();
+                    }
+                }
+                else history = Array.Empty<IndexerRunResult>();
+            }
+            else
+            {
+                history = Array.Empty<IndexerRunResult>();
+            }
+        }
+        catch
+        {
+            history = Array.Empty<IndexerRunResult>();
+        }
+    }
+
+    private async Task RunIndex()
+    {
+        isRunning = true;
+        statusMessage = "Starting...";
+        rawResponse = string.Empty;
+        StateHasChanged();
+        try
+        {
+            // POST with fallback
+            HttpResponseMessage res = await TryRequestWithFallback(async uri => await Http.PostAsync(uri, null));
+
+            rawResponse = await res.Content.ReadAsStringAsync();
+
+            if (string.IsNullOrWhiteSpace(rawResponse))
+            {
+                statusMessage = res.IsSuccessStatusCode ? "Indexer ran (no details returned)." : $"Failed: {res.ReasonPhrase}";
+            }
+            else
+            {
+                try
+                {
+                    var json = System.Text.Json.JsonSerializer.Deserialize<IndexerRunResult>(rawResponse);
+                    if (json != null)
+                    {
+                        statusMessage = (res.IsSuccessStatusCode ? "Success: " : "Failed: ") + json.Message;
+                    }
+                    else
+                    {
+                        statusMessage = res.IsSuccessStatusCode ? "Indexer ran (no details)." : $"Failed: {rawResponse}";
+                    }
+                }
+                catch (System.Text.Json.JsonException)
+                {
+                    statusMessage = res.IsSuccessStatusCode ? $"Success: {rawResponse}" : $"Failed: {rawResponse}";
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            statusMessage = $"Error: {ex.Message}";
+            rawResponse = ex.ToString();
+        }
+        finally
+        {
+            isRunning = false;
+            await LoadHistory();
+            StateHasChanged();
+        }
+    }
+
+    public class IndexerRunResult
+    {
+        public System.Guid Id { get; set; }
+        public System.DateTimeOffset Timestamp { get; set; }
+        public bool Success { get; set; }
+        public string Message { get; set; } = "";
+        public int DocumentsIndexed { get; set; }
+        public string? ErrorDetails { get; set; }
+    }
+}

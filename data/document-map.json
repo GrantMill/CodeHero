@@ -1,0 +1,1957 @@
+[
+  {
+    "id": "FE47FC45D375662F9D56ED934F199A75353F7DF4EBA7424462B3A9AB84287BA0",
+    "relativePath": "CodeHero.sln",
+    "title": "Visual Studio Version 17",
+    "headings": [
+      "Visual Studio Version 17"
+    ],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-18T08:22:49.3285107Z",
+    "size": 7455,
+    "contentHash": "1C31F8DCAF36820E78EC5B77B1AC81A670B58FAFE49616DFA1B4E69984E992D3"
+  },
+  {
+    "id": "B18744307DE265C8855964080E23AFC3F1D0C3B7AB5351D8CD2611D0C10F93F7",
+    "relativePath": "Initial Context.md",
+    "title": "/pipelines/ci.yaml",
+    "headings": [
+      "/pipelines/ci.yaml",
+      "ensure every REQ in specs/arch exists in code/tests",
+      "scripts/aggregate_votes.sh",
+      "SelfBuild",
+      "Bootstrap Plan (M0 \u2192 M1)",
+      "M0 (this PR)",
+      "M1 (next)",
+      "Human Plan (M0 \u2192 M1)",
+      "Agent Plan (M0 \u2192 M1)",
+      "1) Create Aspire starter solution",
+      "Projects created by the template:",
+      "- AgentZero.AppHost",
+      "- AgentZero.ServiceDefaults",
+      "- AgentZero.sln",
+      "2) Add your projects",
+      "3) Add projects to the solution",
+      "4) Wire references"
+    ],
+    "links": [],
+    "tags": [
+      "REQ-123",
+      "REQ-124",
+      "REQ-200",
+      "REQ-218",
+      "REQ-219",
+      "REQ-000",
+      "REQ-001"
+    ],
+    "lastModified": "2025-10-17T14:08:29.1091833Z",
+    "size": 77732,
+    "contentHash": "DFD27E63C42F25AE56B8DCA6B7378ECBC219B57FB762A1680804DE2D05FB981B"
+  },
+  {
+    "id": "7BB54D15EF4C4E0F20BB24ADD68A12FCCCED9925B304EAA696023143D278EA26",
+    "relativePath": "LICENSE.txt",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-17T14:01:10.2078201Z",
+    "size": 1090,
+    "contentHash": "19200A6A9407E592065A5A504C0EEFE58ADF102C9AC5AA2151BD6F257FAA7A9C"
+  },
+  {
+    "id": "5A831EA67CF5CF8703B0DE46901AB25BD191F56B320053BE9332D9A3B0D01D15",
+    "relativePath": "README.md",
+    "title": "CodeHero",
+    "headings": [
+      "CodeHero"
+    ],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-22T13:08:33.8427295Z",
+    "size": 4633,
+    "contentHash": "E32746311589AFE3EFA272B2C576911B48466DC478F87D87E4DEF44F9D656A36"
+  },
+  {
+    "id": "91EE147E534816733B0738B57B706E5D6B94E0F3DCE53BC7403C7B526AB596DD",
+    "relativePath": "scripts/dev-start.ps1",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-20T11:06:26.3549384Z",
+    "size": 299,
+    "contentHash": "50FFEEA7128C9BAEB1E88B6AA8494394DE0BB9B4A24C19023F781B487C2CBB96"
+  },
+  {
+    "id": "E0B1A3E78CA6BCA92BB836FBBF947B2C14524E991C4D14F6C45D5FAB0529DC2A",
+    "relativePath": "scripts/dev-stop.ps1",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-20T11:06:34.817469Z",
+    "size": 113,
+    "contentHash": "CE4A2A2AAE6103C1CA05B9A17F269217959DCB46FA102CACCDD11D0974EFCD71"
+  },
+  {
+    "id": "8079BE6B92528214BFEC389D1C75D1510BC9BEE35F8CCDA216C3054298CEBF26",
+    "relativePath": "scripts/warm-models.ps1",
+    "title": "1) Ask TTS for a short WAV (tone placeholder)",
+    "headings": [
+      "1) Ask TTS for a short WAV (tone placeholder)",
+      "2) Send WAV to STT to trigger model download/cache"
+    ],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-20T11:16:45.9395339Z",
+    "size": 948,
+    "contentHash": "89286A00974222857719390536EFBF682F0AD786A033BFD3A19323DADFC11DF7"
+  },
+  {
+    "id": "310E06159C66D9F5010D4C3A3ABF3757BCF4752B3D390771A54C29FC4A81D82D",
+    "relativePath": "plan/BACKLOG.md",
+    "title": "Backlog",
+    "headings": [
+      "Backlog",
+      "Outstanding work (prioritized phases)",
+      "Phase0 \u2014 Validate Azure resources \u0026 access (blockers)",
+      "Phase1 \u2014 Provision minimal RAG infra \u0026 embedding deployment",
+      "Phase2 \u2014 Indexer implementation \u0026 CI",
+      "Phase3 \u2014 Retrieval API \u0026 observability",
+      "Phase4 \u2014 Orchestrator integration (RAG \u2192 Planner)",
+      "Phase5 \u2014 MCP code tooling (write flows and approvals)",
+      "Phase6 \u2014 Planner/Executor hardening \u0026 telemetry",
+      "Phase7 \u2014 Ops, runbooks, cost control",
+      "Phase8 \u2014 Remaining UX \u0026 optional capabilities"
+    ],
+    "links": [],
+    "tags": [
+      "REQ-002",
+      "REQ-001",
+      "REQ-004",
+      "REQ-003"
+    ],
+    "lastModified": "2025-10-31T08:00:11.8994109Z",
+    "size": 6710,
+    "contentHash": "D1836C064CCB512DD6C1F4BEFD76DF48FEB0FBF6A95B5EDC668D83CC70E11B9B"
+  },
+  {
+    "id": "F2FA20F035EAAF4C54A11F4A4006A9D59D02FB2FB9BAE8183BAC2799890EEB78",
+    "relativePath": "out/CodeHero.Indexer.deps.json",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-31T11:52:57.3560373Z",
+    "size": 15436,
+    "contentHash": "C43A1ACC2B8449626145871DCD757E5C9A105C030C438C9B093BADEC299AA162"
+  },
+  {
+    "id": "CA7FD2E8B9C7DBCD3C6833AAFBE137E8CE2385C0E18BEEF583FFEFCEBF264B52",
+    "relativePath": "out/CodeHero.Indexer.runtimeconfig.json",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-31T11:52:57.3730976Z",
+    "size": 357,
+    "contentHash": "111C558EBDEAEF93563BB31B0FF7AA6A5FD1D7158ACFF0A3DA3AC9D9C849665D"
+  },
+  {
+    "id": "A43C206F11662C1472CD9F0D27C9B5E959004E3389E335E14B8CD853498CCC2A",
+    "relativePath": "iac/README.md",
+    "title": "Infrastructure as Code (Bicep)",
+    "headings": [
+      "Infrastructure as Code (Bicep)",
+      "Deploy (Azure CLI)",
+      "Wire into the app"
+    ],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-20T10:32:01.3901252Z",
+    "size": 1356,
+    "contentHash": "3879F8E5F930F6CD4E75D3F0E6BDB512131CDB2C2E7063EF69B7D1F0CB889C16"
+  },
+  {
+    "id": "C34C7284FFCE98AB584A67268F644DF494FB1B95F7EF696C6FB182583A8B59AC",
+    "relativePath": "iac/bicep/parameters.dev.json",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-19T09:07:35.855882Z",
+    "size": 486,
+    "contentHash": "4DF7D1F99F2AE005CD52702FD5318A21DB463AB25BB62338D10CA7AF33339151"
+  },
+  {
+    "id": "AC84BFB1A93EBF231372E73329C7BE277FB21AE1FC6750BBEBCE5EAB2927C72D",
+    "relativePath": "docs/CONTRIBUTING-notes.md",
+    "title": "CodeHero contributing notes (MCP \u002B Scribe)",
+    "headings": [
+      "CodeHero contributing notes (MCP \u002B Scribe)",
+      "Scribe workflow (MVP)",
+      "Running locally",
+      "Next steps"
+    ],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-18T10:03:17.2525862Z",
+    "size": 824,
+    "contentHash": "64329716B9F50B58C9323A642677EC186EEF7F7D5E34E0A37D76FDAE7D1D52FB"
+  },
+  {
+    "id": "6A17656D764B8E1930354F341CF7F47960B63845C3046EDCD8BBF282AAA2F464",
+    "relativePath": "docs/roadmap.md",
+    "title": "Roadmap",
+    "headings": [
+      "Roadmap"
+    ],
+    "links": [],
+    "tags": [
+      "REQ-002",
+      "REQ-004",
+      "REQ-003"
+    ],
+    "lastModified": "2025-10-22T14:03:12.8769545Z",
+    "size": 764,
+    "contentHash": "21DD2203A8BC3863DC6013E8BC4C98511ED63A44C5239B76DC65667DAB9E1F8C"
+  },
+  {
+    "id": "AB865F8DBDB002D41B7BA47383936495E608933271C04CB9260C054143B8E8A0",
+    "relativePath": "docs/roadmap.mmd",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [
+      "REQ-002",
+      "REQ-004",
+      "REQ-003"
+    ],
+    "lastModified": "2025-10-31T08:54:37.0037906Z",
+    "size": 510,
+    "contentHash": "3309739D139841EDADC4FC60C401289E77D2080CFB4003BD6E1AA5BAA7493B44"
+  },
+  {
+    "id": "7530A4938BBB6358BFD3A67A0E6C7BED35D9816DB7BED398BD29F57C9F767D67",
+    "relativePath": "docs/VISION.md",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-17T14:18:44.7214358Z",
+    "size": 1166,
+    "contentHash": "A57A684CB09C03575404F26BE2DBF4AD49CB7FF876B12A0727BE15F886EE0829"
+  },
+  {
+    "id": "1C70D6B000BCA1B8C2ADEA160386F0171166F7C36144177B6268BBDEB1D7CA8C",
+    "relativePath": "docs/requirements/REQ-000.md",
+    "title": "Bootstrap baseline",
+    "headings": [],
+    "links": [],
+    "tags": [
+      "REQ-000"
+    ],
+    "lastModified": "2025-10-22T15:27:01.4754357Z",
+    "size": 465,
+    "contentHash": "75E0C53A57F4116A772661CB558972AB7CD4A03595809A618343C452FDB38883"
+  },
+  {
+    "id": "454B5AADA1C338AF27E7737390E41F7E9D9F6A412FB743B63B8A7931C1840391",
+    "relativePath": "docs/requirements/REQ-001.md",
+    "title": "Agentic tools Agent should be able to add requirements to CodeHero",
+    "headings": [],
+    "links": [],
+    "tags": [
+      "REQ-001"
+    ],
+    "lastModified": "2025-10-24T13:15:07.4234543Z",
+    "size": 427,
+    "contentHash": "566D3F8A0B701D3BFE2F8D5203E297549E11327BAFBED004568A5FC149FC67D4"
+  },
+  {
+    "id": "7C8D14B8CB46A3C9DC32F9EAC80470A9901B202C343BECB4C662E4C294822852",
+    "relativePath": "docs/requirements/REQ-002.md",
+    "title": "Orchestrator LLM (Generalist with Tool Use)",
+    "headings": [
+      "end: 2025-11-10"
+    ],
+    "links": [],
+    "tags": [
+      "REQ-002"
+    ],
+    "lastModified": "2025-10-22T14:01:53.3129528Z",
+    "size": 1333,
+    "contentHash": "BA320923CB863BA57B32C99E5265EC3D5162FC62AC5288620B8038646876D65A"
+  },
+  {
+    "id": "13D48445A45DD88C7FA8D09AB52D52D0C62D679043154F5B64AC431DA7BCFEF4",
+    "relativePath": "docs/requirements/REQ-003.md",
+    "title": "RAG over Repo (Docs, Diagrams, Code)",
+    "headings": [],
+    "links": [],
+    "tags": [
+      "REQ-003"
+    ],
+    "lastModified": "2025-10-22T14:02:10.133068Z",
+    "size": 1039,
+    "contentHash": "CF29CD8FA641E0FA50C8C45C136727DDA1DC602EB6BC659C50319C46C35448D6"
+  },
+  {
+    "id": "047DB449CD5BF6603C5FD2AF3ADA2F63DE90BE356AECF310AC571F640130A69F",
+    "relativePath": "docs/requirements/REQ-004.md",
+    "title": "MCP Tooling for Code Changes (Plan, Edit, Diff)",
+    "headings": [],
+    "links": [],
+    "tags": [
+      "REQ-004"
+    ],
+    "lastModified": "2025-10-22T14:02:21.4846617Z",
+    "size": 1040,
+    "contentHash": "6C182317A84E930F752C3761494BE5C73D82AD7A9D74AEBD356272FFD507C206"
+  },
+  {
+    "id": "7F7BA7BFC38E57FA976252D803D4EC5EF52D2A5ECCD058514676D0780FD522EE",
+    "relativePath": "docs/requirements/REQ-005.md",
+    "title": "to navigate their application by voice.",
+    "headings": [],
+    "links": [],
+    "tags": [
+      "REQ-005"
+    ],
+    "lastModified": "2025-10-23T15:58:03.326577Z",
+    "size": 240,
+    "contentHash": "90802C38D158E4894CE86E7078764A7CFA7AB00273F92C36681FF8EEB3286D81"
+  },
+  {
+    "id": "9F07C617852E03514884A2C83894E226624FFFA031129E96C679E0AD112831B0",
+    "relativePath": "docs/requirements/REQ-006.md",
+    "title": "Add technical debt register",
+    "headings": [],
+    "links": [],
+    "tags": [
+      "REQ-006"
+    ],
+    "lastModified": "2025-10-24T13:24:26.6563573Z",
+    "size": 160,
+    "contentHash": "E69C0813539056ADFEF0E02CA553216546CB226204650F2B4EDCDF3D1D2BF13E"
+  },
+  {
+    "id": "0F1D38AA41DB72B299AA5B4DAD127DC33311E17F6A0A856BFF0B612A77EF1389",
+    "relativePath": "docs/requirements/REQ-007.md",
+    "title": "GitHub integration",
+    "headings": [],
+    "links": [],
+    "tags": [
+      "REQ-007"
+    ],
+    "lastModified": "2025-10-23T17:34:16.3558607Z",
+    "size": 468,
+    "contentHash": "2282CF75B97BC13A14C1ACEF15352F0179179DFDECA7D66529D3EF92B1AE7A47"
+  },
+  {
+    "id": "EB2AE7B8BD1E4B00CC9D550A59B851CAD88A953FE15C0EC385E0095E960EFBA4",
+    "relativePath": "docs/requirements/REQ-008.md",
+    "title": "Chat window docked at the bottom",
+    "headings": [],
+    "links": [],
+    "tags": [
+      "REQ-008"
+    ],
+    "lastModified": "2025-10-24T13:22:22.8907393Z",
+    "size": 484,
+    "contentHash": "78A2774E455B9CF0E3B9CBBF72AD37D9168D433892F05738BFC11B35D9BCFFF6"
+  },
+  {
+    "id": "4CE4F283CDA0B5F0907546A814D418BF37DEA05CDB60E3D168C2944622AEFEDB",
+    "relativePath": "docs/features/ContinuousDictation.md",
+    "title": "Continuous Dictation (Conversational Mode)",
+    "headings": [
+      "Continuous Dictation (Conversational Mode)"
+    ],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-22T16:14:49.9629304Z",
+    "size": 1716,
+    "contentHash": "DF34083687EC5CBDABBD773EA4F0A91C0856B27479B2E45DAF6AA4AA26151B47"
+  },
+  {
+    "id": "F35AF3B3F4ED7B0A0FE5251F326304C009FB2C3E9BC5BA1563463A5829AF1EF8",
+    "relativePath": "docs/features/EnableAgentApi.md",
+    "title": "EnableAgentApi",
+    "headings": [
+      "EnableAgentApi"
+    ],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-24T10:32:19.8122265Z",
+    "size": 1143,
+    "contentHash": "FE5FE5EAE3806D509226375E53B165BF30457A4E17CBC2330E06099FEA6BC9F7"
+  },
+  {
+    "id": "73918884BAD87CBCB7884254938BBC849D605F5B61D3F9799965769B12581C41",
+    "relativePath": "docs/features/EnableSpeechApi.md",
+    "title": "EnableSpeechApi",
+    "headings": [
+      "EnableSpeechApi"
+    ],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-24T10:32:02.9760146Z",
+    "size": 1778,
+    "contentHash": "9567D99DF0FAD2AAF77F9BAC12F80E215348DBE40B6712F1CB4B7A9ED032C9FE"
+  },
+  {
+    "id": "C10FE5E04F171824F3EE7E99A9366ADB65187EB93CEBD003EB55F82BB32BC313",
+    "relativePath": "docs/architecture/indexing.mmd",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-30T16:44:30.3736713Z",
+    "size": 3278,
+    "contentHash": "0E22CBF05CF7130996B70DB8036A919C37CF150CEE173FCD13703A92ED0E098A"
+  },
+  {
+    "id": "E0CA933BA5A43C57388E2237DD183C4DFA94C4997979347CA8D0E6837C1AF693",
+    "relativePath": "docs/architecture/orchestrator.mmd",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-24T11:41:28.3044574Z",
+    "size": 472,
+    "contentHash": "7EEFC7C8F26AD018F7E20AFBC0BB3411422B01378EC3FA7750A4A2E928DAD5FC"
+  },
+  {
+    "id": "BE24C3D35C29A1F7419DEA57C112E9C7FE675F84B18BD145F692EA3490C61005",
+    "relativePath": "docs/architecture/orchestrator.prompt.md",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-24T11:47:48.0893501Z",
+    "size": 1138,
+    "contentHash": "DFE398104E6B2338EABABAE7C6FDFF5DF6C113BB6BF92559249279D6B64F7406"
+  },
+  {
+    "id": "D59AFBDD15445D46A20D9648D1E16E226F76A5E99EE5151EA1A4ED3C948A7700",
+    "relativePath": "docs/architecture/overview.mmd",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-20T15:55:05.2445166Z",
+    "size": 1870,
+    "contentHash": "9573803B1A5BACAFF7AA19F7052EF2C7C09170BF1887F18A70AC9BB0FC998243"
+  },
+  {
+    "id": "FE8BD97965A6587D789CE0725018EDBF61364307D6DDB1E8B78252320A275203",
+    "relativePath": "docs/architecture/sequence-agent.mmd",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-22T13:09:21.1159887Z",
+    "size": 565,
+    "contentHash": "53B32AD313BD95D3C42D871170ACD776671AF3704304C5D01652F28F85FBD5A1"
+  },
+  {
+    "id": "11ABC6831A379ADC3C220801C85A168CD8481D78EA175618948AAF049F8AE5A2",
+    "relativePath": "docs/architecture/sequence-stt.mmd",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-22T13:08:52.2907474Z",
+    "size": 1093,
+    "contentHash": "0D988F289584606AA9E7A5F8AB3E714C9D3FEBA36BD6BB748BB136D09FF4F1D1"
+  },
+  {
+    "id": "1DC6EBD59D3C1E1FADA39B39EABBA2DF43F2BF43C41342A1BFB7C72153BCD4AA",
+    "relativePath": "docs/architecture/sequence-tts.mmd",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-22T13:09:08.1597004Z",
+    "size": 708,
+    "contentHash": "2BD46B246E123F8463D64CA1C924E2BBB8704FE324E816F5F180E0106C00310F"
+  },
+  {
+    "id": "07EA57DE048F71E9EB4EB5B4CBE78BDF764F2A67D73F35BEEE7C190E9632348D",
+    "relativePath": "docs/architecture/state-diagram.mmd",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-19T09:24:45.7353313Z",
+    "size": 397,
+    "contentHash": "8891D1ED298438BA5A7D89E6EE27EBA47D533DA3C3DCF11E96472D5EDD456F29"
+  },
+  {
+    "id": "1CD5CA05A5E48F695E845111102D1AD6EF1B31F0D0B2F75B3ED74938A8D7DF91",
+    "relativePath": "docs/architecture/SystemOverview.mmd",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-17T16:47:14.8262327Z",
+    "size": 291,
+    "contentHash": "010B87DC093BC92011704ABF62492D985E42223FCE99A952865CADD77A3FEC8F"
+  },
+  {
+    "id": "20C1EC364E2C85FDA788867C9B0E1EB3150059A684FE3B0360B333E1D17B272D",
+    "relativePath": "docs/architecture/TechChoices.md",
+    "title": "Tech Choices",
+    "headings": [
+      "Tech Choices",
+      "Current Status",
+      "Near-Term Decisions",
+      "Alternatives Considered"
+    ],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-20T15:57:19.1936343Z",
+    "size": 1680,
+    "contentHash": "2F83D36640A7E39D0D0EE3DE2F75ED8544902A29027B7BF66219D27A03C7E5CE"
+  },
+  {
+    "id": "7AB6F1172CB357953E39C09F1643C8A8D577F3EC8E142EAFCF7310098A7E58E0",
+    "relativePath": "docs/architecture/use-cases.mmd",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-20T15:48:41.0840546Z",
+    "size": 676,
+    "contentHash": "2572A21984446317E761272DA59DC311C38285491EA1E70524E796A91E0B8914"
+  },
+  {
+    "id": "C499E08FBF6531559D7E9541F39F156E8AFC94964B6D700E8029C20B93EA6FCA",
+    "relativePath": "data/document-map.json",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [
+      "REQ-123",
+      "REQ-124",
+      "REQ-200",
+      "REQ-218",
+      "REQ-219",
+      "REQ-000",
+      "REQ-001",
+      "REQ-002",
+      "REQ-004",
+      "REQ-003",
+      "REQ-005",
+      "REQ-006",
+      "REQ-007",
+      "REQ-008"
+    ],
+    "lastModified": "2025-11-06T15:47:52.044771Z",
+    "size": 66346,
+    "contentHash": "284C45C0A95B844785131B6203F5DA25548949E9CFB5E72742BF95D69C6409F3"
+  },
+  {
+    "id": "4ADF198200E115C5823766ED487764919CFACBA4B79D9390FD1E71C5C4FFB291",
+    "relativePath": "containers/docker-compose.yml",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-20T11:06:18.5407692Z",
+    "size": 498,
+    "contentHash": "863242DAB7AEB79292510723749149F82BDB6BEC0BDC3C205FD20D44730CE99D"
+  },
+  {
+    "id": "6E188DF40CCF179F51475BAC7966692E0E0F547FDC1C4D3E0C02C70B5B797556",
+    "relativePath": "CodeHero.Web/appsettings.Development.json",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-05T16:09:37.606975Z",
+    "size": 800,
+    "contentHash": "357A90468846EBE1CCE6AA8479F86D0DDA4FA38AC30A84339A7F02DE3505BB4C"
+  },
+  {
+    "id": "F4F89B29AE2A946384A7D33D68781172EC1560F892A8D86A6795FAF01F5802F1",
+    "relativePath": "CodeHero.Web/appsettings.json",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-06T16:03:37.7563583Z",
+    "size": 448,
+    "contentHash": "BDA22AD563AB0F65B4F3E902D2DD7D8B153A7CB8B0273F6E1CB77DE04855722E"
+  },
+  {
+    "id": "E5CE59E5B7A20EC1064EDAA8E35368480D9A8BDDB05B5BB27A332F6A37A116DB",
+    "relativePath": "CodeHero.Web/CodeHero.Web.csproj",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-06T14:31:48.9999705Z",
+    "size": 816,
+    "contentHash": "4D68CDFAB4C6B8AC406909778375236B69E7CF6A232A1511F29761A7586FECBE"
+  },
+  {
+    "id": "397618D44E909E8A60395D3F3FDCFC9E7E9DE6987C147A4DE3B7B64189F745A8",
+    "relativePath": "CodeHero.Web/Program.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-06T09:09:48.1410872Z",
+    "size": 17360,
+    "contentHash": "D8C7E45DF152C3178D11D13FF655DD5AA5341F7E0690845C670366BA45B3A361"
+  },
+  {
+    "id": "781B4D93852AB6CA7BA43242E46B138F69CDE647CDB28357EDFB8DDF8DACB7C6",
+    "relativePath": "CodeHero.Web/wwwroot/app.css",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-04T17:26:45.6360631Z",
+    "size": 4132,
+    "contentHash": "43D78A63A8CE2D89130516FDB4F64E0B3CB39B44B5B55DE328BEBBFC0DD3C6C4"
+  },
+  {
+    "id": "7D58CA1518875402692D98F5BABF14C47038F233A6C73A2863CEBBAF113129DE",
+    "relativePath": "CodeHero.Web/wwwroot/lib/bootstrap/dist/js/bootstrap.bundle.js",
+    "title": "",
+    "headings": [],
+    "links": [
+      "this",
+      "relatedTarget"
+    ],
+    "tags": [],
+    "lastModified": "2025-10-24T15:00:57.9170788Z",
+    "size": 261481,
+    "contentHash": "98EB344D566920A048BBB4F8CA047047F287C6154A27DC6968AA6968E326E871"
+  },
+  {
+    "id": "5789F1D74A9B9273CF92646FCC142CB603C77A7DDA9DEC32D8DF1E86EE5EF16F",
+    "relativePath": "CodeHero.Web/wwwroot/lib/bootstrap/dist/js/bootstrap.bundle.min.js",
+    "title": "",
+    "headings": [],
+    "links": [
+      "this",
+      "e"
+    ],
+    "tags": [],
+    "lastModified": "2025-10-17T13:55:08.8410623Z",
+    "size": 98697,
+    "contentHash": "BAEE0AA317FD080B4EDDBF04DCA0AFA0BFC163783F086B6CC6C4D8B4BEE20840"
+  },
+  {
+    "id": "7AA703122FB615C127F422FC46F9D77E2CD1D8E5902E595E506D021645367A98",
+    "relativePath": "CodeHero.Web/wwwroot/lib/bootstrap/dist/js/bootstrap.esm.js",
+    "title": "",
+    "headings": [],
+    "links": [
+      "this",
+      "relatedTarget"
+    ],
+    "tags": [],
+    "lastModified": "2025-10-24T15:01:00.7271007Z",
+    "size": 171299,
+    "contentHash": "98B12BF5C54FBE5B830DCE4EF6E7A47C15EF7E940593A63776755D7DF5E559DC"
+  },
+  {
+    "id": "50E706B16ADD363D5271A2652D65C9302E7C47DE9DA5DDCDCDA554ACAACE9D96",
+    "relativePath": "CodeHero.Web/wwwroot/lib/bootstrap/dist/js/bootstrap.esm.min.js",
+    "title": "",
+    "headings": [],
+    "links": [
+      "this",
+      "t"
+    ],
+    "tags": [],
+    "lastModified": "2025-10-17T13:55:08.8895573Z",
+    "size": 91867,
+    "contentHash": "286DDB54BEC829C0C35C5C76291B2956633891C79F6CE15C7A4CB8199DFEB728"
+  },
+  {
+    "id": "CDD9682E3141D43DF794B0764756DDC5A89F5BA6887F8D3B00B068AF990D4903",
+    "relativePath": "CodeHero.Web/wwwroot/lib/bootstrap/dist/js/bootstrap.js",
+    "title": "",
+    "headings": [],
+    "links": [
+      "this",
+      "relatedTarget"
+    ],
+    "tags": [],
+    "lastModified": "2025-10-24T15:00:54.7034375Z",
+    "size": 189385,
+    "contentHash": "50D1F5FFAA5C6E93A7E6AFD8BA39AB7B9A90F074EF738C5B886510768F0EC190"
+  },
+  {
+    "id": "475683EB15C4072A8DB190528CA6315424AF6EA2AAB88FA645EBFFB26D97D7EB",
+    "relativePath": "CodeHero.Web/wwwroot/lib/bootstrap/dist/js/bootstrap.min.js",
+    "title": "",
+    "headings": [],
+    "links": [
+      "this",
+      "e"
+    ],
+    "tags": [],
+    "lastModified": "2025-10-17T13:55:08.9410015Z",
+    "size": 78615,
+    "contentHash": "D573157C0CB5C4D2E1A08A550B7FEC8F84D1042DB3B198499E23EF30F545CCF0"
+  },
+  {
+    "id": "259DDA96748AD3AEC0EEE3A8526B4EFD9B5F3FC7D7E0621B2236F10C0277D0A3",
+    "relativePath": "CodeHero.Web/wwwroot/lib/bootstrap/dist/css/bootstrap-grid.css",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-02T14:56:23.3048402Z",
+    "size": 85673,
+    "contentHash": "D3BDF185760A1D0BB7B1EC53D423A84432A9115D333B8F97D814818ED8307246"
+  },
+  {
+    "id": "45D66815433F55BC6FA24830E9315DD64D6C3416DC0FF5B0A324303A6BA4EAA0",
+    "relativePath": "CodeHero.Web/wwwroot/lib/bootstrap/dist/css/bootstrap-grid.min.css",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-17T13:55:08.4191313Z",
+    "size": 51800,
+    "contentHash": "84DDADB4C1BF2B7C10945ACDDD26D0D58178B48247084E2860FF9089B4F7BCE6"
+  },
+  {
+    "id": "9C539F9ED4B90086FD7D6A25CE6D756185C587D588BC9F50C3EA1DA19E045104",
+    "relativePath": "CodeHero.Web/wwwroot/lib/bootstrap/dist/css/bootstrap-grid.rtl.css",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-02T14:56:26.262154Z",
+    "size": 85746,
+    "contentHash": "5612DEA0CA26DF67884AF1135ADF28C8606C041837F300BE93CA0B0ECAD7B6A3"
+  },
+  {
+    "id": "1C6961B597ADD8750B0840FE9BE33DFC9842F858FF2E67B7B8F2AC8E1EB5716B",
+    "relativePath": "CodeHero.Web/wwwroot/lib/bootstrap/dist/css/bootstrap-grid.rtl.min.css",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-17T13:55:08.5122388Z",
+    "size": 51875,
+    "contentHash": "FAB186DEEEB748C9072FCD066B8D8B01AC0F523EE2F2F691D8AB9E9EA96D6B61"
+  },
+  {
+    "id": "5B5D42FE28DF0E56675926D6FC83445702F3E6B460AAF970C58DD0F83674065A",
+    "relativePath": "CodeHero.Web/wwwroot/lib/bootstrap/dist/css/bootstrap-reboot.css",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-02T14:56:29.9869627Z",
+    "size": 13487,
+    "contentHash": "90E9EBCDA8419306AEECE5CE78BFB9AB8253E04C58D22343705BA8D2FDA92ED5"
+  },
+  {
+    "id": "185A63B03071F321719D42DFAD766CE39DECB6E257FB0EE9246767900106C13A",
+    "relativePath": "CodeHero.Web/wwwroot/lib/bootstrap/dist/css/bootstrap-reboot.min.css",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-17T13:55:08.5378945Z",
+    "size": 10131,
+    "contentHash": "CBBD9B4F94CA98599FBF0DDB344CCF44D65AFFCE7DE71B6C79921C0545743DD3"
+  },
+  {
+    "id": "3D1BD85CA2E331D4F8D12F3A8392A11437C8830AD3E6068751B6451ED3BD4BD1",
+    "relativePath": "CodeHero.Web/wwwroot/lib/bootstrap/dist/css/bootstrap-reboot.rtl.css",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-02T14:56:35.0224258Z",
+    "size": 13481,
+    "contentHash": "EBE3843195601CDC7B80903C74BB64459EA54227D494BB94C945F0A5A8F226B5"
+  },
+  {
+    "id": "D727C2E76255AB9FE684420DA15DF3493D69F8006625192E1AD11A7DAD680BC9",
+    "relativePath": "CodeHero.Web/wwwroot/lib/bootstrap/dist/css/bootstrap-reboot.rtl.min.css",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-17T13:55:08.5476559Z",
+    "size": 10203,
+    "contentHash": "5246A378F6CCCC68FCCBBDC89A47777565A72C9AF4BF60AB0422CCAD532578FF"
+  },
+  {
+    "id": "FFA7837027B16B59E0332FE378713A02924FC12247C84B3AF3D8D30996B5B3DE",
+    "relativePath": "CodeHero.Web/wwwroot/lib/bootstrap/dist/css/bootstrap-utilities.css",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-02T14:56:38.9016809Z",
+    "size": 125198,
+    "contentHash": "417BC1BF37534BEA7ED99ECB25D89D7EFCD2FB67AC40D6B7CF2259EF2816DBD4"
+  },
+  {
+    "id": "7193216E22801FE6F6046FE12E8665467982878C51D094BF6E7361645450EA9D",
+    "relativePath": "CodeHero.Web/wwwroot/lib/bootstrap/dist/css/bootstrap-utilities.min.css",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-17T13:55:08.5690601Z",
+    "size": 85357,
+    "contentHash": "6415DB605F0E66B17518338B30BBD6FF344FB71D517DE303623E43D966FFF63A"
+  },
+  {
+    "id": "FF5B9BB9E824A5D5E822649619D66CEB9B37CCAB12A57F6CF6C1C20782CD04DD",
+    "relativePath": "CodeHero.Web/wwwroot/lib/bootstrap/dist/css/bootstrap-utilities.rtl.css",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-02T14:56:41.6476886Z",
+    "size": 125055,
+    "contentHash": "CC0B3978AF372C74353FD62E41C7E873A2CF106A35FD3ECE9BAB6EAF9BF5A497"
+  },
+  {
+    "id": "7CDA4873D54861442927AFDD34EE2EF4063B4F9FF2EF5BC822024A2FE1274FE8",
+    "relativePath": "CodeHero.Web/wwwroot/lib/bootstrap/dist/css/bootstrap-utilities.rtl.min.css",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-17T13:55:08.5940235Z",
+    "size": 85286,
+    "contentHash": "ECC6043141601C47350A3ADF00AFD3955DF43CEC60A315E4D9BFAF02CFF5E375"
+  },
+  {
+    "id": "461E8C892A42D4DB5B18555ED496AA0B1B9F17DD1CDC4CA94F9B05C212C51197",
+    "relativePath": "CodeHero.Web/wwwroot/lib/bootstrap/dist/css/bootstrap.css",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-02T14:56:15.5404284Z",
+    "size": 324124,
+    "contentHash": "F87140D7F11721E23CD55432AB59041BE9955ECF23F4D3311945D0632A10840C"
+  },
+  {
+    "id": "8EC85A931E0B26AB6FAA3D86223385AB522216C88C16ABD18CF6C6E483CEF416",
+    "relativePath": "CodeHero.Web/wwwroot/lib/bootstrap/dist/css/bootstrap.min.css",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-17T13:55:08.6529489Z",
+    "size": 232808,
+    "contentHash": "B0A21045F42B8884AE43D97FE386F5CC77D09E21972611A89D5B41D8B952B88B"
+  },
+  {
+    "id": "DFD98DBDF4EAFFA706C0E032B79E66D76A9152A2BCE89545C6FD88871F653650",
+    "relativePath": "CodeHero.Web/wwwroot/lib/bootstrap/dist/css/bootstrap.rtl.css",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-02T14:56:19.2568413Z",
+    "size": 323325,
+    "contentHash": "EC39AE69EB0028D572BA9A7179B7638E277C65474A867C95AA863A740C82A7D0"
+  },
+  {
+    "id": "BA0975E8ACE777B27A03579A196072EB9F0F7E1F6C78BBAC654ABA7A30D18F69",
+    "relativePath": "CodeHero.Web/wwwroot/lib/bootstrap/dist/css/bootstrap.rtl.min.css",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-17T13:55:08.7937553Z",
+    "size": 232916,
+    "contentHash": "AC8D70D860F164F0ABEFB6E9648190F2652F315B44AFE801B5A865E5120F2690"
+  },
+  {
+    "id": "87403BBB4D09E807239237B567EAC98301FAF98B7F089E4699F0A5750F917A31",
+    "relativePath": "CodeHero.Web/wwwroot/js/audio.js",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-31T09:55:55.462926Z",
+    "size": 16976,
+    "contentHash": "48FEE6BA2220270B4AE1EFAE39B70E9C1DEA5A46E6C8305343086FCED384F765"
+  },
+  {
+    "id": "8CA6B7B1C31CF9E2502DABDC6328C0E553FCA458C9B1C7B20CA4DBC42BF1C8AB",
+    "relativePath": "CodeHero.Web/Telemetry/AgentTelemetry.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-24T15:02:25.422733Z",
+    "size": 904,
+    "contentHash": "8696E6A852C11CE1F71F6ED0812012CBD16F17678F182EB15D0BC2B8C2DFCED8"
+  },
+  {
+    "id": "142FB3DB0A429BE3867C49784996F63E6A4CB4A1ACD8E9D53C7DED8C8E5C999E",
+    "relativePath": "CodeHero.Web/Telemetry/SpeechTelemetry.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-24T15:02:28.6863618Z",
+    "size": 1573,
+    "contentHash": "B46F4A4EC43808A05DBE5C7B6777DD076F2D51F3569CFBE5A884CDB8391C530F"
+  },
+  {
+    "id": "DAC49DD3C076C68AD7CDD18DBA190D9B5B2A9935B2FD177DDE71067087C79F50",
+    "relativePath": "CodeHero.Web/Services/AudioCapabilities.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-24T15:01:13.1542695Z",
+    "size": 345,
+    "contentHash": "4C1ACC245F6D487A3F0BB2505EED2D0DB703A2A9D362E0C05785EBB6D4C45D4D"
+  },
+  {
+    "id": "B8089533AB1E472A3E63E69C3411022E06DCB9B319117EE9033CD0BB5BBB0021",
+    "relativePath": "CodeHero.Web/Services/AzureFoundryAgentService.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-24T15:01:16.6572164Z",
+    "size": 890,
+    "contentHash": "2780BD1224FEFC68278E4BC63354CB10C707CAA193C1C5371BEE188A3A401441"
+  },
+  {
+    "id": "65BA246E3622690F261360F729AD9504277DFB3CAA5596438B1638BDE8205D25",
+    "relativePath": "CodeHero.Web/Services/AzureSpeechService.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-24T15:01:19.9995598Z",
+    "size": 2763,
+    "contentHash": "D64A3B762BD3624B3BAFAEE7B758B9C31ECB19270CD0BD0DBEB4A62AFF0DCFD1"
+  },
+  {
+    "id": "7D846EF4D88C5BE08E3535A0D752D370156E08C3D6394B9A9B38D8A378A427AA",
+    "relativePath": "CodeHero.Web/Services/CombinedSpeechService.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-24T15:01:23.4199762Z",
+    "size": 744,
+    "contentHash": "6E74DB3176C4D289F478F0E695753C105043B30F455184E6C10B8C66B0FFE526"
+  },
+  {
+    "id": "3FBF38A9D6E6E828CB33A503CE13C95B3E2BD99601E680BAA3508C4BBEFBF4F8",
+    "relativePath": "CodeHero.Web/Services/FileStore.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-24T15:01:27.8439818Z",
+    "size": 5382,
+    "contentHash": "B24FB9915A033F27C961E818946034155FAB5B5C6B83BF47C2CE9571DB56FE0E"
+  },
+  {
+    "id": "42E3EAEA10CD6546E83DEC0138452E18AD869C4FED104E9A6C1D0CF954BB3D2D",
+    "relativePath": "CodeHero.Web/Services/FoundrySpeechService.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-24T15:01:31.2491798Z",
+    "size": 989,
+    "contentHash": "10A71755442ACFF160DF0B68CE4B1DD8564D2EC47D8C55D6B342735ED695BB24"
+  },
+  {
+    "id": "BC73BBB9315C163B0C92DE64BEC7E9FBE4CE0461964A7EE2ACD6FD0990C62A44",
+    "relativePath": "CodeHero.Web/Services/FoundryTranscribeService.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-24T15:01:35.1190639Z",
+    "size": 3214,
+    "contentHash": "080B97310F2BDBE52CF385EC20CFC34D3F402542FEA776901F32172B82B89DB7"
+  },
+  {
+    "id": "124E63AD4EBC15EE5D12FE025CEE3FA9D70481C3556323182E357659D63D9CFE",
+    "relativePath": "CodeHero.Web/Services/IAgentService.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-24T15:01:38.1335519Z",
+    "size": 146,
+    "contentHash": "013BC22877B8F87A5ABACB9BBF84235111196FFEFA8D4AA2F2375CF4EB3DB30D"
+  },
+  {
+    "id": "C249F675C5D05ED1D8E3D03704EAE379289BFB5DF00FF46E312407BBB573F3B8",
+    "relativePath": "CodeHero.Web/Services/IMcpClient.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-24T15:01:42.0269802Z",
+    "size": 1456,
+    "contentHash": "23B88C9474C2A2B0A34704E57EB2E618942124B7B684B869DAE6C0E4CD4963B3"
+  },
+  {
+    "id": "20AB1C904E5C4908C89569E7F801C69B6FA1B359143435BB7F72374F8DD260A4",
+    "relativePath": "CodeHero.Web/Services/ISpeechService.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-24T15:01:45.5421752Z",
+    "size": 333,
+    "contentHash": "CBA4490B6A5B2895E7F060CA9FC6C0D276F6D8134B32CD2FC40E8C4D631BA89B"
+  },
+  {
+    "id": "46BCF8B73B8FD511871D4CCB308B0BCB972BE9C4B5196ED0A1F9C56B1D2E0360",
+    "relativePath": "CodeHero.Web/Services/LlmOrchestratorAgentService.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [
+      "REQ-000",
+      "REQ-006",
+      "REQ-001"
+    ],
+    "lastModified": "2025-10-31T10:00:33.0125407Z",
+    "size": 33937,
+    "contentHash": "CA1AB04A1B82407C375B04049AA3BE5F7BF0B4392515E32C9C6063261993CE33"
+  },
+  {
+    "id": "0FFE9C687BCC014E056B98E98E08FB9C0F69F391DCCC95466F50B4C589B8D2EE",
+    "relativePath": "CodeHero.Web/Services/McpClient.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [
+      "REQ-001"
+    ],
+    "lastModified": "2025-10-24T15:01:54.7306948Z",
+    "size": 10435,
+    "contentHash": "F0AD5DC6153ADB70A71A0DEE58BEE46B225D7730FD1483D40DEE88E17E8521B3"
+  },
+  {
+    "id": "89AA97A798A4F01A4ECC5C774EF7766EFE106B34F6C8FFA9A662B2D8B565487F",
+    "relativePath": "CodeHero.Web/Services/McpOrchestratorAgentService.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [
+      "REQ-000"
+    ],
+    "lastModified": "2025-10-24T15:02:54.3514676Z",
+    "size": 6674,
+    "contentHash": "7D195D81765D2C6992077F7876DE4D0EA0B50358CB7026A10125427D8BB4D6A9"
+  },
+  {
+    "id": "810E79C754D8B258217B576AC8E6E9B7C13E2287AEB169CA861D7E4791EF508A",
+    "relativePath": "CodeHero.Web/Services/NullAgentService.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-24T15:02:00.7149186Z",
+    "size": 287,
+    "contentHash": "3DDFFB04A39AB2C617024EDD0D6CC347E4CA4077C12F8D7AD10898350FFEA06D"
+  },
+  {
+    "id": "35215B3B508D9399B23FA9B9F2C3EED6F2298D4917FA2CD01520F163B245C419",
+    "relativePath": "CodeHero.Web/Services/NullMcpClient.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [
+      "REQ-001"
+    ],
+    "lastModified": "2025-10-24T15:02:05.1001947Z",
+    "size": 2148,
+    "contentHash": "9FC07C821900C563486875DE74B884F03BBCD904B71D57783F21956C87AFDC8A"
+  },
+  {
+    "id": "B9CE008911F67269A097C3F766D3516F2532F174717DE5894F1FC6DB703F1A7A",
+    "relativePath": "CodeHero.Web/Services/NullSpeechService.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-24T15:02:08.2168642Z",
+    "size": 1865,
+    "contentHash": "37B19DE5226A094CDBABFEC2DD9C845A1E01739C9BF4DF6AC62EB20656FCB97C"
+  },
+  {
+    "id": "52C91093D4FD313DB116B01FA42812A58DF9F472D7D26D4CB7EF67A3E57B17FA",
+    "relativePath": "CodeHero.Web/Services/ServiceRegistration.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-24T15:02:11.2449136Z",
+    "size": 426,
+    "contentHash": "2E3CE20BB1F559E246684923151559D2E5B7AA265C16B65005E45694AF9CADC1"
+  },
+  {
+    "id": "50FB8F7958C3195ADBD25D765B33F3F463BB2FE50E61A2B764D7099898F0CB72",
+    "relativePath": "CodeHero.Web/Services/SpeechDiagnosticsMonitor.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-24T15:02:14.8108705Z",
+    "size": 1055,
+    "contentHash": "2AA166FFA8A5F7D44265D0CF62DE0D342E8A70CE1902A11AB23283A52028A3F8"
+  },
+  {
+    "id": "E62E6D2CEF2BA625E562B7BC8A9B98D9F2BC71C19D99C94FFC1734D0592AEAA0",
+    "relativePath": "CodeHero.Web/Services/WhisperAndHttpTtsSpeechService.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-05T17:27:34.3089749Z",
+    "size": 3694,
+    "contentHash": "D99CEB573F8D0746A40837903D0443EA5DA1AFD4C85A882FEA7828E55857B5DE"
+  },
+  {
+    "id": "8AF8542972ED6F45128625AFF60E23C3615A1E91FA6CD3EAB24DA4BBB4F5BD95",
+    "relativePath": "CodeHero.Web/Services/WhisperClientSpeechService.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-24T15:02:22.0556192Z",
+    "size": 1678,
+    "contentHash": "581ED8402EC5CB9662BE041F43AD210C007C9D509303B2CD8BA6C014EB7DD669"
+  },
+  {
+    "id": "674672EF0DE696F2AEDFF1AD7E151333C665D683327080D64B0D53B97A5E38AF",
+    "relativePath": "CodeHero.Web/Properties/launchSettings.json",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-05T17:27:34.3081203Z",
+    "size": 637,
+    "contentHash": "AE9CD065BD71715D1B5C896769E50A3E61087D86A897B87C0D66C6100B41C20B"
+  },
+  {
+    "id": "C406EDE284ECF2279CE424845D125C36C84140911B9F7002F0217ACCD3154A00",
+    "relativePath": "CodeHero.Web/Models/DocInfo.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-06T16:07:03.2775789Z",
+    "size": 380,
+    "contentHash": "C997600398BF6726BEE92C071DF429F3570E9382F16D2A1A4BE1E6340E74E725"
+  },
+  {
+    "id": "375799D13BE8ABB9772F6BCE613C60CAA97DFEB96C0AD87467CF8CD0A43529F2",
+    "relativePath": "CodeHero.Web/Extensions/FeatureExt.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-06T08:52:09.91214Z",
+    "size": 233,
+    "contentHash": "B1FAA039D6504258F78657ABE57B98850640AE49400128CE4F9EA987CFB32ECA"
+  },
+  {
+    "id": "F735B3F7E9F7531BA0E5D1C54CB9B75A0F3CC4D6EDF42002C82F45685DAB0D84",
+    "relativePath": "CodeHero.Web/Components/App.razor",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-24T10:17:08.7356268Z",
+    "size": 4564,
+    "contentHash": "6E1D53133988F1DB91C12D2EE6D16945C00482EDF2BFE91C3532DB4CBDE03C59"
+  },
+  {
+    "id": "70B1015C81AA8CAC95013ADC88C912801A3759C8D37567B78C45ADDCC4FF39E9",
+    "relativePath": "CodeHero.Web/Components/Routes.razor",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-17T15:18:23.343834Z",
+    "size": 266,
+    "contentHash": "0DD04338489B97B36EC8A923F8F533E144B80948712552C937EADF8A07C1D6A7"
+  },
+  {
+    "id": "CC32220A207439719810DD927B1597E988E8372EB80350D56AF989D01B29815A",
+    "relativePath": "CodeHero.Web/Components/_Imports.razor",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-17T13:55:08.4029991Z",
+    "size": 439,
+    "contentHash": "F6F96CEF2444A938DEB2C293D99369BDECB8A104179803E835D9ABC87D10327D"
+  },
+  {
+    "id": "5FD2E1398A2AAEAEC308041FC44A0A049EE90757A964BCCDFE4A8D553F91E080",
+    "relativePath": "CodeHero.Web/Components/Pages/Agents.razor",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [
+      "REQ-002"
+    ],
+    "lastModified": "2025-11-05T16:09:37.5990911Z",
+    "size": 10994,
+    "contentHash": "D873DCE451907E12DC746C5A143992BDE8445FBE994A2EB5C149DA29286B8A94"
+  },
+  {
+    "id": "02ED95CBD76AF3086227CF5DA3CDA81F198AFFAE865F20294504AF8AAEEA9D0C",
+    "relativePath": "CodeHero.Web/Components/Pages/AgentsChat.razor",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-24T09:01:23.9209692Z",
+    "size": 11051,
+    "contentHash": "421DCD99A00EC233121E74D9E968F6EDF273217AB29093FD6CA2E90BEB3AE98F"
+  },
+  {
+    "id": "BDC6E411F51B2E530263425540012D8A910CAB2CA94DEB262EA7152B2AD326B6",
+    "relativePath": "CodeHero.Web/Components/Pages/Architecture.razor",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-05T16:09:37.6003055Z",
+    "size": 2746,
+    "contentHash": "FB0F7A2C4649ABEAB80BEEAAF9F55CDCA538DCEE969F80496418E0D4312CF035"
+  },
+  {
+    "id": "7C1A9AF17DAB56BACBC36C69392E1352908DB25BE438202ADD8549F31F0F29B2",
+    "relativePath": "CodeHero.Web/Components/Pages/DocumentMap.razor",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-06T16:07:20.490576Z",
+    "size": 5216,
+    "contentHash": "7E88BAB5F6F7AE41C7BE55199647932C8DC95218E8EBBDE131DDBBEED4C79E97"
+  },
+  {
+    "id": "861F68ED46B3BEEC7E65957D30BC1A6F72B45548581048B8DDF2D9EC7D5134EE",
+    "relativePath": "CodeHero.Web/Components/Pages/Error.razor",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-17T13:55:08.4020011Z",
+    "size": 1212,
+    "contentHash": "A3494D9A8024C820F83E7644CCB6777DEFA9474781DB3A328267822F0AEA2407"
+  },
+  {
+    "id": "1F87FCBEC77344B63F2E8EC1997A500E3C020178DC3F66D1358913AE1A86AFC6",
+    "relativePath": "CodeHero.Web/Components/Pages/Features.razor",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-05T16:09:37.6009284Z",
+    "size": 984,
+    "contentHash": "C491D74ACC238BE978B875495D774DCB31415DE0A79F9E93C6951BFF15B770E1"
+  },
+  {
+    "id": "24EE89246F1AC103898C291705681E9FEBE14B9BEDADB48EB3BE417F7EC4087A",
+    "relativePath": "CodeHero.Web/Components/Pages/Home.razor",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-06T14:32:44.2024178Z",
+    "size": 2551,
+    "contentHash": "7BB59E6F1B46D7F9DEB05B621AF0E420788720FF52C142B713A2B80F1BB5220B"
+  },
+  {
+    "id": "644A8A30378D6C5308DAD2CB269B2E1728A75AD53B4CFC2AD7C4E4609C8B43A0",
+    "relativePath": "CodeHero.Web/Components/Pages/Indexer.razor",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-06T15:03:39.7238719Z",
+    "size": 6360,
+    "contentHash": "0B99EAE3F615742F3EAEF39665B2B0BDC90AAC5FE72AEE52C531938724179601"
+  },
+  {
+    "id": "7F4E5063D35A05859D2BBC8EC1B22FDCB89361907DBC90DE28BAF1FA45F4BFFE",
+    "relativePath": "CodeHero.Web/Components/Pages/Plan.razor",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-30T10:00:38.9276628Z",
+    "size": 3409,
+    "contentHash": "9ADF4573CDA102F4BBD74E110B3BE2E569328801859920E63968D6FAEF2CAD0A"
+  },
+  {
+    "id": "C5AD14C848337EBD43F156B059BD57B115F38F24052CE0BE4EC3CAAFCDAE8794",
+    "relativePath": "CodeHero.Web/Components/Pages/Requirements.razor",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [
+      "REQ-001"
+    ],
+    "lastModified": "2025-11-05T16:09:37.6023229Z",
+    "size": 3369,
+    "contentHash": "80250C48AC1A6FCD1A563DE4F975CB50B8043F9C7129DC2AF3163DAE26E711A3"
+  },
+  {
+    "id": "61E127F0448FADB5E2BD78A36FDD700A51D099AA2965B20032C334C62BF3CA37",
+    "relativePath": "CodeHero.Web/Components/Layout/MainLayout.razor",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-24T08:06:20.4748451Z",
+    "size": 542,
+    "contentHash": "45A7FC9A15B9B0D67361608069F5877994979A587D49FEE73D703DDF5CD56096"
+  },
+  {
+    "id": "E7DFD656999C2BEBBDA7DCF9A8DC417FF3CAFED0B7F5B305872CB02690915501",
+    "relativePath": "CodeHero.Web/Components/Layout/MainLayout.razor.css",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-02T14:57:04.010643Z",
+    "size": 2246,
+    "contentHash": "4CC8A7E27A3A1D09546964DF17E5424E16975EBD537A5ACA10EC040616593FF6"
+  },
+  {
+    "id": "C44A5DFA2825FAF36C0A6CCDA1F1A012C18A169DF0BF7E0285CD71437701A041",
+    "relativePath": "CodeHero.Web/Components/Layout/NavMenu.razor",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-06T14:24:36.4981852Z",
+    "size": 3307,
+    "contentHash": "7D9A6F96DA0D10AA2FC7F79CE8C19944E1A79E52569EEA5BA9485978DB1159A7"
+  },
+  {
+    "id": "FE635C878C6DEC969A15A933C9D62FEE85ADA7AA773BE8A022F46AC097CB6D46",
+    "relativePath": "CodeHero.Web/Components/Layout/NavMenu.razor.css",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-02T14:57:07.6248375Z",
+    "size": 2376,
+    "contentHash": "DA938208CE4A6D5BB7691C0A19FB7926B8C904685EC0FA50FFC821783465A231"
+  },
+  {
+    "id": "21FE78E3250CC69BEF3C989CDFE8A58C9E2E8B9575A0D34EDCBB4C59A0421AFF",
+    "relativePath": "CodeHero.Tests/AgentsChatOnPhraseTests.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [
+      "REQ-000"
+    ],
+    "lastModified": "2025-10-24T15:00:03.8631653Z",
+    "size": 4103,
+    "contentHash": "5C13A7FB1E4F238DEFC267897E899E461A3052D3E7A8B1C69BF7E5A1A05A4724"
+  },
+  {
+    "id": "FEC31654B9FA3F77F15C87B0F21CE8A3A717A98CE39275C87556D4EC0D4CB9CB",
+    "relativePath": "CodeHero.Tests/AzureSearchIndexerServiceTests.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-06T11:18:03.399052Z",
+    "size": 3543,
+    "contentHash": "327DB295F2FCC71C0250C5C62CA6C63BE818E1C824935C0282350EDAF0883656"
+  },
+  {
+    "id": "93ABBC1B060949E723E98DF842A7213F1D02FD27221390B714F4EAF0BD5D1336",
+    "relativePath": "CodeHero.Tests/CodeHero.Tests.csproj",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-06T10:49:23.9517534Z",
+    "size": 1472,
+    "contentHash": "82FADBA98B82D04E953BA139A14044EDA9135C5B4922E1CDA0297F66A2168343"
+  },
+  {
+    "id": "1DBEA4845A714B8C3CF360363CC04981406011C71803ED45A68B673FECA8EC7D",
+    "relativePath": "CodeHero.Tests/FileStoreTests.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-05T17:27:34.3056062Z",
+    "size": 4158,
+    "contentHash": "620743F008DA1DB3C5022BFC90F94E7B133A95369422D118FD565A89E316AB8B"
+  },
+  {
+    "id": "A324FFABC5C77E767C2316FDDA57C161879E9A27819377E99B59F0CAF5920DCE",
+    "relativePath": "CodeHero.Tests/McpOrchestratorAgentServiceTests.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [
+      "REQ-000",
+      "REQ-001",
+      "REQ-002"
+    ],
+    "lastModified": "2025-10-24T15:00:11.7006257Z",
+    "size": 4002,
+    "contentHash": "5283FB4E09FE7A52054ED839531C342D11A800B3545107C712DDFC544F79604A"
+  },
+  {
+    "id": "B4E03C6AE7C0E481540B4BD10C9F1D008EB46443D1F8F673B4BA397267184FE5",
+    "relativePath": "CodeHero.Tests/McpServerFsTests.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [
+      "REQ-123"
+    ],
+    "lastModified": "2025-10-24T15:00:15.1677891Z",
+    "size": 5985,
+    "contentHash": "BC75505DFC65A3FE780CD7635F221710E328C5B8BA90778949AF9E7E2ACEE69C"
+  },
+  {
+    "id": "6E08E469926299836F2F694D4F6D72795F42E5171D8BB543F88376E63516964D",
+    "relativePath": "CodeHero.Tests/McpServerTests.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-24T15:00:17.7359389Z",
+    "size": 3627,
+    "contentHash": "74AB278614F818B430AF8B60DD1B2514E582691A9C93E4C8BB86263FCFC3A329"
+  },
+  {
+    "id": "E95DB110FF4B678E030313C4175A0F900A7E527266DDF3AC631092BEBE20F129",
+    "relativePath": "CodeHero.Tests/RequirementsComponentTests.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [
+      "REQ-000"
+    ],
+    "lastModified": "2025-11-05T17:27:34.3056062Z",
+    "size": 2862,
+    "contentHash": "E4AA60F3BB4314A8AB0676FCD2146EBA62C825515A1BC281C77A6F651D018DF8"
+  },
+  {
+    "id": "621A0F33BA2008C2551B98B1D547C91BF2D2924F60CA9BB08E8BDC1E162A0946",
+    "relativePath": "CodeHero.Tests/SpeechApiTests.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-05T16:09:37.5978957Z",
+    "size": 5252,
+    "contentHash": "51DB12059B577C22FE6254DE7D9C3D0ED6AC3E54BBDA4FF56D73F6AE9D7BBF27"
+  },
+  {
+    "id": "DBB8C8295C1A3EB6EE038731FBC84433FD076CFE0B6427A5067669BD64C0B898",
+    "relativePath": "CodeHero.Tests/WebFrontendRoutesTests.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-24T15:00:26.547971Z",
+    "size": 2909,
+    "contentHash": "9937A7C5250BC77676D5D069D48AB632AB7ECA2224C7B3A7BF4CF3D0BD754F42"
+  },
+  {
+    "id": "8F1B6B7AF8A12DD7EE1C8DF05CE123087E245349E38521E5E4052DB0749DC7B2",
+    "relativePath": "CodeHero.Tests/WebTests.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-24T15:00:29.3618288Z",
+    "size": 1906,
+    "contentHash": "EFD405A3638F582B01553099F2F190762209918345E093E9177CF2A90E06A801"
+  },
+  {
+    "id": "280B616E599D5FE3E928F2BE5A37064F818643BC05589388B49BD84CC4D7ED0D",
+    "relativePath": "CodeHero.ServiceDefaults/CodeHero.ServiceDefaults.csproj",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-17T13:55:08.9846035Z",
+    "size": 1007,
+    "contentHash": "3764F9D3886B877C8B430B9E903284E5EB966C893C46D3ADAE48FBB127C460CC"
+  },
+  {
+    "id": "193AE17AA9D1B5C24A50FC518CECDABF9D7F748D1B2B0012F1169E3681F07D49",
+    "relativePath": "CodeHero.ServiceDefaults/Extensions.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-24T15:00:00.4172788Z",
+    "size": 5079,
+    "contentHash": "9A3F966E47A568A1C46BA829653953B163F15EE6B6D2649952D26B4552AF7989"
+  },
+  {
+    "id": "99714A237600D89CBF1ABA3EC468158BEB2D3B177BB76DA41BAF62024C18F580",
+    "relativePath": "CodeHero.McpServer/CodeHero.McpServer.csproj",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-18T07:38:11.2172735Z",
+    "size": 410,
+    "contentHash": "8DC0BE9ABEEDDE31AF14963A75AB220022A3525A4BA41626FF523F2613738236"
+  },
+  {
+    "id": "977263996FD98F2DFFB7530A494C7EF807C316C0F2ED9EB64EAEAD00865CB54D",
+    "relativePath": "CodeHero.McpServer/JsonOpts.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-24T14:59:44.0810211Z",
+    "size": 361,
+    "contentHash": "2CEFAD2A7B76179F2918AC29C504618867E6431C375E253BC74ADF2CDA347115"
+  },
+  {
+    "id": "8B3C3588BA97F257E8F9E2BF2F9A3454D0270B7C859D737A6082685108E9E2AC",
+    "relativePath": "CodeHero.McpServer/Program.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-05T17:27:34.3031093Z",
+    "size": 15407,
+    "contentHash": "B9387AC09991BEAFA0DA36880A44DAABA25AADFB57D87467521D2165AC8C0F52"
+  },
+  {
+    "id": "FB081F679907632F9546E95D212A316E11B74FA19C03DB8032307D6F0A4B7465",
+    "relativePath": "CodeHero.McpServer/RpcError.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-24T14:59:48.2521734Z",
+    "size": 159,
+    "contentHash": "40E217BE5C723FCEABB1167BE0CEAB0C580083C1CAB599C11EDC0BF7BC12C931"
+  },
+  {
+    "id": "DF0B36047A61002BAEC36658BA05297F252A3F126F4FAF2F5D4A9F5089EBD51A",
+    "relativePath": "CodeHero.McpServer/RpcRequest.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-24T14:59:50.5065944Z",
+    "size": 275,
+    "contentHash": "3A5872DD24089E1AF72E6A224E629AC337197C11C88906B6E3966B38173A4F04"
+  },
+  {
+    "id": "8748697307982D4271D1D2A6BE2F393086C58CFEAD3BAD118A3D4F9D1AD98BC8",
+    "relativePath": "CodeHero.McpServer/RpcResponse.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-24T14:59:53.1248589Z",
+    "size": 240,
+    "contentHash": "EFB37F24DD7807BFAE80AD270238CCB3776877D554F8BA450455ACFAD654EA31"
+  },
+  {
+    "id": "58B319372FD825B4E9F5D09CFEF92FE5EB0C8A70D2113C54D1F891CCEFFE4FB6",
+    "relativePath": "CodeHero.McpServer/ServerState.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-24T14:59:54.9594689Z",
+    "size": 123,
+    "contentHash": "642FF33741F609FF54D9E1FC92C2692F4EBF7EEEF4FAB4F7D35BC09180136EF2"
+  },
+  {
+    "id": "CBBA1F1D6977DD057509DF66F4D8D47D6EFED4582472B01E03267691AAE29710",
+    "relativePath": "CodeHero.McpServer/SimpleWebEnv.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-05T17:27:34.3045089Z",
+    "size": 566,
+    "contentHash": "078BDB8D6324E591E753BD73C06421ADAF3B3A7F802CDAF533832D57C9C3F017"
+  },
+  {
+    "id": "87262753F35780FF484F9B8561C38D9D90A4C30A10C5D5893D2A1EAC0FAC110B",
+    "relativePath": "CodeHero.Indexer/CodeHero.Indexer.csproj",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-05T17:27:34.3021055Z",
+    "size": 747,
+    "contentHash": "4BB31537EE4788ECFBA5279F091CEDBA7E6AC8137431EDE00F27B679688FC102"
+  },
+  {
+    "id": "92E9E7DC39990297137363EC729A476F52D4A6903141CDE02AC48959300E0A8F",
+    "relativePath": "CodeHero.Indexer/Program.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-05T17:27:34.3031093Z",
+    "size": 5871,
+    "contentHash": "467F8A802DABF878A262C4569A1F82AD185DD8A64CE8B4F165DF0085EE67562E"
+  },
+  {
+    "id": "9D207607E9BC938B37F76D58F63E864B2CB3F5E87CC26FE02A61EF1D0917C2ED",
+    "relativePath": "CodeHero.Indexer/README.md",
+    "title": "CodeHero.Indexer",
+    "headings": [
+      "CodeHero.Indexer",
+      "CI: GitHub Actions workflow",
+      "Next steps / Recommendations",
+      "Next development steps"
+    ],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-31T09:27:40.8891306Z",
+    "size": 2946,
+    "contentHash": "A7222066A05EBF395699CD3F0F0398F0C2E1A1623666012CAD581FE0B741DCFE"
+  },
+  {
+    "id": "8B27F71EF34C98699F22B7D43671E1ACC1569B77B36E40B93F0674366D01ECFD",
+    "relativePath": "CodeHero.Indexer/Models/Passage.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-05T16:23:31.9409427Z",
+    "size": 388,
+    "contentHash": "F6DE7FEE133624AF7F0D4D83B9D6285FA65E6D1473FE41EF5D3984CC6DE98B8A"
+  },
+  {
+    "id": "382AE9FFAFA9A771F3A733C9102EE602C1445F4FB372E87D8C43A114E4A5695A",
+    "relativePath": "CodeHero.Indexer/Interfaces/IEmbeddingClient.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-05T16:23:31.9394709Z",
+    "size": 238,
+    "contentHash": "58B9BC40C488D2297D5BEA3F1F8F5D073C5369F736221E2780F56469FD1067E7"
+  },
+  {
+    "id": "8BA5A18B77D26D8FCECF4C0425071B37A82B93E7FD5DE6104F2D3310B73C9832",
+    "relativePath": "CodeHero.Indexer/Interfaces/ISearchClient.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-05T16:09:37.5978957Z",
+    "size": 250,
+    "contentHash": "7B76AE0BAB937FEF4552D29E23CF6735B52643048FA3DB9FE9386C91A21B2D29"
+  },
+  {
+    "id": "6F527F66864915D521CCF028D91FD813453C305F49CA50A79181DA60251516C2",
+    "relativePath": "CodeHero.Indexer/Clients/CognitiveSearchClient.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-05T16:18:08.1764641Z",
+    "size": 2218,
+    "contentHash": "8C12CE964F564B7BC9922F38D0AF27663F2CB4807286804FD1EB2D861E2D0DAD"
+  },
+  {
+    "id": "E3A5B20F7847994AF69E50F46558EE62E4B887D07F8CE2FD85AFDA8C7391F4E1",
+    "relativePath": "CodeHero.Indexer/Clients/FoundryEmbeddingClient.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-05T16:27:20.0630277Z",
+    "size": 5975,
+    "contentHash": "8679FFDD37315D282239C13B3C393FF843CE08A798FF5B076479CBE70CD563D6"
+  },
+  {
+    "id": "A3E14C4A8899ABAD79E9A8A8549029E7C53F2FABA3EC17A5F3B139DE58E11CE9",
+    "relativePath": "CodeHero.Indexer/Clients/MockEmbeddingClient.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-05T16:23:31.9394709Z",
+    "size": 823,
+    "contentHash": "130977AECC1DA0CAEFDCDC08F317094D3DE9FD5BC88018833BF4DB3C8F02717C"
+  },
+  {
+    "id": "57A3EFD5D1E14D0E5771252B8A81A8B23D8347CD1DD697B21EF4F4A385766D54",
+    "relativePath": "CodeHero.Indexer/Clients/MockSearchClient.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-05T16:09:37.5962839Z",
+    "size": 561,
+    "contentHash": "0FFD683319180DC2CED959C560E6F44C9E171B5F1A78CBC8026C48B63AE42A3C"
+  },
+  {
+    "id": "001B996AE2E784B9FCFD5939578E8FB5310B01B266524836E1CD16E1476AEFCE",
+    "relativePath": "CodeHero.AppHost/AppHost.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-05T17:28:53.5256169Z",
+    "size": 1462,
+    "contentHash": "D2BBBEE10041C3F10BE306F6A4075A971C9C87C66FA1632E91177DD978543E21"
+  },
+  {
+    "id": "B26B091EB674DAAFEC7CB3A7D1081F203C91F8DE9C021C6B44431AA014A9B71E",
+    "relativePath": "CodeHero.AppHost/appsettings.Development.json",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-24T14:59:42.310199Z",
+    "size": 125,
+    "contentHash": "BF7CDBC1C0E2675EBFF84AA388E19B1A978262BBC5B89D7B4E43FC56B26471E6"
+  },
+  {
+    "id": "44F7E20174AE48EF0A93E939F70182FC4ADFA4B446FD37FAB891C819BBE48DA3",
+    "relativePath": "CodeHero.AppHost/appsettings.json",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-24T14:59:40.9652981Z",
+    "size": 165,
+    "contentHash": "CC3EA6064DA6339826EA30C73CFA2BE1357CAA53BCBE7747672E13C66D72BA69"
+  },
+  {
+    "id": "8400ECF7999DCC1EF7633167E3A845CA29B5AE59C28818B2DBB41FD7AA47EAA9",
+    "relativePath": "CodeHero.AppHost/CodeHero.AppHost.csproj",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-18T07:38:42.8677523Z",
+    "size": 761,
+    "contentHash": "C2B54360E73B08229E1BA38D5FC71EE3EF99BA4C9378E78B9D1195EDF1BF9396"
+  },
+  {
+    "id": "16C5747E7F160A3BD5BD39CC5E9EC9675DBC2A6C524F17BB0075D66A8D70091B",
+    "relativePath": "CodeHero.AppHost/Properties/launchSettings.json",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-24T14:59:37.9857998Z",
+    "size": 1030,
+    "contentHash": "532FFBFAB22402C3A4653FCCDB8D5649C292D897E2008077F3462CE860C3A670"
+  },
+  {
+    "id": "DF7FBF90667AB82F1164695390B03674A64C04DCD8A94A12C0D42B93FB74B5D4",
+    "relativePath": "CodeHero.ApiService/appsettings.Development.json",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-06T15:42:07.228118Z",
+    "size": 167,
+    "contentHash": "1CD97B41FD25B16C6B1E4E4147A94C7C368A2B7093713D8B414263BD21940853"
+  },
+  {
+    "id": "93E1B4FC40162AF24F500520D7F31295B23FBEADB997576B20276BBBF3F55A19",
+    "relativePath": "CodeHero.ApiService/appsettings.json",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-24T14:59:34.1125484Z",
+    "size": 149,
+    "contentHash": "109BF6472AD28CEBDC709A4CE7CC387A51899701325064DD05E72A3D29CB4980"
+  },
+  {
+    "id": "3B32D7955AC2A9A35530668071D29A0A84158A92EB0997CA341F11EA20A40708",
+    "relativePath": "CodeHero.ApiService/CodeHero.ApiService.csproj",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-06T11:09:51.0144679Z",
+    "size": 712,
+    "contentHash": "38F1F6AADADD271A35F43689E8E83A28C25CFDCE8F4204FBEB6FDC24E1AA8586"
+  },
+  {
+    "id": "2EC2D26C5A2E1EEA7700ACEF47511C9451AF0E07A474E64A24F9A22443B9839C",
+    "relativePath": "CodeHero.ApiService/Program.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-06T15:04:22.637131Z",
+    "size": 3488,
+    "contentHash": "9881775224B460B11ECCFF64B71045FB7140EF45AC155857427C0423646B55BD"
+  },
+  {
+    "id": "5147E2CB734362BA286D5012BD6CBA54F50AA48EDEC15385BDE1386B0E2DAE59",
+    "relativePath": "CodeHero.ApiService/Services/AzureSearchIndexerService.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-06T11:40:59.4590122Z",
+    "size": 13664,
+    "contentHash": "7750B118E6F884D1FD305CEE9F42E694ED05470456F258755A5D265CF1950035"
+  },
+  {
+    "id": "18C76F92295744BDC8B63108D0D7ED266E3A9AA8BE926187845B0B2750D08CBA",
+    "relativePath": "CodeHero.ApiService/Services/ISearchIndexerService.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-05T18:13:14.5436915Z",
+    "size": 355,
+    "contentHash": "23935CE11019D418C6C5DC8796E2F898AE5C8BBDEBC197D6E8C9719784DDC7D2"
+  },
+  {
+    "id": "2D70D0D4CC806832D10EDD810EEB57BD73284ABBC78B3C19DD72FAB7E3DF5587",
+    "relativePath": "CodeHero.ApiService/Services/NoopSearchIndexerService.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-06T11:18:03.6156747Z",
+    "size": 1150,
+    "contentHash": "76A4BCC49C8662E87E328660B184A4A3B315935D75DBE964A9846707056A5641"
+  },
+  {
+    "id": "4276372E10E074894E5F248B0DD37E6F871630055658EE6ED331EF33E2A2B1E3",
+    "relativePath": "CodeHero.ApiService/Properties/launchSettings.json",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-24T14:59:33.1049603Z",
+    "size": 639,
+    "contentHash": "CADA594D3B39881C455F43834209CEC5F733F9168D37CF240FB84E8D806A3DD9"
+  },
+  {
+    "id": "E7ECD67E914D7BF7BF1410E4DA70639A5E1B82C021C76317E793500AF47D2455",
+    "relativePath": "CodeHero.ApiService/Models/IndexerRunResult.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-05T18:14:02.6055775Z",
+    "size": 388,
+    "contentHash": "FF46585F114DD9114393F7713CAF1F9AE37D48D156EC562BCA828204F407469D"
+  },
+  {
+    "id": "B6F37857598586251137987E8B588604183ACDEE9F6355498043FE136590534A",
+    "relativePath": "CodeHero.ApiService/Extensions/SearchIndexerServiceCollectionExtensions.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-06T11:18:03.8008411Z",
+    "size": 957,
+    "contentHash": "F00182439C62D0557D595D146444810854451BEC0927C069CCB95F139A78F880"
+  },
+  {
+    "id": "6B86855DB1DAFF7D06B05E2DD81837A966A41A95C918DA33555B1E12E1733D63",
+    "relativePath": "CodeHero.ApiService/Controllers/SearchIndexerController.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-05T18:14:27.8778437Z",
+    "size": 1000,
+    "contentHash": "3440624FE9D57A1183A3C8814738362ABEAB67549DBB7502C5D7473E5459F93A"
+  },
+  {
+    "id": "BD49C9DA80BE6710A2B999F232DB35A5270E0E1892E97749D541F7A510950BA5",
+    "relativePath": "CodeHero.ApiService/Abstractions/IAzureSearchClientFactory.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-06T10:43:38.0840038Z",
+    "size": 712,
+    "contentHash": "588AFC1FE4FD66DD9F6725BE7CA426C747C28581E49864575EA5743D1ECBA979"
+  },
+  {
+    "id": "5C3FA597431EDA03AC3339AE6BF7F05E1A50D6FC7333679EC38E21B337CB6721",
+    "relativePath": ".github/workflows/build.yml",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-18T14:58:13.4195239Z",
+    "size": 3549,
+    "contentHash": "C5D70D04F94B29E3A4DC2ABE812180A43D32627EDF4C91F37CDAE735D3B5A860"
+  },
+  {
+    "id": "2A25DED5E6C5233C75962616DD5FC78907DB9B4AA208AE063D6BB0F272646356",
+    "relativePath": ".github/workflows/iac.yml",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-18T16:59:35.4241786Z",
+    "size": 2854,
+    "contentHash": "100F97E95441FC0E86D03AAC1E14F8172948B9F2D9173FEB3DBAD6F74EBC0707"
+  },
+  {
+    "id": "261456DC4145E53878973381927FA495F8D833562AEE16038E63619FE4DDE235",
+    "relativePath": ".github/workflows/indexer.yml",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-05T17:02:46.5870381Z",
+    "size": 3898,
+    "contentHash": "83C61803061234E2C29A772F681065EE0676DC919292E956471972E7CB53021C"
+  },
+  {
+    "id": "B1913323EC851157790B9300F13A7430C1C7E8703824324A4F90327A31542352",
+    "relativePath": ".github/workflows/provision-search.yml",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-10-30T12:26:13.3673369Z",
+    "size": 9117,
+    "contentHash": "116926423134C53F04A9BB632341A91549B8E651BFB5C1D8917272717C117BE6"
+  }
+]
