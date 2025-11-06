@@ -20,12 +20,12 @@
         }
         else
         {
-            <ul class="list-unstyled">
+            <ul class="list-unstyled doc-list">
                 @foreach (var item in Filtered)
                 {
-                    <li class="mb-1">
-                        <button class="btn btn-link p-0" type="button" @onclick="() => Select(item)">@item.RelativePath</button>
-                        <div class="text-muted small">@item.Title</div>
+                    <li class="doc-item mb-1 @(selected == item ? "selected" : "")">
+                        <button class="doc-link" type="button" @onclick="() => Select(item)">@item.RelativePath</button>
+                        <div class="item-title text-muted small">@item.Title</div>
                     </li>
                 }
             </ul>
@@ -83,7 +83,6 @@
     {
         try
         {
-            // try same-origin first
             var defaultUri = Nav.ToAbsoluteUri("/api/document-map");
             var resp = await Http.GetAsync(defaultUri);
             if (resp.StatusCode == System.Net.HttpStatusCode.NotFound || resp.StatusCode == System.Net.HttpStatusCode.MethodNotAllowed)
@@ -112,7 +111,6 @@
                     }
                     catch (JsonException)
                     {
-                        // Response wasn't valid JSON (could be HTML error page). Treat as empty.
                         map = Array.Empty<DocInfo>();
                     }
                 }
@@ -126,7 +124,13 @@
         {
             map = Array.Empty<DocInfo>();
         }
-        selected = null;
+
+        // preserve selection if the same item exists; otherwise clear
+        if (selected != null && map != null && !map.Any(m => m.RelativePath == selected.RelativePath))
+        {
+            selected = null;
+        }
+
         StateHasChanged();
     }
 

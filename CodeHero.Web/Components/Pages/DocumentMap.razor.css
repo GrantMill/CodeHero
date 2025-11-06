@@ -1,0 +1,59 @@
+/* Clean link-style button (no underline) */
+.doc-link {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  color: var(--bs-link-color, #0d6efd);
+  text-decoration: none;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 0.95rem;
+  display: inline-block;
+  width: 100%; /* make clickable area full-width inside list item */
+  text-align: left;
+}
+
+/* Subtle hover indicates clickability for the link text */
+.doc-link:hover,
+.doc-link:focus {
+  color: var(--bs-link-hover, #0a58ca);
+  text-decoration: underline;
+  outline: none;
+}
+
+/* Muted title beneath each path */
+.item-title {
+  margin-top: 0.18rem;
+  font-size: 0.9rem;
+  color: rgba(0,0,0,0.55);
+}
+
+/* Selected item visual */
+.doc-item.selected {
+  background-color: rgba(13,110,253,0.06); /* slight accent */
+  border-radius: 4px;
+  padding: 0.25rem 0.35rem;
+}
+
+/* Hover entire item to engage the user */
+.doc-item:hover {
+  background-color: rgba(0,0,0,0.03);
+  border-radius: 4px;
+}
+
+/* Make the whole list item show pointer when hovering over any clickable area */
+.doc-item .doc-link,
+.doc-item:hover .doc-link {
+  cursor: pointer;
+}
+
+/* Tighter spacing */
+.doc-list .doc-item {
+  padding: 0.15rem 0;
+}
+
+/* Responsive: ensure left column scroll area keeps spacing */
+@media (min-width: 768px) {
+  .doc-list .doc-item .doc-link { font-size: 0.95rem; }
+}
