@@ -6,7 +6,6 @@
 @using System.Text.Json
 @using CodeHero.Web.Models
 
-<h3>Document Map</h3>
 <h3>Document Map <button class="btn btn-sm btn-outline-secondary ms-2" @onclick="LoadMap">Refresh</button></h3>
 <input @bind="search" placeholder="Search..." class="form-control mb-2" />
 <div class="row">
@@ -25,7 +24,7 @@
                 @foreach (var item in Filtered)
                 {
                     <li class="mb-1">
-                        <a href="#" @onclick="() => Select(item)">@item.RelativePath</a>
+                        <button class="btn btn-link p-0" type="button" @onclick="() => Select(item)">@item.RelativePath</button>
                         <div class="text-muted small">@item.Title</div>
                     </li>
                 }
