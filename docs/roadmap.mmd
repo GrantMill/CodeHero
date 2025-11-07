@@ -1,17 +1,37 @@
 gantt
- title CodeHero Roadmap
- dateFormat YYYY-MM-DD
- axisFormat %Y-%m-%d
+  title CodeHero Roadmap (Updated)
+  dateFormat YYYY-MM-DD
+  axisFormat %Y-%m-%d
 
- section Orchestrator & Agentic Core
- REQ-002 Orchestrator LLM (plan+act) :active, req2,2025-10-20,14d
- REQ-004 MCP Code Tools (plan/edit/diff) : req4,2025-10-27,14d
+  section Phase1 RAG Infra Bootstrap (REQ-003)
+  Document Map & Indexer API (completed)          :done, p1a,2025-10-16,4d
+  Server history persistence (indexer)          :active, p1b,2025-10-20,3d
+  Hybrid retrieval endpoints (search.query/search.get)       :       p1c,2025-10-23,5d
 
- section Knowledge & Answers
- REQ-003 RAG over Repo : req3,2025-10-22,10d
+  section Phase2 Helper Agent (RAG Answerer)
+  Helper prompt + tools + citations                :       p2a,2025-10-28,6d
+  Confidence scoring & followups                  :       p2b,2025-11-03,3d
+  Evaluation baseline (queries)                   :       p2c,2025-11-06,2d
 
- section Conversational UX
- Conversational tests (OnPhrase/integration) : convtests,2025-10-23,5d
+  section Phase3 Scribe Agent (Requirement Drafting)
+  Scribe prompt + MCP tool                        :       p3a,2025-11-09,5d
+  Orchestrator chain (Helper?Scribe)            :       p3b,2025-11-14,3d
+  Human QA checklist                            :       p3c,2025-11-17,2d
 
- section Ops & Docs
- Feature flags/docs for Continuous : flags,2025-10-24,3d
+  section Phase4 Planner (Optional)
+  Planner schema & tool (deferred)                :       p4a,2025-11-20,4d
+  Plan approval UX                              :       p4b,2025-11-24,3d
+
+  section Phase5 Hardening & Telemetry
+  JSON schema validators & re-prompt              :       p5a,2025-11-27,3d
+  Token/cost dashboards per model                :       p5b,2025-11-30,3d
+  Retrieval cache & p95 <1.5s                   :       p5c,2025-12-03,4d
+
+  section Phase6 Ops & Runbooks
+  Model update & key rotation runbook             :       p6a,2025-12-10,3d
+  Cost monitoring & alerts                        :       p6b,2025-12-13,3d
+
+  section Phase7 Extended UX / Optional
+  Document Map deep links & tag filters            :       p7a,2025-12-16,3d
+  Rerank integration (feature flag)              :       p7b,2025-12-19,3d
+  Streaming transcription/TTS (future)              :       p7c,2025-12-22,5d

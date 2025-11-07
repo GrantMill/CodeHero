@@ -35,7 +35,7 @@ public class McpOrchestratorAgentServiceTests
         => Task.FromResult((IReadOnlyList<string>)Array.Empty<string>());
 
         public Task<JsonElement> GetAgentCapabilitiesAsync(string agent, CancellationToken ct = default)
-        => Task.FromResult(JsonDocument.Parse("{}").RootElement);
+        => Task.FromResult(JsonDocument.Parse("{}").RootElement.Clone());
 
         public Task<string> ScribeCreateRequirementAsync(string id, string title, CancellationToken ct = default)
         => Task.FromResult($"REQ-{id}.md");
@@ -52,6 +52,14 @@ public class McpOrchestratorAgentServiceTests
         => Task.CompletedTask;
 
         public Task ShutdownAsync(CancellationToken ct = default) => Task.CompletedTask;
+
+        // Implement the new low-level raw call helper required by IMcpClient
+        public Task<string> CallRawAsync(string method, object? @params = null, CancellationToken ct = default)
+        {
+            // For tests, return a minimal JSON response. If specific tests need richer behavior,
+            // expand this to inspect method/params and return appropriate JSON.
+            return Task.FromResult("{}");
+        }
     }
 
     [TestMethod]

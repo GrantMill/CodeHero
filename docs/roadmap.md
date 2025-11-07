@@ -8,6 +8,11 @@ gantt
  dateFormat YYYY-MM-DD
  axisFormat %Y-%m-%d
 
+ section Repo UX (M0)
+ Document Map (search/preview, styling) :done, dm1,2025-10-16,3d
+ Indexer UI (run+history local persistence) :done, iu1,2025-10-17,2d
+ Nav & polish :done, ui2,2025-10-18,1d
+
  section Orchestrator & Agentic Core
  REQ-002 Orchestrator LLM (plan+act) :active, req2,2025-10-20,14d
  REQ-004 MCP Code Tools (plan/edit/diff) : req4,2025-10-27,14d
@@ -23,5 +28,6 @@ gantt
 ```
 
 Notes
-- End dates are implicit from durations; adjust as we execute.
-- Tasks can overlap by design (planner work can start while RAG bootstraps).
+- Repo UX M0 completed (Document Map, Indexer UI, nav polish).
+- Next focus: Orchestrator LLM core and RAG bootstrap in parallel.
+- Dates will adjust as velocity data emerges.

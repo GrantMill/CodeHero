@@ -5,7 +5,7 @@ using System.Text.Json;
 
 namespace CodeHero.Web.Services;
 
-public sealed class McpClient : IMcpClient
+public sealed partial class McpClient : IMcpClient
 {
     private readonly Process _proc;
     private readonly Stream _in;
@@ -212,5 +212,18 @@ public sealed class McpClient : IMcpClient
         _in.Dispose();
         _out.Dispose();
         _proc.Dispose();
+    }
+
+    public async Task<string> CallRawAsync(string method, object? @params = null, CancellationToken ct = default)
+    {
+        var id = Guid.NewGuid().ToString();
+        object req;
+        if (@params is null)
+            req = new { jsonrpc = "2.0", method, id };
+        else
+            req = new { jsonrpc = "2.0", method, id, @params };
+        await SendAsync(_in, req, ct);
+        var resp = await ReadAsync(_out, ct);
+        return resp;
     }
 }

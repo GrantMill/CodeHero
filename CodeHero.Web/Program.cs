@@ -134,7 +134,7 @@ else
 }
 
 // Agent service: use LLM orchestrator (supports Foundry models and deployments routes)
-builder.Services.AddSingleton<IAgentService, LlmOrchestratorAgentService>();
+builder.Services.AddAgentServices(builder.Configuration);
 
 var app = builder.Build();
 

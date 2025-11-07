@@ -1,5 +1,3 @@
-using System.Text.Json;
-
 namespace CodeHero.Web.Services;
 
 public interface IMcpClient : IAsyncDisposable
@@ -16,7 +14,7 @@ public interface IMcpClient : IAsyncDisposable
 
     Task<IReadOnlyList<string>> ListAgentsAsync(CancellationToken ct = default);
 
-    Task<JsonElement> GetAgentCapabilitiesAsync(string agent, CancellationToken ct = default);
+    Task<System.Text.Json.JsonElement> GetAgentCapabilitiesAsync(string agent, CancellationToken ct = default);
 
     Task<string> ScribeCreateRequirementAsync(string id, string title, CancellationToken ct = default);
 
@@ -30,4 +28,7 @@ public interface IMcpClient : IAsyncDisposable
     Task CodeEditAsync(StoreRoot root, string name, string content, string? expectedDiff = null, CancellationToken ct = default);
 
     Task ShutdownAsync(CancellationToken ct = default);
+
+    // Low-level raw call helper
+    Task<string> CallRawAsync(string method, object? @params = null, CancellationToken ct = default);
 }

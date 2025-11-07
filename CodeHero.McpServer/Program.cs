@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using System.Buffers;
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 
 // Minimal MCP-like stdio JSON-RPC server implementing initialize, ping, fs/*.
 // JSON-RPC2.0 over Content-Length framing to stdout/stderr.
@@ -344,3 +345,72 @@ static StoreRoot ParseRoot(string value) => value?.ToLowerInvariant() switch
 static RpcResponse Ok(string? id, object? result) => new() { Id = id, Result = result };
 static RpcResponse Error(string? id, int code, string message) => new() { Id = id, Error = new RpcError { Code = code, Message = message } };
 static string Serialize(RpcResponse resp) => JsonSerializer.Serialize(resp, JsonOpts.Options);
+
+static object HelperAsk(JsonElement? @params, IServiceProvider services)
+{
+    var p = @params ?? throw new InvalidOperationException("params required");
+    var q = p.TryGetProperty("user_query", out var qEl) ? (qEl.GetString() ?? string.Empty) : string.Empty;
+    var topK = p.TryGetProperty("topK", out var kEl) && kEl.TryGetInt32(out var k) ? Math.Max(1, k) : 6;
+
+    // locate document map under content root/data/document-map.json
+    var env = services.GetRequiredService<IWebHostEnvironment>();
+    var dataPath = Path.Combine(env.ContentRootPath ?? Directory.GetCurrentDirectory(), "data", "document-map.json");
+    if (!File.Exists(dataPath)) return new { answer = "no index available", passages = Array.Empty<object>(), confidence = "low" };
+    try
+    {
+        var txt = File.ReadAllText(dataPath);
+        using var doc = JsonDocument.Parse(txt);
+        var arr = doc.RootElement.EnumerateArray();
+        var terms = Regex.Matches(q.ToLowerInvariant(), "[a-z0-9]{2,}").Select(m => m.Value).ToArray();
+        var list = new List<(JsonElement El, int Score)>();
+        foreach (var el in arr)
+        {
+            int score = 0;
+            if (el.TryGetProperty("title", out var titleEl) && titleEl.ValueKind == JsonValueKind.String)
+            {
+                var title = titleEl.GetString()!.ToLowerInvariant();
+                foreach (var t in terms) score += Regex.Matches(title, Regex.Escape(t)).Count * 5;
+            }
+            if (el.TryGetProperty("headings", out var headEl) && headEl.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var h in headEl.EnumerateArray()) if (h.ValueKind == JsonValueKind.String)
+                {
+                    var hv = h.GetString()!.ToLowerInvariant();
+                    foreach (var t in terms) score += Regex.Matches(hv, Regex.Escape(t)).Count * 3;
+                }
+            }
+            if (el.TryGetProperty("tags", out var tagsEl) && tagsEl.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var tag in tagsEl.EnumerateArray()) if (tag.ValueKind == JsonValueKind.String)
+                {
+                    var tv = tag.GetString()!.ToLowerInvariant();
+                    foreach (var t in terms) if (tv.Contains(t)) score += 4;
+                }
+            }
+            if (el.TryGetProperty("relativePath", out var rpEl) && rpEl.ValueKind == JsonValueKind.String)
+            {
+                var rp = rpEl.GetString()!.ToLowerInvariant();
+                foreach (var t in terms) if (rp.Contains(t)) score += 2;
+            }
+            if (score > 0) list.Add((el, score));
+        }
+        var top = list.OrderByDescending(x => x.Score).Take(topK).ToArray();
+        var passages = top.Select(x =>
+        {
+            var e = x.El;
+            var path = e.TryGetProperty("relativePath", out var rp) ? rp.GetString() : "";
+            var title = e.TryGetProperty("title", out var t) ? t.GetString() : "";
+            var headings = e.TryGetProperty("headings", out var h) && h.ValueKind == JsonValueKind.Array ? string.Join("; ", h.EnumerateArray().Where(i=>i.ValueKind==JsonValueKind.String).Select(i=>i.GetString())) : string.Empty;
+            var snippet = (title ?? string.Empty) + " — " + (headings ?? string.Empty);
+            return new { id = e.TryGetProperty("id", out var idEl) ? idEl.GetString() : null, relativePath = path, title, snippet, score = x.Score };
+        }).ToArray();
+        double avg = passages.Length == 0 ? 0 : passages.Average(pas => (double)pas.score);
+        var confidence = avg >= 8 ? "high" : (avg >= 3 ? "medium" : "low");
+        var answer = passages.Length == 0 ? "No relevant passages found." : "Retrieved top passages from index.";
+        return new { answer, passages, confidence };
+    }
+    catch (Exception ex)
+    {
+        return new { answer = "error: " + ex.Message, passages = Array.Empty<object>(), confidence = "low" };
+    }
+}
