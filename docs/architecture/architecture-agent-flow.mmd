@@ -1,0 +1,66 @@
+﻿flowchart TD
+  %% Agentic flow for CodeHero — how prompts are embellished and used in chat UI
+  %% Created: automated addition
+
+  %% Actors & components
+  U["User"]
+  ChatUI["AgentsChat UI"]
+  Router["HelperRoutingAgentService\n⟨router⟩"]
+  Orchestrator["LlmOrchestratorAgentService\n⟨orchestrator - scribe/list/read⟩"]
+  Retriever["Retriever ⟨RAG⟩: read & score documents"]
+  MCP["MCP ⟨Indexer / FileStore⟩\nfs & indexer tools"]
+  PromptBuilder["Prompt Composer\n⟨system + sources + user + instructions⟩"]
+  Model["Phi-4 ⟨Foundry/OpenAI⟩\nchat/completions"]
+  Response["Model response\n⟨summary with citations & links⟩"]
+  Fallback["Deterministic fallback\ncitations-only text"]
+  Approval["User approval ⟨for writes⟩"]
+  FileWrite["MCP fs/write"]
+
+  %% Main chat flow
+  U -->|type or speak| ChatUI
+  ChatUI -->|send message| Router
+
+  %% Routing logic
+  Router -->|scribe/list/read intent| Orchestrator
+  Router -->|helper / explanatory intent| Retriever
+
+  %% Orchestrator flows
+  Orchestrator -->|list/read -> call MCP fs/list or fs/read| MCP
+  Orchestrator -->|scribe flow -> compose plan & preview| PromptBuilder
+  PromptBuilder -->|preview -> return to UI| ChatUI
+  PromptBuilder -->|on approve| Approval
+  Approval -->|approved -> apply| FileWrite
+  FileWrite --> MCP
+
+  %% RAG / Helper flow
+  Retriever -->|list files & read passages| MCP
+  MCP -->|files & passages| Retriever
+  Retriever -->|rank/top passages| PromptBuilder
+
+  %% Prompt composition and model call
+  PromptBuilder -->|compose messages| Model
+  Model -->|response| Response
+
+  %% Response handling
+  Response -->|render in chat UI with links & followups| ChatUI
+  Response -->|if model failed / timeout| Fallback
+  Fallback -->|render citations-only| ChatUI
+
+  %% Prompt composition details (subgraph)
+  subgraph Prompt_Ingredients ["Prompt composition — embellishment"]
+    direction TB
+    Sys["System instruction: role, safety, grounding rules"]
+    Src["Sources: [{path, snippet, score}] — only use these"]
+    Q["User question"]
+    Instr["Formatting & constraints: markdown bullets, add links, include follow-ups, limit hallucination"]
+    Meta["Context: model name, deployment, temperature, max_tokens"]
+
+    Sys --> PromptBuilder
+    Src --> PromptBuilder
+    Q --> PromptBuilder
+    Instr --> PromptBuilder
+    Meta --> PromptBuilder
+  end
+
+  classDef comp fill:#f8f9fa,stroke:#333,stroke-width:1px;
+  class ChatUI,Router,Orchestrator,Retriever,MCP,PromptBuilder,Model,Response,Fallback,Approval,FileWrite comp;
