@@ -529,4 +529,57 @@ app.MapGet("/diagnostics/speech", (IConfiguration cfg, SpeechDiagnosticsMonitor 
 
 app.MapDefaultEndpoints();
 
-app.Run();app.Run();
+// One-shot Phi test endpoint: forwards prompt to Foundry Phi deployment and returns raw response
+app.MapPost("/api/agent/phi-test", async (IHttpClientFactory httpFactory, IConfiguration cfg, HttpContext ctx) =>
+{
+    var prompt = await new StreamReader(ctx.Request.Body).ReadToEndAsync();
+    if (string.IsNullOrWhiteSpace(prompt)) prompt = "Explain what the application does.";
+
+    var endpoint = cfg["AzureAI:Foundry:Endpoint"]?.TrimEnd('/') ?? string.Empty;
+    var key = cfg["AzureAI:Foundry:Key"] ?? cfg["AzureAI:Foundry:ApiKey"] ?? string.Empty;
+    var deployment = cfg["AzureAI:Foundry:PhiDeployment"]
+        ?? cfg["AzureAI:Foundry:ChatDeployment"]
+        ?? cfg["AzureAI:Foundry:Deployment"]
+        ?? cfg["AzureAI:Foundry:Model"]
+        ?? "Phi-4";
+    var apiVersion = cfg["AzureAI:Foundry:ApiVersion"] ?? "2024-08-01-preview";
+
+    if (string.IsNullOrWhiteSpace(endpoint) || string.IsNullOrWhiteSpace(key) || string.IsNullOrWhiteSpace(deployment))
+        return Results.Problem("Foundry/Phi not configured. Set AzureAI:Foundry:Endpoint/Key/Deployment in config.");
+
+    try
+    {
+        var client = httpFactory.CreateClient("foundry");
+        client.DefaultRequestHeaders.Remove("api-key");
+        client.DefaultRequestHeaders.Add("api-key", key);
+        client.DefaultRequestHeaders.Accept.Clear();
+        client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+        var url = $"{endpoint}/openai/deployments/{deployment}/chat/completions?api-version={apiVersion}";
+        var payload = new
+        {
+            messages = new[] { new { role = "user", content = prompt } },
+            temperature = 0.2
+        };
+
+        using var content = new StringContent(System.Text.Json.JsonSerializer.Serialize(payload), System.Text.Encoding.UTF8, "application/json");
+        using var req = new HttpRequestMessage(HttpMethod.Post, url) { Content = content };
+        req.Headers.ConnectionClose = true;
+
+        using var resp = await client.SendAsync(req, HttpCompletionOption.ResponseHeadersRead, ctx.RequestAborted);
+        var body = await resp.Content.ReadAsStringAsync(ctx.RequestAborted);
+        if (!resp.IsSuccessStatusCode)
+        {
+            return Results.Problem(body, statusCode: (int)resp.StatusCode);
+        }
+
+        // Return the raw response body so UI can inspect choices/content
+        return Results.Text(body, "application/json");
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem(ex.Message);
+    }
+}).DisableAntiforgery();
+
+app.Run();

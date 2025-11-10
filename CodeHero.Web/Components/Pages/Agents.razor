@@ -33,6 +33,7 @@
 <div class="mb-3">
  <button class="btn btn-primary" @onclick="Ping">Ping MCP</button>
  <button class="btn btn-secondary ms-2" @onclick="PingFoundry" disabled="@(foundryPingLoading)">Ping Foundry</button>
+ <button class="btn btn-secondary ms-2" @onclick="TestPhi" disabled="@(foundryPhiLoading)">Test Phi</button>
  <span class="ms-2">@status</span>
 </div>
 
@@ -46,6 +47,20 @@
                 <div class="spinner-border text-secondary" role="status"><span class="visually-hidden">Loading...</span></div>
             }
             <pre style="white-space:pre-wrap;overflow:auto;max-height:320px">@foundryPingJson</pre>
+        </div>
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(foundryPhiJson))
+{
+    <div class="card mb-3">
+        <div class="card-header">Foundry Phi Test Result (@foundryPhiStatus)</div>
+        <div class="card-body">
+            @if (foundryPhiLoading)
+            {
+                <div class="spinner-border text-secondary" role="status"><span class="visually-hidden">Loading...</span></div>
+            }
+            <pre style="white-space:pre-wrap;overflow:auto;max-height:320px">@foundryPhiJson</pre>
         </div>
     </div>
 }
@@ -199,6 +214,10 @@
  string foundryPingJson = string.Empty;
  string foundryPingStatus = string.Empty;
 
+ bool foundryPhiLoading = false;
+ string foundryPhiJson = string.Empty;
+ string foundryPhiStatus = string.Empty;
+
  // Prompts & guardrails (.agent)
  List<string> roleFiles = new();
  List<string> toolFiles = new();
@@ -299,6 +318,66 @@
      finally
      {
          foundryPingLoading = false;
+         StateHasChanged();
+     }
+ }
+
+ async Task TestPhi()
+ {
+     try
+     {
+         foundryPhiLoading = true;
+         foundryPhiJson = string.Empty;
+         foundryPhiStatus = string.Empty;
+         var http = HttpFactory.CreateClient();
+         if (http.BaseAddress is null) http.BaseAddress = new Uri(Nav.BaseUri, UriKind.Absolute);
+         var prompt = "Explain what the application does.";
+         using var content = new StringContent(prompt, System.Text.Encoding.UTF8, "text/plain");
+         var resp = await http.PostAsync("api/agent/phi-test", content);
+         var text = await resp.Content.ReadAsStringAsync();
+         if (resp.IsSuccessStatusCode)
+         {
+             try
+             {
+                 using var doc = System.Text.Json.JsonDocument.Parse(text);
+                 // Try to extract assistant content at choices[0].message.content
+                 if (doc.RootElement.TryGetProperty("choices", out var choices) && choices.GetArrayLength() > 0)
+                 {
+                     var first = choices[0];
+                     if (first.TryGetProperty("message", out var msg) && msg.TryGetProperty("content", out var contentEl) && contentEl.ValueKind == System.Text.Json.JsonValueKind.String)
+                     {
+                         foundryPhiJson = contentEl.GetString() ?? string.Empty;
+                     }
+                     else
+                     {
+                         foundryPhiJson = System.Text.Json.JsonSerializer.Serialize(doc, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+                     }
+                 }
+                 else
+                 {
+                     foundryPhiJson = System.Text.Json.JsonSerializer.Serialize(doc, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+                 }
+             }
+             catch
+             {
+                 foundryPhiJson = text;
+             }
+             foundryPhiStatus = resp.StatusCode.ToString();
+         }
+         else
+         {
+             foundryPhiJson = text;
+             foundryPhiStatus = $"Error {(int)resp.StatusCode}";
+         }
+     }
+     catch (Exception ex)
+     {
+         foundryPhiJson = ex.ToString();
+         foundryPhiStatus = "Exception";
+     }
+     finally
+     {
+         foundryPhiLoading = false;
          StateHasChanged();
      }
  }
