@@ -9,6 +9,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using System.Net.Http.Headers;
 
 namespace CodeHero.Services;
 
@@ -22,12 +23,14 @@ public class AzureSearchIndexerService : ISearchIndexerService
     private readonly string _contentRoot;
     private readonly ConcurrentQueue<IndexerRunResult> _history = new();
     private readonly IAzureSearchClientFactory _clientFactory;
+    private readonly IHttpClientFactory? _httpFactory;
 
-    public AzureSearchIndexerService(IConfiguration config, ILogger<AzureSearchIndexerService> logger, IAzureSearchClientFactory clientFactory)
+    public AzureSearchIndexerService(IConfiguration config, ILogger<AzureSearchIndexerService> logger, IAzureSearchClientFactory clientFactory, IHttpClientFactory? httpFactory = null)
     {
         _config = config ?? throw new ArgumentNullException(nameof(config));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _clientFactory = clientFactory ?? throw new ArgumentNullException(nameof(clientFactory));
+        _httpFactory = httpFactory;
         _endpoint = _config["Search:Endpoint"] ?? _config["AzureSearch:Endpoint"];
         _apiKey = _config["Search:ApiKey"] ?? _config["AzureSearch:ApiKey"];
         _indexName = string.IsNullOrWhiteSpace(_config["Search:IndexName"]) && string.IsNullOrWhiteSpace(_config["AzureSearch:IndexName"]) ? "codehero-docs" : (_config["Search:IndexName"] ?? _config["AzureSearch:IndexName"]!);
@@ -87,6 +90,25 @@ public class AzureSearchIndexerService : ISearchIndexerService
                             ["contentType"] = Path.GetExtension(file).TrimStart('.'),
                             ["lastModified"] = File.GetLastWriteTimeUtc(file)
                         };
+
+                        // If embedding configuration present, compute embedding and include vector
+                        var embeddingDeployment = _config["AzureAI:Foundry:EmbeddingDeployment"] ?? _config["AzureAI:Foundry:EmbeddingModel"];
+                        if (!string.IsNullOrWhiteSpace(embeddingDeployment) && _httpFactory is not null)
+                        {
+                            try
+                            {
+                                var vec = await GetEmbeddingAsync(content, cancellationToken).ConfigureAwait(false);
+                                if (vec is not null && vec.Length > 0)
+                                {
+                                    doc["contentVector"] = vec;
+                                }
+                            }
+                            catch (Exception exVec)
+                            {
+                                _logger.LogWarning(exVec, "Failed to compute embedding for {File}", file);
+                            }
+                        }
+
                         docs.Add(doc);
 
                         // build document map entry for agent/context
@@ -176,22 +198,53 @@ public class AzureSearchIndexerService : ISearchIndexerService
         var endpointUri = new Uri(_endpoint!);
         var keyCredential = new AzureKeyCredential(_apiKey!);
 
+        var indexClient = _clientFactory.CreateIndexClient(endpointUri, keyCredential);
+
         try
         {
-            var indexClient = _clientFactory.CreateIndexClient(endpointUri, keyCredential);
-            await indexClient.GetIndexAsync(_indexName, cancellationToken).ConfigureAwait(false);
-            _logger.LogInformation("Index '{IndexName}' already exists.", _indexName);
-            return;
+            var existing = await indexClient.GetIndexAsync(_indexName, cancellationToken).ConfigureAwait(false);
+
+            // If embeddings/vector search is desired but existing index lacks vector field, recreate index with vector field
+            var embeddingDeployment = _config["AzureAI:Foundry:EmbeddingDeployment"] ?? _config["AzureAI:Foundry:EmbeddingModel"];
+            var enableVector = !string.IsNullOrWhiteSpace(embeddingDeployment);
+
+            if (enableVector)
+            {
+                var hasVector = existing.Value.Fields.Any(f => string.Equals(f.Name, "contentVector", StringComparison.OrdinalIgnoreCase));
+                if (!hasVector)
+                {
+                    _logger.LogWarning("Index '{IndexName}' exists but is missing 'contentVector' field. Recreating index with vector field.", _indexName);
+                    await indexClient.DeleteIndexAsync(_indexName, cancellationToken).ConfigureAwait(false);
+                    // fall through to create below
+                }
+                else
+                {
+                    _logger.LogInformation("Index '{IndexName}' already exists and contains vector field.", _indexName);
+                    return;
+                }
+            }
+            else
+            {
+                _logger.LogInformation("Index '{IndexName}' already exists.", _indexName);
+                return;
+            }
         }
         catch (RequestFailedException rfEx) when (rfEx.Status == 404)
         {
-            // no-op, proceed to create
+            // index does not exist; proceed to create
         }
         catch (Exception ex)
         {
-            // Some APIs may throw on Get; try create anyway
+            // Some APIs may throw on Get; attempt to create index anyway
             _logger.LogWarning(ex, "Get index existence check failed; will attempt to create index.");
         }
+
+        // Determine if vector indexing is desired (embedding deployment configured)
+        var embeddingDeployment2 = _config["AzureAI:Foundry:EmbeddingDeployment"] ?? _config["AzureAI:Foundry:EmbeddingModel"];
+        var enableVector2 = !string.IsNullOrWhiteSpace(embeddingDeployment2);
+        var dims = 3072; // default to large
+        // allow explicit override
+        if (int.TryParse(_config["Search:VectorDimensions"], out var configuredDims)) dims = configuredDims;
 
         var fields = new List<SearchField>
         {
@@ -202,10 +255,37 @@ public class AzureSearchIndexerService : ISearchIndexerService
             new SimpleField("lastModified", SearchFieldDataType.DateTimeOffset) { IsFilterable = true, IsSortable = true }
         };
 
-        var definition = new SearchIndex(_indexName, fields)
+        SearchIndex definition;
+
+        if (enableVector2)
         {
-            // Add suggesters or semantic config later if desired
-        };
+            // add vector field; SDK requires vectorSearchProfile set on the field
+            var vectorField = new SearchField("contentVector", SearchFieldDataType.Collection(SearchFieldDataType.Single))
+            {
+                IsSearchable = true,
+                VectorSearchDimensions = dims,
+                VectorSearchProfileName = "vector-profile"
+            };
+
+            fields.Add(vectorField);
+
+            // Create index with vector field and define a basic HNSW profile so the profile name exists
+            definition = new SearchIndex(_indexName, fields)
+            {
+                VectorSearch = new VectorSearch
+                {
+                    Algorithms = { new HnswAlgorithmConfiguration("hnsw") },
+                    Profiles = { new VectorSearchProfile("vector-profile", "hnsw") }
+                }
+            };
+
+            _logger.LogInformation("Creating index with vector field (dims={Dims}) and vector-profile", dims);
+        }
+        else
+        {
+            definition = new SearchIndex(_indexName, fields);
+            _logger.LogInformation("Creating index without vector field; enable embedding by setting AzureAI:Foundry:EmbeddingDeployment");
+        }
 
         var indexClientCreate = _clientFactory.CreateIndexClient(endpointUri, keyCredential);
         await indexClientCreate.CreateIndexAsync(definition, cancellationToken: cancellationToken).ConfigureAwait(false);
@@ -327,5 +407,61 @@ public class AzureSearchIndexerService : ISearchIndexerService
     {
         for (int i = 0; i < source.Count; i += size)
             yield return source.GetRange(i, Math.Min(size, source.Count - i));
+    }
+
+    // Truncate helper for logging
+    private static string Truncate(string s, int max)
+    {
+        if (s is null) return string.Empty;
+        return s.Length <= max ? s : s.Substring(0, max) + "...";
+    }
+
+    private async Task<float[]?> GetEmbeddingAsync(string text, CancellationToken cancellationToken)
+    {
+        // embedding only available if embedding deployment configured
+        var endpoint = _config["AzureAI:Foundry:Endpoint"]?.TrimEnd('/');
+        var key = _config["AzureAI:Foundry:Key"] ?? _config["AzureAI:Foundry:ApiKey"];
+        var deployment = _config["AzureAI:Foundry:EmbeddingDeployment"] ?? _config["AzureAI:Foundry:EmbeddingModel"];
+        var apiVersion = _config["AzureAI:Foundry:ApiVersion"] ?? "2024-08-01-preview";
+
+        if (string.IsNullOrWhiteSpace(endpoint) || string.IsNullOrWhiteSpace(key) || string.IsNullOrWhiteSpace(deployment) || _httpFactory is null)
+            return null;
+
+        try
+        {
+            var client = _httpFactory.CreateClient("foundry");
+            client.DefaultRequestHeaders.Remove("api-key");
+            client.DefaultRequestHeaders.Add("api-key", key);
+            client.DefaultRequestHeaders.Accept.Clear();
+            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            client.Timeout = TimeSpan.FromSeconds(120);
+
+            var url = $"{endpoint}/openai/deployments/{deployment}/embeddings?api-version={apiVersion}";
+            using var payload = new StringContent(JsonSerializer.Serialize(new { input = text }), Encoding.UTF8, "application/json");
+            using var resp = await client.PostAsync(url, payload, cancellationToken).ConfigureAwait(false);
+            var body = await resp.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+            if (!resp.IsSuccessStatusCode)
+            {
+                _logger.LogWarning("Embedding request failed {Status}: {Body}", resp.StatusCode, Truncate(body, 500));
+                return null;
+            }
+
+            using var doc = JsonDocument.Parse(body);
+            if (doc.RootElement.TryGetProperty("data", out var data) && data.ValueKind == JsonValueKind.Array && data.GetArrayLength() > 0)
+            {
+                var embEl = data[0].GetProperty("embedding");
+                var list = new List<float>(embEl.GetArrayLength());
+                foreach (var v in embEl.EnumerateArray()) list.Add((float)v.GetDouble());
+                return list.ToArray();
+            }
+
+            _logger.LogWarning("Unexpected embedding response shape: {Body}", Truncate(body, 500));
+            return null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Embedding call failed");
+            return null;
+        }
     }
 }

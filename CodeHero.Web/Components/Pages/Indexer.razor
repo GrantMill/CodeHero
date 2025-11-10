@@ -175,30 +175,117 @@ else
             var res = await TryRequestWithFallback("/api/search/indexer/run", uri => Http.PostAsync(uri, null));
             rawResponse = await res.Content.ReadAsStringAsync();
 
-            // Try parse JSON result from run
-            IndexerRunResult? json = null;
-            try
+            if (res.StatusCode == System.Net.HttpStatusCode.Accepted)
             {
-                var opts = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-                json = JsonSerializer.Deserialize<IndexerRunResult>(rawResponse, opts);
-            }
-            catch (JsonException) { }
+                // expected body: { jobId: "..." }
+                Guid? jobId = null;
+                try
+                {
+                    using var doc = JsonDocument.Parse(rawResponse);
+                    if (doc.RootElement.TryGetProperty("jobId", out var el) && Guid.TryParse(el.GetString(), out var gid)) jobId = gid;
+                }
+                catch { }
 
-            if (json != null)
-            {
-                statusMessage = (res.IsSuccessStatusCode ? "Success: " : "Failed: ") + (json.Message ?? string.Empty);
+                // fallback to Location header
+                if (!jobId.HasValue && res.Headers.Location is not null)
+                {
+                    var loc = res.Headers.Location.ToString();
+                    // last segment is jobId
+                    var seg = loc.TrimEnd('/').Split('/').LastOrDefault();
+                    if (Guid.TryParse(seg, out var gid2)) jobId = gid2;
+                }
 
-                // Persist locally (in case server doesn't persist history yet)
-                var list = (history?.ToList() ?? new List<IndexerRunResult>());
-                if (!list.Any(x => x.Id == json.Id))
-                    list.Add(json);
+                if (!jobId.HasValue)
+                {
+                    statusMessage = "Started (job queued)";
+                    return;
+                }
 
-                history = list.OrderByDescending(x => x.Timestamp).ToArray();
-                await SaveHistoryToLocalStorage();
+                statusMessage = $"Job queued: {jobId}. Polling...";
+                StateHasChanged();
+
+                // Poll status endpoint until result available or timeout
+                var statusUri = $"/api/search/indexer/status/{jobId.Value}";
+                IndexerRunResult? final = null;
+                var sw = System.Diagnostics.Stopwatch.StartNew();
+                var timeoutMs = 120_000; // 2 minutes
+                while (sw.ElapsedMilliseconds < timeoutMs)
+                {
+                    try
+                    {
+                        var pollResp = await TryRequestWithFallback(statusUri, u => Http.GetAsync(u));
+                        var txt = await pollResp.Content.ReadAsStringAsync();
+                        if (pollResp.IsSuccessStatusCode)
+                        {
+                            // If server returns queued object, it returns { status: "queued" }
+                            try
+                            {
+                                using var doc = JsonDocument.Parse(txt);
+                                if (doc.RootElement.TryGetProperty("status", out var st) && st.GetString() == "queued")
+                                {
+                                    // still queued
+                                }
+                                else
+                                {
+                                    // parse IndexerRunResult
+                                    var opts = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                                    final = JsonSerializer.Deserialize<IndexerRunResult>(txt, opts);
+                                    if (final != null) break;
+                                }
+                            }
+                            catch
+                            {
+                                // ignore parse errors
+                            }
+                        }
+                    }
+                    catch { }
+
+                    await Task.Delay(1000);
+                }
+
+                if (final is not null)
+                {
+                    statusMessage = (final.Success ? "Completed: " : "Failed: ") + (final.Message ?? string.Empty);
+
+                    // Persist locally (in case server doesn't persist history yet)
+                    var list = (history?.ToList() ?? new List<IndexerRunResult>());
+                    if (!list.Any(x => x.Id == final.Id)) list.Add(final);
+                    history = list.OrderByDescending(x => x.Timestamp).ToArray();
+                    await SaveHistoryToLocalStorage();
+                }
+                else
+                {
+                    statusMessage = "Index job timed out waiting for result (polling stopped).";
+                }
             }
             else
             {
-                statusMessage = res.IsSuccessStatusCode ? "Success" : ($"Failed: {res.ReasonPhrase}");
+                // previous behavior: try parse immediate IndexerRunResult
+                IndexerRunResult? json = null;
+                try
+                {
+                    var opts = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                    json = JsonSerializer.Deserialize<IndexerRunResult>(rawResponse, opts);
+                }
+                catch (JsonException) { }
+
+                if (json != null)
+                {
+                    statusMessage = (res.IsSuccessStatusCode ? "Success: " : "Failed: ") + (json.Message ?? string.Empty);
+
+                    // Persist locally (in case server doesn't persist history yet)
+                    var list = (history?.ToList() ?? new List<IndexerRunResult>());
+                    if (!list.Any(x => x.Id == json.Id))
+                        list.Add(json);
+
+                    history = list.OrderByDescending(x => x.Timestamp).ToArray();
+                    await SaveHistoryToLocalStorage();
+                }
+                else
+                {
+                    statusMessage = res.IsSuccessStatusCode ? "Success" : ($"Failed: {res.ReasonPhrase}");
+                }
             }
         }
         catch (Exception ex)

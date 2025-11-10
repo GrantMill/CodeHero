@@ -35,8 +35,12 @@ public sealed class FoundryTranscribeService
 
         var url = $"{_endpoint}/openai/deployments/{_deployment}/audio/transcriptions?api-version={_apiVersion}";
 
-        using var client = _httpClientFactory?.CreateClient() ?? new HttpClient();
+        // Use the named 'foundry' client so Program.cs configuration (HTTP/1.1, handler) applies
+        using var client = _httpClientFactory?.CreateClient("foundry") ?? new HttpClient();
+        client.DefaultRequestHeaders.Remove("api-key");
         client.DefaultRequestHeaders.Add("api-key", _key);
+        // Prefer server to close connection to avoid HTTP/2 ping/keepalive interactions
+        try { client.DefaultRequestHeaders.ConnectionClose = true; } catch { }
 
         using var content = new MultipartFormDataContent();
         var fileContent = new ByteArrayContent(audioWav);

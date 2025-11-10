@@ -32,8 +32,23 @@
 
 <div class="mb-3">
  <button class="btn btn-primary" @onclick="Ping">Ping MCP</button>
+ <button class="btn btn-secondary ms-2" @onclick="PingFoundry" disabled="@(foundryPingLoading)">Ping Foundry</button>
  <span class="ms-2">@status</span>
 </div>
+
+@if (!string.IsNullOrEmpty(foundryPingJson))
+{
+    <div class="card mb-3">
+        <div class="card-header">Foundry Ping Result (@foundryPingStatus)</div>
+        <div class="card-body">
+            @if (foundryPingLoading)
+            {
+                <div class="spinner-border text-secondary" role="status"><span class="visually-hidden">Loading...</span></div>
+            }
+            <pre style="white-space:pre-wrap;overflow:auto;max-height:320px">@foundryPingJson</pre>
+        </div>
+    </div>
+}
 
 <div class="card">
  <div class="card-header">List requirements via MCP</div>
@@ -179,6 +194,11 @@
  string ttsVoice = "en-US-JennyNeural";
  string? ttsSrc;
 
+ // Diagnostics for Foundry ping
+ bool foundryPingLoading = false;
+ string foundryPingJson = string.Empty;
+ string foundryPingStatus = string.Empty;
+
  // Prompts & guardrails (.agent)
  List<string> roleFiles = new();
  List<string> toolFiles = new();
@@ -239,6 +259,48 @@
  {
  status = ex.Message;
  }
+ }
+
+ async Task PingFoundry()
+ {
+     try
+     {
+         foundryPingLoading = true;
+         foundryPingJson = string.Empty;
+         foundryPingStatus = string.Empty;
+         var http = HttpFactory.CreateClient();
+         if (http.BaseAddress is null) http.BaseAddress = new Uri(Nav.BaseUri, UriKind.Absolute);
+         var resp = await http.GetAsync("diagnostics/foundry/ping");
+         var text = await resp.Content.ReadAsStringAsync();
+         if (resp.IsSuccessStatusCode)
+         {
+             try
+             {
+                 using var doc = System.Text.Json.JsonDocument.Parse(text);
+                 foundryPingJson = System.Text.Json.JsonSerializer.Serialize(doc, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+             }
+             catch
+             {
+                 foundryPingJson = text;
+             }
+             foundryPingStatus = resp.StatusCode.ToString();
+         }
+         else
+         {
+             foundryPingJson = text;
+             foundryPingStatus = $"Error {(int)resp.StatusCode}";
+         }
+     }
+     catch (Exception ex)
+     {
+         foundryPingJson = ex.ToString();
+         foundryPingStatus = "Exception";
+     }
+     finally
+     {
+         foundryPingLoading = false;
+         StateHasChanged();
+     }
  }
 
  async Task ListReqs()

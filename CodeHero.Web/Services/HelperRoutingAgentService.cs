@@ -3,6 +3,8 @@ using System.Text.RegularExpressions;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
+using Microsoft.Extensions.Logging;
+using System.Diagnostics;
 
 namespace CodeHero.Web.Services;
 
@@ -19,15 +21,14 @@ Plan (pseudocode):
         * Produce conversational intelligent summary.
         * Add markdown links referencing relative paths.
         * Provide follow-up suggestions.
+        * Output JSON matching the Helper schema.
    - POST to Azure Foundry/OpenAI deployments route: {Endpoint}/openai/deployments/{Deployment}/chat/completions?api-version={ApiVersion}.
      Headers: api-key (from config key AzureAI:Foundry:Key or AzureAI:Foundry:ApiKey), Accept: application/json.
    - Body: { "messages": [ {role: "system", content: systemPrompt}, {role: "user", content: userPayload} ] }
-   - Parse response first choice content. Return it, append "Confidence: ..." line.
-   - On any exception, fall back to deterministic citation rendering (existing code path).
+   - Parse response first choice content as JSON. Return it. On failure, fall back to deterministic citation rendering (existing code path) but now using JSON schema.
 4. Inject IHttpClientFactory into constructor (add private readonly _http).
-5. Remove hard-coded summary block and extraneous duplicated sb code at bottom; fix stray code after LooksLikeWhatDoesAppDo.
-6. Minor cleanup: avoid adding duplicate candidates (remove second candidates.Add with PathCombine); keep PathCombine helper for consistent forward slashes.
-7. Keep existing scoring/snippet extraction.
+5. Minor cleanup: avoid adding duplicate candidates (remove second candidates.Add with PathCombine); keep PathCombine helper for consistent forward slashes.
+6. Keep existing scoring/snippet extraction.
 */
 
 public class HelperRoutingAgentService : IAgentService
@@ -36,6 +37,7 @@ public class HelperRoutingAgentService : IAgentService
     private readonly IMcpClient _mcp;
     private readonly IConfiguration _cfg;
     private readonly IHttpClientFactory _http;
+    private readonly ILogger<HelperRoutingAgentService> _log;
 
     private static readonly Regex ScribeKeywords = new("\\b(create|add|new requirement|draft requirement|scribe)\\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
     private static readonly Regex ReqNouns = new("\\b(req|requirement|requirements|REQ-)\\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
@@ -47,12 +49,14 @@ public class HelperRoutingAgentService : IAgentService
         LlmOrchestratorAgentService orchestrator,
         IMcpClient mcp,
         IConfiguration cfg,
-        IHttpClientFactory http)
+        IHttpClientFactory http,
+        ILogger<HelperRoutingAgentService> log)
     {
         _orchestrator = orchestrator;
         _mcp = mcp;
         _cfg = cfg;
         _http = http;
+        _log = log;
     }
 
     public async Task<string> ChatAsync(string text, CancellationToken ct = default)
@@ -131,30 +135,42 @@ public class HelperRoutingAgentService : IAgentService
             var phiAnswer = await SummarizeWithPhiAsync(text, top, confidence, ct);
             if (!string.IsNullOrWhiteSpace(phiAnswer))
                 return phiAnswer;
-            // fallback proceeds to generic deterministic formatting below
+            // fallback proceeds to deterministic JSON formatting below
         }
 
         if (top.Length == 0)
-            return "I couldn't find relevant passages in the indexed docs. I can try widening the search or you can ask a more specific question.";
+            return JsonSerializer.Serialize(new
+            {
+                summary = "I couldn't find relevant passages in the indexed docs. I can try widening the search or you can ask a more specific question.",
+                citations_summary = Array.Empty<object>(),
+                citations = Array.Empty<object>(),
+                confidence = confidence,
+                followups = new[] { "Would you like me to widen the search?", "Should I search implementation files as well?" }
+            }, new JsonSerializerOptions { WriteIndented = true });
 
-        // Deterministic citation-based answer (fallback)
-        var sb = new StringBuilder();
-        sb.AppendLine("Found relevant passages. See citations below for details.");
-        sb.AppendLine();
-        sb.AppendLine("Citations:");
-        foreach (var t in top)
+        // Deterministic citation-based JSON answer (fallback)
+        var citations = top.Select(t => new { source = t.Path, snippet = t.Snippet }).ToArray();
+
+        // Create a simple citations_summary by inferring a short topic from filename and snippet
+        var citationsSummary = top.Select(t => new
         {
-            var shortSnippet = t.Snippet.Replace('\r', ' ').Replace('\n', ' ');
-            if (shortSnippet.Length > 240) shortSnippet = shortSnippet[..240] + "...";
-            sb.AppendLine($"- {t.Path}: \"{shortSnippet}\"");
-        }
-        sb.AppendLine();
-        sb.AppendLine($"Confidence: {confidence}");
-        sb.AppendLine();
-        sb.AppendLine("Follow-ups:");
-        sb.AppendLine("- Would you like a requirement drafted from these findings?");
-        sb.AppendLine("- Should I search code files as well?");
-        return sb.ToString();
+            source = t.Path,
+            topic = InferTopicFromSnippet(t.Path, t.Snippet),
+            role = InferRoleFromPath(t.Path)
+        }).ToArray();
+
+        var deterministicSummary = "Found relevant passages. See citations below for supporting evidence.\n\nSynthesis: " + String.Join(" ", top.Select(t => Truncate(t.Snippet.Replace('\r', ' ').Replace('\n', ' '), 160)).Take(3));
+
+        var fallbackObj = new
+        {
+            summary = deterministicSummary,
+            citations_summary = citationsSummary,
+            citations = citations,
+            confidence = confidence,
+            followups = new[] { "Would you like a requirement drafted from these findings?", "Should I search code files as well?" }
+        };
+
+        return JsonSerializer.Serialize(fallbackObj, new JsonSerializerOptions { WriteIndented = true });
     }
 
     private static bool LooksLikeWhatDoesAppDo(string text)
@@ -171,38 +187,60 @@ public class HelperRoutingAgentService : IAgentService
         {
             var endpoint = _cfg["AzureAI:Foundry:Endpoint"];
             var key = _cfg["AzureAI:Foundry:Key"] ?? _cfg["AzureAI:Foundry:ApiKey"];
-            var deployment = _cfg["AzureAI:Foundry:Deployment"] ?? _cfg["AzureAI:Foundry:PhiDeployment"] ?? "phi-4";
-            var apiVersion = _cfg["AzureAI:Foundry:ApiVersion"] ?? "2024-05-01-preview";
+            // Prefer explicit Phi deployment config; fall back to other deployment/model keys. Default to 'Phi-4' (capitalized) which matches the service deployment name.
+            var deployment = _cfg["AzureAI:Foundry:PhiDeployment"]
+                ?? _cfg["AzureAI:Foundry:ChatDeployment"]
+                ?? _cfg["AzureAI:Foundry:Deployment"]
+                ?? _cfg["AzureAI:Foundry:Model"]
+                ?? "Phi-4";
+            var apiVersion = _cfg["AzureAI:Foundry:ApiVersion"] ?? "2024-08-01-preview";
 
             if (string.IsNullOrWhiteSpace(endpoint) || string.IsNullOrWhiteSpace(key))
+            {
+                _log?.LogWarning("Foundry not configured: Endpoint or Key missing.");
                 return string.Empty; // signal fallback
+            }
 
-            var http = _http.CreateClient();
-            http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            _log?.LogInformation("SummarizeWithPhiAsync using deployment '{Deployment}' at endpoint {Endpoint}", deployment, endpoint);
+
+            var http = _http.CreateClient("foundry");
+            try { http.Timeout = Timeout.InfiniteTimeSpan; } catch { }
+            http.DefaultRequestHeaders.Remove("api-key");
             http.DefaultRequestHeaders.Add("api-key", key);
+            http.DefaultRequestHeaders.Accept.Clear();
+            http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-            var systemPrompt =
-@"You are the CodeHero summarization agent (Phi-4).
+            var systemPrompt = @"You are the CodeHero Helper (RAG summarization agent).
 Task:
-- Answer the user's question using ONLY provided source passages.
-- Produce a concise, conversational, technically accurate summary.
-- Include markdown bullet points.
-- Add inline links to sources: use relative paths as [label](./<path>).
-- If describing overall app, group sections (Architecture, Agents, Indexing, Speech, Governance).
-- Avoid hallucination: if unsure, state limitations.
-Output:
-1. Brief intro paragraph (1-2 sentences).
-2. Bulleted breakdown.
-3. Sources (as a list with links).
-4. Follow-up suggestions.
+- Use ONLY the provided source passages to answer the user's question. Do not invent facts.
+- First, synthesize a concise, human-readable summary that:
+  1) Groups related requirements or concepts together.
+  2) Infers what the application does based on recurring patterns, entity names, and user intents.
+  3) States the high-level purpose (e.g., ''The app enables conversational navigation, requirement generation, and task execution via orchestrated agents.'').
+  4) Uses the citations only to ground statements (do not quote verbatim).
+  5) End with a short table summarizing each cited requirement with its title and purpose.
+- After the natural-language summary, provide a structured JSON object matching the Helper schema below. The JSON MUST be the only JSON output (no extra prose inside the JSON block):
+
+{ ""summary"": ""string"",
+  ""citations_summary"": [ { ""source"": ""path"", ""topic"": ""string"", ""role"": ""string"" } ],
+  ""citations"": [ { ""source"": ""path"", ""snippet"": ""raw excerpt"" } ],
+  ""confidence"": ""high | medium | low"",
+  ""followups"": [ ""optional"" ]
+}
+
+Output rules:
+- Prefer to explain patterns over quoting text. Treat multiple similar snippets as corroborating evidence.
+- Make the natural-language summary suitable for a non-technical reader before any file paths are listed.
+- Use relative paths in citations (e.g., docs/requirements/REQ-001.md).
+- Keep the JSON compact and valid. If unsure about details, set confidence to ""medium"" or ""low"" and state limitations in the natural-language summary section (outside the JSON).
 ";
 
             var srcObjects = sources.Select(s => new
             {
-                path = s.Path.Replace('\\', '/'),
+                source = s.Path.Replace('\\', '/'),
                 score = s.Score,
                 snippet = s.Snippet
-            });
+            }).ToArray();
 
             var userPayload = new
             {
@@ -218,46 +256,100 @@ Output:
                     new { role = "system", content = systemPrompt },
                     new { role = "user", content = JsonSerializer.Serialize(userPayload) }
                 },
-                temperature = 0.3
+                temperature = 0.2
             }), Encoding.UTF8, "application/json");
 
             var url = $"{endpoint.TrimEnd('/')}/openai/deployments/{deployment}/chat/completions?api-version={apiVersion}";
 
-            // Use a short request timeout to avoid long hangs that cause UI timeouts
+            _log?.LogInformation("Prepared Foundry request to {Url} with {SourceCount} sources (confidence={Confidence})", url, sources.Length, confidence);
+
+            // Let linked CTS cap total runtime (~60s for sanity check)
             using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
-            linkedCts.CancelAfter(TimeSpan.FromSeconds(8));
+            linkedCts.CancelAfter(TimeSpan.FromSeconds(60));
+
             try
             {
-                using var resp = await http.PostAsync(url, content, linkedCts.Token);
-                var body = await resp.Content.ReadAsStringAsync(linkedCts.Token);
+                using var req = new HttpRequestMessage(HttpMethod.Post, url)
+                {
+                    Content = content
+                };
+
+                // ensure server closes connection after response to avoid HTTP/2 keepalive behaviors
+                req.Headers.ConnectionClose = true;
+
+                var t0 = Stopwatch.StartNew();
+
+                // Send and read headers early to measure TTFB
+                using var resp = await http.SendAsync(req, HttpCompletionOption.ResponseHeadersRead, linkedCts.Token);
+                var ttfb = t0.ElapsedMilliseconds;
+
+                _log?.LogInformation("Foundry response headers received. TTFB={TTFB}ms Version={Version} Status={Status}", ttfb, resp.Version, resp.StatusCode);
+
                 if (!resp.IsSuccessStatusCode)
+                {
+                    var respBodyErr = string.Empty;
+                    try { respBodyErr = await resp.Content.ReadAsStringAsync(linkedCts.Token); } catch { }
+                    _log?.LogWarning("Foundry returned non-success {Status} body: {Body}", (int)resp.StatusCode, Truncate(respBodyErr ?? string.Empty, 2000));
                     return string.Empty;
+                }
 
-                using var doc = JsonDocument.Parse(body);
-                var first = doc.RootElement.GetProperty("choices")[0]
-                    .GetProperty("message")
-                    .GetProperty("content")
-                    .GetString();
+                // Read entire response body now and log total time
+                var respBodySuccess = await resp.Content.ReadAsStringAsync(linkedCts.Token);
+                var total = t0.ElapsedMilliseconds;
+                _log?.LogInformation("Foundry total response time: {TotalMs}ms (TTFB={TTFB}ms)", total, ttfb);
 
-                if (string.IsNullOrWhiteSpace(first))
+                // Stream and parse JSON
+                try
+                {
+                    await using var stream = new MemoryStream(Encoding.UTF8.GetBytes(respBodySuccess ?? string.Empty));
+                    using var root = await JsonDocument.ParseAsync(stream, cancellationToken: linkedCts.Token);
+
+                    var first = root.RootElement.GetProperty("choices")[0]
+                        .GetProperty("message")
+                        .GetProperty("content")
+                        .GetString();
+
+                    if (string.IsNullOrWhiteSpace(first))
+                    {
+                        _log?.LogWarning("Foundry returned empty choice content. Response body: {Body}", Truncate(respBodySuccess ?? string.Empty, 2000));
+                        return string.Empty;
+                    }
+
+                    // validate returned JSON block
+                    try
+                    {
+                        using var parsed = JsonDocument.Parse(first);
+                        _log?.LogInformation("Foundry returned valid JSON content (length={Len})", first.Length);
+                        return first;
+                    }
+                    catch (Exception pex)
+                    {
+                        _log?.LogError(pex, "Returned content was not valid JSON. Content: {Content}", Truncate(first, 2000));
+                        return string.Empty;
+                    }
+                }
+                catch (JsonException jex)
+                {
+                    _log?.LogError(jex, "Failed to parse Foundry JSON response. Body: {Body}", Truncate(respBodySuccess ?? string.Empty, 2000));
                     return string.Empty;
-
-                // Append confidence & light guidance
-                var sb = new StringBuilder();
-                sb.AppendLine(first.Trim());
-                sb.AppendLine();
-                sb.AppendLine($"Confidence: {confidence}");
-                sb.AppendLine("Ask for more detail or request a new requirement if needed.");
-                return sb.ToString();
+                }
             }
-            catch (TaskCanceledException)
+            catch (TaskCanceledException tex)
             {
-                // timed out - return empty to fall back to deterministic answer
+                var wasLinkedCanceled = linkedCts.IsCancellationRequested;
+                var userCanceled = ct.IsCancellationRequested;
+                _log?.LogWarning(tex, "Foundry request canceled. linkedCanceled={Linked} userCanceled={User}", wasLinkedCanceled, userCanceled);
+                return string.Empty;
+            }
+            catch (HttpRequestException hrex)
+            {
+                _log?.LogError(hrex, "HTTP request to Foundry failed");
                 return string.Empty;
             }
         }
-        catch
+        catch (Exception ex)
         {
+            _log?.LogError(ex, "Unexpected error in SummarizeWithPhiAsync");
             return string.Empty;
         }
     }
@@ -308,4 +400,28 @@ Output:
     }
 
     private static string Truncate(string s, int max) => s.Length <= max ? s : s.Substring(0, max) + "...";
+
+    private static string InferTopicFromSnippet(string path, string snippet)
+    {
+        // Try to infer a short topic from snippet first sentence or filename
+        try
+        {
+            var firstLine = snippet?.Split(new[] { '.', '\n' }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault()?.Trim();
+            if (!string.IsNullOrWhiteSpace(firstLine))
+                return Truncate(firstLine, 80);
+            var name = System.IO.Path.GetFileNameWithoutExtension(path);
+            return name ?? path;
+        }
+        catch { return path; }
+    }
+
+    private static string InferRoleFromPath(string path)
+    {
+        // Simple heuristic: requirements files are 'Defines requirement' and architecture files 'Describes architecture'
+        if (path.Contains("/requirements/", StringComparison.OrdinalIgnoreCase) || path.Contains("\\requirements\\", StringComparison.OrdinalIgnoreCase))
+            return "Defines requirement or acceptance criteria";
+        if (path.Contains("/architecture/", StringComparison.OrdinalIgnoreCase) || path.Contains("\\architecture\\", StringComparison.OrdinalIgnoreCase))
+            return "Describes architecture or component relationships";
+        return "Provides supporting information";
+    }
 }

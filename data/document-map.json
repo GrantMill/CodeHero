@@ -115,16 +115,24 @@
     "title": "Backlog",
     "headings": [
       "Backlog",
-      "Outstanding work (prioritized phases)",
+      "Core Completed (Historical)",
+      "REQ-003 Repo \u0026 RAG Foundation (Merged former \u0022Phase UX\u0022)",
+      "New Agents Rollout (Model Strategy Separation)",
+      "Orchestrator Routing (Enhancements)",
+      "Helper Agent (RAG Answerer) \u2014 REQ-003",
+      "Scribe Agent (Requirement Drafter) \u2014 REQ-001 / REQ-002 integration",
+      "Planner Agent (Optional PR Breakdown) \u2014 Future",
+      "Model \u0026 Deployment Strategy",
+      "Phases (Updated)",
       "Phase0 \u2014 Validate Azure resources \u0026 access (blockers)",
-      "Phase1 \u2014 Provision minimal RAG infra \u0026 embedding deployment",
-      "Phase2 \u2014 Indexer implementation \u0026 CI",
-      "Phase3 \u2014 Retrieval API \u0026 observability",
-      "Phase4 \u2014 Orchestrator integration (RAG \u2192 Planner)",
-      "Phase5 \u2014 MCP code tooling (write flows and approvals)",
-      "Phase6 \u2014 Planner/Executor hardening \u0026 telemetry",
-      "Phase7 \u2014 Ops, runbooks, cost control",
-      "Phase8 \u2014 Remaining UX \u0026 optional capabilities"
+      "Phase1 \u2014 RAG Infra Bootstrap (Index \u0026 Retrieval Foundations)",
+      "Phase2 \u2014 Helper Agent \u0026 Retrieval Quality",
+      "Phase3 \u2014 Scribe Agent \u0026 Requirement Drafting",
+      "Phase4 \u2014 Planner Agent \u0026 Multi-PR Workflow (optional)",
+      "Phase5 \u2014 Hardening \u0026 Telemetry",
+      "Phase6 \u2014 Ops \u0026 Runbooks",
+      "Phase7 \u2014 Extended UX \u0026 Optional Features",
+      "Notes"
     ],
     "links": [],
     "tags": [
@@ -133,9 +141,9 @@
       "REQ-004",
       "REQ-003"
     ],
-    "lastModified": "2025-10-31T08:00:11.8994109Z",
-    "size": 6710,
-    "contentHash": "D1836C064CCB512DD6C1F4BEFD76DF48FEB0FBF6A95B5EDC668D83CC70E11B9B"
+    "lastModified": "2025-11-07T11:01:46.8356865Z",
+    "size": 7825,
+    "contentHash": "C8550B9F71BA708DC7D043FF42D0FD7340650D5D77DBEBC63F411C79E967FC5A"
   },
   {
     "id": "F2FA20F035EAAF4C54A11F4A4006A9D59D02FB2FB9BAE8183BAC2799890EEB78",
@@ -214,9 +222,9 @@
       "REQ-004",
       "REQ-003"
     ],
-    "lastModified": "2025-10-22T14:03:12.8769545Z",
-    "size": 764,
-    "contentHash": "21DD2203A8BC3863DC6013E8BC4C98511ED63A44C5239B76DC65667DAB9E1F8C"
+    "lastModified": "2025-11-07T10:21:39.2910856Z",
+    "size": 1002,
+    "contentHash": "720BDC845072718791C19D7E564F516B043B0F612C057414F03406CA800EBB7D"
   },
   {
     "id": "AB865F8DBDB002D41B7BA47383936495E608933271C04CB9260C054143B8E8A0",
@@ -225,13 +233,11 @@
     "headings": [],
     "links": [],
     "tags": [
-      "REQ-002",
-      "REQ-004",
       "REQ-003"
     ],
-    "lastModified": "2025-10-31T08:54:37.0037906Z",
-    "size": 510,
-    "contentHash": "3309739D139841EDADC4FC60C401289E77D2080CFB4003BD6E1AA5BAA7493B44"
+    "lastModified": "2025-11-07T11:02:17.4940128Z",
+    "size": 1870,
+    "contentHash": "FC789262C1AC8090E21FF34A1BBC6055EC23EA0BAEA7D198380298D3AA0A5421"
   },
   {
     "id": "7530A4938BBB6358BFD3A67A0E6C7BED35D9816DB7BED398BD29F57C9F767D67",
@@ -403,6 +409,17 @@
     "contentHash": "9567D99DF0FAD2AAF77F9BAC12F80E215348DBE40B6712F1CB4B7A9ED032C9FE"
   },
   {
+    "id": "6C7D333B64C83664D40A4B2F1C51919C31B5EC5A46DF08FAC24336FF0E0B2266",
+    "relativePath": "docs/architecture/architecture-agent-flow.mmd",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-07T14:22:08.3651546Z",
+    "size": 2602,
+    "contentHash": "0F021D0088276EC806DB896E6288D0AC2C2102A8DFFE16CC93B123E266D7078C"
+  },
+  {
     "id": "C10FE5E04F171824F3EE7E99A9366ADB65187EB93CEBD003EB55F82BB32BC313",
     "relativePath": "docs/architecture/indexing.mmd",
     "title": "",
@@ -542,17 +559,17 @@
       "REQ-219",
       "REQ-000",
       "REQ-001",
+      "REQ-003",
       "REQ-002",
       "REQ-004",
-      "REQ-003",
       "REQ-005",
       "REQ-006",
       "REQ-007",
       "REQ-008"
     ],
-    "lastModified": "2025-11-06T16:50:20.8173453Z",
-    "size": 67735,
-    "contentHash": "056DA387EAE1724C98D23546DEE64D5CE3642E0473C6D1D3690FD56ACCD99F11"
+    "lastModified": "2025-11-10T11:03:39.7562955Z",
+    "size": 68913,
+    "contentHash": "E99DD2B17DB7DC869B934948EFE539548B0E49AE8AA631B783463FBA2E8B02EC"
   },
   {
     "id": "4ADF198200E115C5823766ED487764919CFACBA4B79D9390FD1E71C5C4FFB291",
@@ -605,9 +622,9 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-06T09:09:48.1410872Z",
-    "size": 17360,
-    "contentHash": "D8C7E45DF152C3178D11D13FF655DD5AA5341F7E0690845C670366BA45B3A361"
+    "lastModified": "2025-11-07T17:29:46.0163462Z",
+    "size": 25841,
+    "contentHash": "54C5589ABE455E3D40BCA2BEBA9CBD92567DE9498F828B7AF04B1957465785C4"
   },
   {
     "id": "781B4D93852AB6CA7BA43242E46B138F69CDE647CDB28357EDFB8DDF8DACB7C6",
@@ -942,9 +959,9 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-10-24T15:01:16.6572164Z",
-    "size": 890,
-    "contentHash": "2780BD1224FEFC68278E4BC63354CB10C707CAA193C1C5371BEE188A3A401441"
+    "lastModified": "2025-11-08T09:39:45.444011Z",
+    "size": 3684,
+    "contentHash": "922CA46A756B1419596AD7791B3CAEF10EA85C6C1AE83B9E4A169B1F2ED71644"
   },
   {
     "id": "65BA246E3622690F261360F729AD9504277DFB3CAA5596438B1638BDE8205D25",
@@ -997,9 +1014,22 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-10-24T15:01:35.1190639Z",
-    "size": 3214,
-    "contentHash": "080B97310F2BDBE52CF385EC20CFC34D3F402542FEA776901F32172B82B89DB7"
+    "lastModified": "2025-11-07T17:13:22.6894353Z",
+    "size": 3549,
+    "contentHash": "188A14A93F65AC55B84938C341F697566D0D63D6A249D10FFBD6CDEEF7010043"
+  },
+  {
+    "id": "2CA3C37E927D45993FFEB10FDBF69B6F93B936C534D736AFBE49A2652DA8A476",
+    "relativePath": "CodeHero.Web/Services/HelperRoutingAgentService.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [
+      "REQ-001"
+    ],
+    "lastModified": "2025-11-08T09:38:28.0177263Z",
+    "size": 20295,
+    "contentHash": "959C7E2E9EF887B0F3264D4436C4359D046AA6F54C6941848EC26479D7568D49"
   },
   {
     "id": "124E63AD4EBC15EE5D12FE025CEE3FA9D70481C3556323182E357659D63D9CFE",
@@ -1019,9 +1049,9 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-10-24T15:01:42.0269802Z",
-    "size": 1456,
-    "contentHash": "23B88C9474C2A2B0A34704E57EB2E618942124B7B684B869DAE6C0E4CD4963B3"
+    "lastModified": "2025-11-07T11:40:37.6892424Z",
+    "size": 1585,
+    "contentHash": "C1E410EE5F8FFEA0D3829D04DF8858679497FFB2401FC5F50CB150B053C60406"
   },
   {
     "id": "20AB1C904E5C4908C89569E7F801C69B6FA1B359143435BB7F72374F8DD260A4",
@@ -1058,9 +1088,9 @@
     "tags": [
       "REQ-001"
     ],
-    "lastModified": "2025-10-24T15:01:54.7306948Z",
-    "size": 10435,
-    "contentHash": "F0AD5DC6153ADB70A71A0DEE58BEE46B225D7730FD1483D40DEE88E17E8521B3"
+    "lastModified": "2025-11-07T11:38:25.4186356Z",
+    "size": 10914,
+    "contentHash": "91CE9B2343DC03EBA69AE70C9B754A3345432E021CCB00C1B6250C548853DED6"
   },
   {
     "id": "89AA97A798A4F01A4ECC5C774EF7766EFE106B34F6C8FFA9A662B2D8B565487F",
@@ -1095,9 +1125,9 @@
     "tags": [
       "REQ-001"
     ],
-    "lastModified": "2025-10-24T15:02:05.1001947Z",
-    "size": 2148,
-    "contentHash": "9FC07C821900C563486875DE74B884F03BBCD904B71D57783F21956C87AFDC8A"
+    "lastModified": "2025-11-07T11:55:15.87859Z",
+    "size": 2744,
+    "contentHash": "6A8C3DC9EABEADA42F70886B10391CF076BB86A6027D47ED0B661C512D0AA816"
   },
   {
     "id": "B9CE008911F67269A097C3F766D3516F2532F174717DE5894F1FC6DB703F1A7A",
@@ -1117,9 +1147,9 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-10-24T15:02:11.2449136Z",
-    "size": 426,
-    "contentHash": "2E3CE20BB1F559E246684923151559D2E5B7AA265C16B65005E45694AF9CADC1"
+    "lastModified": "2025-11-07T16:48:29.4047286Z",
+    "size": 1297,
+    "contentHash": "E8A9C044B3ECC146D57691BB55FD810FA238181FEDEC942C45EF21208AD6B12B"
   },
   {
     "id": "50FB8F7958C3195ADBD25D765B33F3F463BB2FE50E61A2B764D7099898F0CB72",
@@ -1229,9 +1259,9 @@
     "tags": [
       "REQ-002"
     ],
-    "lastModified": "2025-11-05T16:09:37.5990911Z",
-    "size": 10994,
-    "contentHash": "D873DCE451907E12DC746C5A143992BDE8445FBE994A2EB5C149DA29286B8A94"
+    "lastModified": "2025-11-07T17:21:53.2244187Z",
+    "size": 13125,
+    "contentHash": "2E479307F2AD5BA2E6BF9A9B72B1E548A3BFC8EAFE443A1DBBA1C320E3D400EE"
   },
   {
     "id": "02ED95CBD76AF3086227CF5DA3CDA81F198AFFAE865F20294504AF8AAEEA9D0C",
@@ -1240,9 +1270,9 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-10-24T09:01:23.9209692Z",
-    "size": 11051,
-    "contentHash": "421DCD99A00EC233121E74D9E968F6EDF273217AB29093FD6CA2E90BEB3AE98F"
+    "lastModified": "2025-11-07T12:13:12.2257878Z",
+    "size": 11038,
+    "contentHash": "71DB6DF8B18526D5F5F6E6CB80E717D07A36874453A696D8711D121C1194572F"
   },
   {
     "id": "BDC6E411F51B2E530263425540012D8A910CAB2CA94DEB262EA7152B2AD326B6",
@@ -1262,9 +1292,20 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-06T16:07:20.490576Z",
-    "size": 5216,
-    "contentHash": "7E88BAB5F6F7AE41C7BE55199647932C8DC95218E8EBBDE131DDBBEED4C79E97"
+    "lastModified": "2025-11-06T17:19:02.4554762Z",
+    "size": 5361,
+    "contentHash": "564BE5BE4CE73B016122E16F5F342D609157CEA53DE87893D6FAC83B5BA7EEEC"
+  },
+  {
+    "id": "6A085A0636D8C48D6FC99894B65E72CDFEA95BB419825432D68C4CB84A461294",
+    "relativePath": "CodeHero.Web/Components/Pages/DocumentMap.razor.css",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-06T17:12:31.2151105Z",
+    "size": 1390,
+    "contentHash": "83D18BCEE2BF06D3942A07C41A2C27A8A4C5DFA2D409D215BEA3ABFBB144DE12"
   },
   {
     "id": "861F68ED46B3BEEC7E65957D30BC1A6F72B45548581048B8DDF2D9EC7D5134EE",
@@ -1295,9 +1336,9 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-06T14:32:44.2024178Z",
-    "size": 2551,
-    "contentHash": "7BB59E6F1B46D7F9DEB05B621AF0E420788720FF52C142B713A2B80F1BB5220B"
+    "lastModified": "2025-11-07T12:14:16.0070675Z",
+    "size": 2544,
+    "contentHash": "C6055324E1A1620EE9964AB4272B732A864BDD8C2BB5C18B43EB2EC9F9173A41"
   },
   {
     "id": "644A8A30378D6C5308DAD2CB269B2E1728A75AD53B4CFC2AD7C4E4609C8B43A0",
@@ -1306,9 +1347,9 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-06T16:47:31.1155371Z",
-    "size": 8024,
-    "contentHash": "E196182F624DFE370F8942C4C24810380F5EDE8324C387A354D21E42E29331F8"
+    "lastModified": "2025-11-10T11:26:43.4170069Z",
+    "size": 12088,
+    "contentHash": "C7D9E609D281028FAB9DC10E4FF94DF16B0645D9AFA488CDDE45EEABA4D6CCDD"
   },
   {
     "id": "7F4E5063D35A05859D2BBC8EC1B22FDCB89361907DBC90DE28BAF1FA45F4BFFE",
@@ -1363,9 +1404,9 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-06T16:49:42.231434Z",
-    "size": 3498,
-    "contentHash": "CE7A8A99A8BFFB0AF74547E582DD85F52FAA486B754F33607F477A0C4D3F0E4D"
+    "lastModified": "2025-11-07T12:14:16.1277485Z",
+    "size": 3558,
+    "contentHash": "A9E17805CE688A63EE9A49A1F23A5C8C02275CFD5E61B156A032AA5171465138"
   },
   {
     "id": "FE635C878C6DEC969A15A933C9D62FEE85ADA7AA773BE8A022F46AC097CB6D46",
@@ -1387,9 +1428,9 @@
     "tags": [
       "REQ-000"
     ],
-    "lastModified": "2025-10-24T15:00:03.8631653Z",
-    "size": 4103,
-    "contentHash": "5C13A7FB1E4F238DEFC267897E899E461A3052D3E7A8B1C69BF7E5A1A05A4724"
+    "lastModified": "2025-11-07T16:03:38.5963597Z",
+    "size": 4249,
+    "contentHash": "58C13F642702EBF8C30B84F00307F8B679BEE1767331C461AEBBC090A095C331"
   },
   {
     "id": "FEC31654B9FA3F77F15C87B0F21CE8A3A717A98CE39275C87556D4EC0D4CB9CB",
@@ -1435,9 +1476,9 @@
       "REQ-001",
       "REQ-002"
     ],
-    "lastModified": "2025-10-24T15:00:11.7006257Z",
-    "size": 4002,
-    "contentHash": "5283FB4E09FE7A52054ED839531C342D11A800B3545107C712DDFC544F79604A"
+    "lastModified": "2025-11-07T11:56:38.9297296Z",
+    "size": 4450,
+    "contentHash": "39C12C2F71A0863279DF82688C4BEB25B546A305575B40038584533C0E2E1183"
   },
   {
     "id": "B4E03C6AE7C0E481540B4BD10C9F1D008EB46443D1F8F673B4BA397267184FE5",
@@ -1560,9 +1601,9 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-05T17:27:34.3031093Z",
-    "size": 15407,
-    "contentHash": "B9387AC09991BEAFA0DA36880A44DAABA25AADFB57D87467521D2165AC8C0F52"
+    "lastModified": "2025-11-07T11:42:44.159283Z",
+    "size": 19449,
+    "contentHash": "D52163F8392789894BFE8B2DA71D0110ABE0445589D0AF3B167328E24E8D3F23"
   },
   {
     "id": "FB081F679907632F9546E95D212A316E11B74FA19C03DB8032307D6F0A4B7465",
@@ -1829,9 +1870,9 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-06T15:04:22.637131Z",
-    "size": 3488,
-    "contentHash": "9881775224B460B11ECCFF64B71045FB7140EF45AC155857427C0423646B55BD"
+    "lastModified": "2025-11-10T11:23:51.0152182Z",
+    "size": 4053,
+    "contentHash": "8ADE1B4F5465643C6AAB98A578EC0D0CF3B0E7740B5333EEF2F5BEE84046226E"
   },
   {
     "id": "5147E2CB734362BA286D5012BD6CBA54F50AA48EDEC15385BDE1386B0E2DAE59",
@@ -1840,9 +1881,20 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-06T11:40:59.4590122Z",
-    "size": 13664,
-    "contentHash": "7750B118E6F884D1FD305CEE9F42E694ED05470456F258755A5D265CF1950035"
+    "lastModified": "2025-11-10T12:11:22.5549089Z",
+    "size": 20489,
+    "contentHash": "4ECDCABEE20CC1D7D0C699E6BA0268145090B846B515F7267F7B4860652C158F"
+  },
+  {
+    "id": "2B7A97768F4455C5B1DCE9C9F398F18648195049C9FCCACED11DD2E24899AA6D",
+    "relativePath": "CodeHero.ApiService/Services/BackgroundIndexerService.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-10T11:24:36.1334159Z",
+    "size": 3339,
+    "contentHash": "BA0981475AB01B3CAFEF660A2D9067AD3ED1B8E67BD5D5CE4CF8781B1F042777"
   },
   {
     "id": "18C76F92295744BDC8B63108D0D7ED266E3A9AA8BE926187845B0B2750D08CBA",
@@ -1942,17 +1994,6 @@
     "lastModified": "2025-10-18T16:59:35.4241786Z",
     "size": 2854,
     "contentHash": "100F97E95441FC0E86D03AAC1E14F8172948B9F2D9173FEB3DBAD6F74EBC0707"
-  },
-  {
-    "id": "261456DC4145E53878973381927FA495F8D833562AEE16038E63619FE4DDE235",
-    "relativePath": ".github/workflows/indexer.yml",
-    "title": "",
-    "headings": [],
-    "links": [],
-    "tags": [],
-    "lastModified": "2025-11-05T17:02:46.5870381Z",
-    "size": 3898,
-    "contentHash": "83C61803061234E2C29A772F681065EE0676DC919292E956471972E7CB53021C"
   },
   {
     "id": "B1913323EC851157790B9300F13A7430C1C7E8703824324A4F90327A31542352",

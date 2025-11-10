@@ -38,7 +38,7 @@ public class AgentsChatOnPhraseTests
     [TestCleanup]
     public void Cleanup() => _ctx.Dispose();
 
-    [TestMethod]
+    [TestMethod, Timeout(60000)]
     public async Task OnPhrase_AddsYouAndAgentMessages()
     {
         var cut = _ctx.RenderComponent<CodeHero.Web.Components.Pages.AgentsChat>();
@@ -48,7 +48,8 @@ public class AgentsChatOnPhraseTests
         Assert.IsNotNull(mi, "OnPhrase method not found on AgentsChat");
         var task = mi!.Invoke(cut.Instance, new object[] { b64 }) as Task;
         Assert.IsNotNull(task);
-        await task!;
+        // Await the task with an explicit timeout to avoid default test harness 10s timeout
+        await task!.WaitAsync(TimeSpan.FromSeconds(30));
         // Assert chat contains both roles
         var html = cut.Markup;
         StringAssert.Contains(html, ">you:<");

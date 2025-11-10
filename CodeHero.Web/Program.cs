@@ -8,6 +8,9 @@ using Polly;
 using Polly.Extensions.Http;
 using System.Diagnostics;
 using System.Net;
+using System.Net.Http.Headers;
+using Microsoft.Extensions.Http;
+using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -50,13 +53,42 @@ builder.Services.AddHttpClient();
 // Diagnostics monitor to show last call status
 builder.Services.AddSingleton<SpeechDiagnosticsMonitor>();
 
+// Register a named HttpClient for Foundry with HTTP/1.1 and SocketsHttpHandler tuned to avoid HTTP/2 keepalive/ping issues
+var foundryBuilder = builder.Services.AddHttpClient("foundry", c =>
+{
+    c.DefaultRequestVersion = HttpVersion.Version11;
+    c.DefaultVersionPolicy = HttpVersionPolicy.RequestVersionOrLower;
+    c.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+    c.DefaultRequestHeaders.ExpectContinue = false;
+    c.Timeout = Timeout.InfiniteTimeSpan; // CTS will cap runtime
+})
+.ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
+{
+    AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
+    PooledConnectionLifetime = TimeSpan.FromMinutes(10),
+    Expect100ContinueTimeout = TimeSpan.Zero,
+    // If you do NOT have a corp proxy, explicitly turn this off:
+    UseProxy = false
+});
+
+// Aspire's AddServiceDefaults() may have applied a global resilience handler. Clear per-client
+// HttpClientFactoryOptions for 'foundry' so the global handlers (timeouts/policies) don't get applied.
+builder.Services.Configure<HttpClientFactoryOptions>("foundry", options =>
+{
+    // Remove any HttpMessageHandlerBuilderActions added by global defaults (resilience, discovery, etc.)
+    options.HttpMessageHandlerBuilderActions.Clear();
+
+    // Also ensure no delegating handlers are preconfigured via the options. If any exist they would be
+    // applied later; clearing the builder actions ensures the named client uses only the handler we configured.
+});
+
 // Resilience policies for outbound STT/TTS HTTP
-static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy() => HttpPolicyExtensions
+static IAsyncPolicy<System.Net.Http.HttpResponseMessage> GetRetryPolicy() => HttpPolicyExtensions
  .HandleTransientHttpError() //5xx + HttpRequestException +408
  .OrResult(r => (int)r.StatusCode == 429)
  .WaitAndRetryAsync(3, attempt => TimeSpan.FromMilliseconds(200 * Math.Pow(2, attempt))); // exp backoff
 
-static IAsyncPolicy<HttpResponseMessage> GetCircuitBreakerPolicy() => HttpPolicyExtensions
+static IAsyncPolicy<System.Net.Http.HttpResponseMessage> GetCircuitBreakerPolicy() => HttpPolicyExtensions
  .HandleTransientHttpError()
  .CircuitBreakerAsync(5, TimeSpan.FromSeconds(60));
 
@@ -138,6 +170,39 @@ builder.Services.AddAgentServices(builder.Configuration);
 
 var app = builder.Build();
 
+// Startup inspector: log foundry client options and ensure no global builder actions remain
+using (var scope = app.Services.CreateScope())
+{
+    var sp = scope.ServiceProvider;
+    var logger = sp.GetRequiredService<ILoggerFactory>().CreateLogger("Startup.FoundryInspector");
+    try
+    {
+        var optionsMonitor = sp.GetService<IOptionsMonitor<HttpClientFactoryOptions>>();
+        if (optionsMonitor is not null)
+        {
+            var opt = optionsMonitor.Get("foundry");
+            logger.LogInformation("Foundry HttpClientFactoryOptions: HttpMessageHandlerBuilderActions.Count={Count}", opt.HttpMessageHandlerBuilderActions?.Count ?? 0);
+            // re-clear to be extra safe
+            opt.HttpMessageHandlerBuilderActions?.Clear();
+            logger.LogInformation("Cleared Foundry HttpMessageHandlerBuilderActions; Count now={Count}", opt.HttpMessageHandlerBuilderActions?.Count ?? 0);
+        }
+        else
+        {
+            logger.LogWarning("IOptionsMonitor<HttpClientFactoryOptions> not available to inspect.");
+        }
+
+        // Log the named client defaults if possible
+        var httpFactory = sp.GetRequiredService<IHttpClientFactory>();
+        var client = httpFactory.CreateClient("foundry");
+        logger.LogInformation("Named 'foundry' HttpClient constructed: Timeout={Timeout} DefaultRequestVersion={Version} BaseAddress={Base}", client.Timeout, client.DefaultRequestVersion, client.BaseAddress);
+    }
+    catch (Exception ex)
+    {
+        var logger2 = sp.GetRequiredService<ILoggerFactory>().CreateLogger("Startup.FoundryInspector");
+        logger2.LogError(ex, "Error inspecting foundry client at startup");
+    }
+}
+
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
@@ -160,6 +225,100 @@ app.MapStaticAssets();
 
 app.MapRazorComponents<App>()
  .AddInteractiveServerRenderMode();
+
+// Diagnostics endpoint to ping Foundry and measure TTFB/Total using both the named client and a direct handler
+app.MapGet("/diagnostics/foundry/ping", async (IServiceProvider sp) =>
+{
+    var cfg = sp.GetRequiredService<IConfiguration>();
+    var logger = sp.GetRequiredService<ILoggerFactory>().CreateLogger("Diagnostics.Foundry");
+    var endpoint = cfg["AzureAI:Foundry:Endpoint"]?.TrimEnd('/') ?? string.Empty;
+    // Prefer explicit phi deployment key, then chat/deployment/model fallbacks
+    var deployment = cfg["AzureAI:Foundry:PhiDeployment"]
+        ?? cfg["AzureAI:Foundry:ChatDeployment"]
+        ?? cfg["AzureAI:Foundry:Deployment"]
+        ?? cfg["AzureAI:Foundry:Model"]
+        ?? string.Empty;
+    var apiVersion = cfg["AzureAI:Foundry:ApiVersion"] ?? "2024-08-01-preview";
+    if (string.IsNullOrWhiteSpace(endpoint) || string.IsNullOrWhiteSpace(deployment))
+    {
+        return Results.Problem("Foundry endpoint or deployment not configured");
+    }
+
+    logger.LogInformation("Diagnostics: using Foundry deployment '{DeploymentKey}' for ping", deployment);
+
+    var url = $"{endpoint}/openai/deployments/{deployment}/chat/completions?api-version={apiVersion}";
+    var factory = sp.GetRequiredService<IHttpClientFactory>();
+
+    // Prepare content
+    var payload = new
+    {
+        messages = new[] { new { role = "user", content = "ping" } },
+        temperature = 0.0,
+        max_tokens = 1
+    };
+    var content = new StringContent(System.Text.Json.JsonSerializer.Serialize(payload), System.Text.Encoding.UTF8, "application/json");
+
+    // 1) Test with named client
+    try
+    {
+        var client = factory.CreateClient("foundry");
+        client.DefaultRequestHeaders.Remove("api-key");
+        var key = cfg["AzureAI:Foundry:Key"] ?? cfg["AzureAI:Foundry:ApiKey"] ?? string.Empty;
+        if (!string.IsNullOrWhiteSpace(key)) client.DefaultRequestHeaders.Add("api-key", key);
+
+        using var req = new HttpRequestMessage(HttpMethod.Post, url) { Content = content };
+        req.Headers.ConnectionClose = true;
+
+        var sw = Stopwatch.StartNew();
+        using var resp = await client.SendAsync(req, HttpCompletionOption.ResponseHeadersRead);
+        var ttfb = sw.ElapsedMilliseconds;
+        var version = resp.Version;
+        var status = (int)resp.StatusCode;
+        string body = string.Empty;
+        try { body = await resp.Content.ReadAsStringAsync(); } catch { }
+        var total = sw.ElapsedMilliseconds;
+        logger.LogInformation("Foundry(named) ping: URL={Url} Status={Status} Version={Version} TTFB={TTFB}ms Total={Total}ms", url, status, version, ttfb, total);
+
+        // 2) Test with direct SocketsHttpHandler client to ensure no resilience wrappers
+        using var handler = new SocketsHttpHandler
+        {
+            AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
+            PooledConnectionLifetime = TimeSpan.FromMinutes(10),
+            Expect100ContinueTimeout = TimeSpan.Zero,
+            UseProxy = false
+        };
+        using var direct = new HttpClient(handler) { Timeout = Timeout.InfiniteTimeSpan };
+        direct.DefaultRequestVersion = HttpVersion.Version11;
+        direct.DefaultRequestHeaders.Accept.Clear();
+        direct.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+        if (!string.IsNullOrWhiteSpace(key)) direct.DefaultRequestHeaders.Remove("api-key");
+        if (!string.IsNullOrWhiteSpace(key)) direct.DefaultRequestHeaders.Add("api-key", key);
+
+        using var req2 = new HttpRequestMessage(HttpMethod.Post, url) { Content = new StringContent(System.Text.Json.JsonSerializer.Serialize(payload), System.Text.Encoding.UTF8, "application/json") };
+        req2.Headers.ConnectionClose = true;
+        var sw2 = Stopwatch.StartNew();
+        using var resp2 = await direct.SendAsync(req2, HttpCompletionOption.ResponseHeadersRead);
+        var ttfb2 = sw2.ElapsedMilliseconds;
+        var version2 = resp2.Version;
+        var status2 = (int)resp2.StatusCode;
+        string body2 = string.Empty;
+        try { body2 = await resp2.Content.ReadAsStringAsync(); } catch { }
+        var total2 = sw2.ElapsedMilliseconds;
+        logger.LogInformation("Foundry(direct) ping: URL={Url} Status={Status} Version={Version} TTFB={TTFB}ms Total={Total}ms", url, status2, version2, ttfb2, total2);
+
+        return Results.Json(new
+        {
+            named = new { status, version = version.ToString(), ttfb, total, snippet = body?.Length > 400 ? body.Substring(0, 400) : body },
+            direct = new { status = status2, version = version2.ToString(), ttfb = ttfb2, total = total2, snippet = body2?.Length > 400 ? body2.Substring(0, 400) : body2 }
+        });
+    }
+    catch (Exception ex)
+    {
+        var loggerEx = sp.GetRequiredService<ILoggerFactory>().CreateLogger("Diagnostics.Foundry");
+        loggerEx.LogError(ex, "Foundry ping failed");
+        return Results.Problem(ex.Message);
+    }
+});
 
 // Request limits/timeouts
 const long SttMaxBytes = 10L * 1024 * 1024; //10 MB
@@ -264,7 +423,7 @@ if (enableSpeechApi)
         {
             status = StatusCodes.Status413PayloadTooLarge;
             sw.Stop();
-            log.LogWarning("STT rejected: payload too large. Status=={Status} DurationMs={DurationMs} ReqBytes={ReqBytes}", status, sw.ElapsedMilliseconds, ctx.Request.ContentLength);
+            log.LogWarning("STT rejected: payload too large. Status=={Status} Duration=={DurationMs} ReqBytes={ReqBytes}", status, sw.ElapsedMilliseconds, ctx.Request.ContentLength);
             SpeechTelemetry.SttErrors.Add(1);
             SpeechTelemetry.SttRequestBytes.Record(ctx.Request.ContentLength ?? 0);
             SpeechTelemetry.SttDurationMs.Record(sw.Elapsed.TotalMilliseconds);
@@ -354,8 +513,8 @@ app.MapGet("/diagnostics/speech", (IConfiguration cfg, SpeechDiagnosticsMonitor 
     $"Tts:Endpoint = {cfg["Tts:Endpoint"]}\n" +
     $"AzureAI:Foundry:Endpoint = {cfg["AzureAI:Foundry:Endpoint"]}\n" +
     $"AzureAI:Speech:Region = {cfg["AzureAI:Speech:Region"]}\n\n" +
-    $"Last TTS: {(tts is null ? "(none)" : $"{tts.Timestamp:u} status={tts.Status} reqB={tts.RequestBytes} respB={tts.ResponseSize} durMs={tts.DurationMs:F0} note={tts.Note}")}\n" +
-    $"Last STT: {(stt is null ? "(none)" : $"{stt.Timestamp:u} status={stt.Status} reqB={stt.RequestBytes} respChars={stt.ResponseSize} durMs={stt.DurationMs:F0} note={stt.Note}")}\n\n" +
+    $"Last TTS: {(tts is null ? "(none)" : $"{tts.Timestamp:u} status={tts.Status} reqB={tts.RequestBytes} respB={tts.ResponseSize} durMs={tts.DurationMs:F0} note={tts.Note}") }\n" +
+    $"Last STT: {(stt is null ? "(none)" : $"{stt.Timestamp:u} status={stt.Status} reqB={stt.RequestBytes} respChars={stt.ResponseSize} durMs={stt.DurationMs:F0} note={stt.Note}") }\n\n" +
     "Metrics:\n" +
     " - speech_tts_duration_ms\n" +
     " - speech_stt_duration_ms\n" +
@@ -370,4 +529,4 @@ app.MapGet("/diagnostics/speech", (IConfiguration cfg, SpeechDiagnosticsMonitor 
 
 app.MapDefaultEndpoints();
 
-app.Run();
+app.Run();app.Run();

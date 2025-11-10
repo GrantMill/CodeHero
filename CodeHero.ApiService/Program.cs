@@ -14,6 +14,10 @@ builder.Services.AddOptionalAzureSearchIndexer(builder.Configuration);
 builder.Services.AddSingleton<IAzureSearchClientFactory, DefaultAzureSearchClientFactory>();
 builder.Services.AddSingleton<ISearchIndexerService, AzureSearchIndexerService>();
 
+// Register background indexer
+builder.Services.AddSingleton<IBackgroundIndexer, BackgroundIndexerService>();
+builder.Services.AddHostedService(sp => (BackgroundIndexerService)sp.GetRequiredService<IBackgroundIndexer>());
+
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
@@ -40,10 +44,10 @@ app.MapGet("/api/document-map", async (IConfiguration cfg) =>
 });
 
 // Indexer endpoints
-app.MapPost("/api/search/indexer/run", async (ISearchIndexerService indexer, CancellationToken ct) =>
+app.MapPost("/api/search/indexer/run", async (IBackgroundIndexer bgIndexer, CancellationToken ct) =>
 {
-    var res = await indexer.CreateIndexAndRunAsync(ct);
-    return Results.Ok(res);
+    var jobId = await bgIndexer.TriggerIndexingAsync(ct);
+    return Results.Accepted($"/api/search/indexer/status/{jobId}", new { jobId });
 });
 
 app.MapGet("/api/search/indexer/history", async (ISearchIndexerService indexer, int max = 50) =>
@@ -52,8 +56,15 @@ app.MapGet("/api/search/indexer/history", async (ISearchIndexerService indexer, 
     return Results.Ok(h);
 });
 
+app.MapGet("/api/search/indexer/status/{jobId:guid}", async (IBackgroundIndexer bgIndexer, Guid jobId) =>
+{
+    var status = await bgIndexer.GetStatusAsync(jobId);
+    if (status is null) return Results.Ok(new { status = "queued" });
+    return Results.Ok(status);
+});
+
 // Indexer status endpoint for diagnostics
-app.MapGet("/api/search/indexer/status", (IConfiguration cfg) =>
+app.MapGet("/api/search/indexer/diagnostics", (IConfiguration cfg) =>
 {
     var endpoint = cfg["Search:Endpoint"] ?? cfg["AzureSearch:Endpoint"];
     var hasEndpoint = !string.IsNullOrWhiteSpace(endpoint);
