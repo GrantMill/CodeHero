@@ -53,6 +53,15 @@ builder.Services.AddHttpClient();
 // Diagnostics monitor to show last call status
 builder.Services.AddSingleton<SpeechDiagnosticsMonitor>();
 
+// Add RagClient with configurable API base address
+builder.Services.AddHttpClient<RagClient>((sp, c) =>
+{
+    var cfg = sp.GetRequiredService<IConfiguration>();
+    var baseUrl = cfg["RagApi:BaseAddress"] ?? cfg["ApiService:BaseAddress"];
+    if (!string.IsNullOrWhiteSpace(baseUrl))
+        c.BaseAddress = new Uri(baseUrl);
+});
+
 // Register a named HttpClient for Foundry with HTTP/1.1 and SocketsHttpHandler tuned to avoid HTTP/2 keepalive/ping issues
 var foundryBuilder = builder.Services.AddHttpClient("foundry", c =>
 {
@@ -513,8 +522,8 @@ app.MapGet("/diagnostics/speech", (IConfiguration cfg, SpeechDiagnosticsMonitor 
     $"Tts:Endpoint = {cfg["Tts:Endpoint"]}\n" +
     $"AzureAI:Foundry:Endpoint = {cfg["AzureAI:Foundry:Endpoint"]}\n" +
     $"AzureAI:Speech:Region = {cfg["AzureAI:Speech:Region"]}\n\n" +
-    $"Last TTS: {(tts is null ? "(none)" : $"{tts.Timestamp:u} status={tts.Status} reqB={tts.RequestBytes} respB={tts.ResponseSize} durMs={tts.DurationMs:F0} note={tts.Note}") }\n" +
-    $"Last STT: {(stt is null ? "(none)" : $"{stt.Timestamp:u} status={stt.Status} reqB={stt.RequestBytes} respChars={stt.ResponseSize} durMs={stt.DurationMs:F0} note={stt.Note}") }\n\n" +
+    $"Last TTS: {(tts is null ? "(none)" : $"{tts.Timestamp:u} status={tts.Status} reqB={tts.RequestBytes} respB={tts.ResponseSize} durMs={tts.DurationMs:F0} note={tts.Note}")}\n" +
+    $"Last STT: {(stt is null ? "(none)" : $"{stt.Timestamp:u} status={stt.Status} reqB={stt.RequestBytes} respChars={stt.ResponseSize} durMs={stt.DurationMs:F0} note={stt.Note}")}\n\n" +
     "Metrics:\n" +
     " - speech_tts_duration_ms\n" +
     " - speech_stt_duration_ms\n" +

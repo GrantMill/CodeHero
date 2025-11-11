@@ -1,12 +1,11 @@
-using System.Text.Json;
-using System.Security.Cryptography;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Http;
-using System.Text;
-using CodeHero.Indexer.Models;
 using CodeHero.Indexer.Clients;
 using CodeHero.Indexer.Interfaces;
+using CodeHero.Indexer.Models;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.Json;
 
 var config = new ConfigurationBuilder()
  .AddEnvironmentVariables()

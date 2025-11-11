@@ -1,4 +1,3 @@
-
 // small helper to avoid null checks for feature-setting
 internal static class FeatureExt
 {

@@ -374,18 +374,18 @@ static object HelperAsk(JsonElement? @params, IServiceProvider services)
             if (el.TryGetProperty("headings", out var headEl) && headEl.ValueKind == JsonValueKind.Array)
             {
                 foreach (var h in headEl.EnumerateArray()) if (h.ValueKind == JsonValueKind.String)
-                {
-                    var hv = h.GetString()!.ToLowerInvariant();
-                    foreach (var t in terms) score += Regex.Matches(hv, Regex.Escape(t)).Count * 3;
-                }
+                    {
+                        var hv = h.GetString()!.ToLowerInvariant();
+                        foreach (var t in terms) score += Regex.Matches(hv, Regex.Escape(t)).Count * 3;
+                    }
             }
             if (el.TryGetProperty("tags", out var tagsEl) && tagsEl.ValueKind == JsonValueKind.Array)
             {
                 foreach (var tag in tagsEl.EnumerateArray()) if (tag.ValueKind == JsonValueKind.String)
-                {
-                    var tv = tag.GetString()!.ToLowerInvariant();
-                    foreach (var t in terms) if (tv.Contains(t)) score += 4;
-                }
+                    {
+                        var tv = tag.GetString()!.ToLowerInvariant();
+                        foreach (var t in terms) if (tv.Contains(t)) score += 4;
+                    }
             }
             if (el.TryGetProperty("relativePath", out var rpEl) && rpEl.ValueKind == JsonValueKind.String)
             {
@@ -400,7 +400,7 @@ static object HelperAsk(JsonElement? @params, IServiceProvider services)
             var e = x.El;
             var path = e.TryGetProperty("relativePath", out var rp) ? rp.GetString() : "";
             var title = e.TryGetProperty("title", out var t) ? t.GetString() : "";
-            var headings = e.TryGetProperty("headings", out var h) && h.ValueKind == JsonValueKind.Array ? string.Join("; ", h.EnumerateArray().Where(i=>i.ValueKind==JsonValueKind.String).Select(i=>i.GetString())) : string.Empty;
+            var headings = e.TryGetProperty("headings", out var h) && h.ValueKind == JsonValueKind.Array ? string.Join("; ", h.EnumerateArray().Where(i => i.ValueKind == JsonValueKind.String).Select(i => i.GetString())) : string.Empty;
             var snippet = (title ?? string.Empty) + " — " + (headings ?? string.Empty);
             return new { id = e.TryGetProperty("id", out var idEl) ? idEl.GetString() : null, relativePath = path, title, snippet, score = x.Score };
         }).ToArray();

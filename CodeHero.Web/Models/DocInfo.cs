@@ -1,5 +1,3 @@
-using System;
-
 namespace CodeHero.Web.Models
 {
     public class DocInfo

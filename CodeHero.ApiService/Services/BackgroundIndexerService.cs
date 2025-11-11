@@ -1,16 +1,13 @@
+using CodeHero.Models;
 using System.Collections.Concurrent;
 using System.Threading.Channels;
-using CodeHero.Services;
-using CodeHero.Models;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 
 namespace CodeHero.Services;
 
 public interface IBackgroundIndexer
 {
     Task<Guid> TriggerIndexingAsync(CancellationToken ct = default);
+
     Task<IndexerRunResult?> GetStatusAsync(Guid jobId);
 }
 

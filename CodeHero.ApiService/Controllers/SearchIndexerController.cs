@@ -1,8 +1,5 @@
-using System.Threading;
-using System.Threading.Tasks;
 using CodeHero.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 
 namespace CodeHero.Controllers;
 

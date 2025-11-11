@@ -1,10 +1,8 @@
-using System.Text.Json;
-using System.Text.RegularExpressions;
-using System.Net.Http;
+using System.Diagnostics;
 using System.Net.Http.Headers;
 using System.Text;
-using Microsoft.Extensions.Logging;
-using System.Diagnostics;
+using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace CodeHero.Web.Services;
 

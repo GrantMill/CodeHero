@@ -1,3 +1,7 @@
+using Azure;
+using Azure.Search.Documents;
+using CodeHero.ApiService.Contracts;
+using CodeHero.ApiService.Services.Rag;
 using CodeHero.Extensions;
 using CodeHero.Services;
 
@@ -18,7 +22,30 @@ builder.Services.AddSingleton<ISearchIndexerService, AzureSearchIndexerService>(
 builder.Services.AddSingleton<IBackgroundIndexer, BackgroundIndexerService>();
 builder.Services.AddHostedService(sp => (BackgroundIndexerService)sp.GetRequiredService<IBackgroundIndexer>());
 
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+// RAG: Search client (optional)
+builder.Services.AddHttpClient();
+builder.Services.AddSingleton(sp =>
+{
+    var cfg = sp.GetRequiredService<IConfiguration>();
+    var searchEndpoint = cfg["Search:Endpoint"] ?? cfg["AzureSearch:Endpoint"];
+    var searchKey = cfg["Search:Key"] ?? cfg["Search:ApiKey"] ?? cfg["AzureSearch:ApiKey"];
+    var indexName = cfg["Search:IndexName"] ?? cfg["AzureSearch:IndexName"] ?? "codehero-docs";
+    if (string.IsNullOrWhiteSpace(searchEndpoint) || string.IsNullOrWhiteSpace(searchKey))
+        return null; // not configured
+    return new SearchClient(new Uri(searchEndpoint), indexName, new AzureKeyCredential(searchKey));
+});
+
+builder.Services.AddScoped<IQuestionRephraser, AoaiQuestionRephraser>();
+builder.Services.AddScoped<IHybridSearchService>(sp =>
+{
+    var sc = sp.GetService<SearchClient>();
+    if (sc is null)
+        return new FakeHybridSearchService();
+    return new HybridSearchService(sc, sp.GetRequiredService<IHttpClientFactory>(), sp.GetRequiredService<IConfiguration>(), sp.GetRequiredService<ILogger<HybridSearchService>>());
+});
+builder.Services.AddScoped<IRagAnswerService, RagAnswerService>();
+
+// OpenAPI
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
@@ -30,6 +57,16 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
+
+// RAG endpoints
+app.MapPost("/api/chat/rephrase", async (ChatRequest req, IQuestionRephraser rephraser, CancellationToken ct) =>
+    Results.Ok(await rephraser.RephraseAsync(req, ct)));
+
+app.MapPost("/api/search/hybrid", async (SearchRequest req, IHybridSearchService search, CancellationToken ct) =>
+    Results.Ok(await search.SearchAsync(req, ct)));
+
+app.MapPost("/api/chat/answer", async (AnswerRequest req, IRagAnswerService rag, CancellationToken ct) =>
+    Results.Ok(await rag.AnswerAsync(req, ct)));
 
 // Document map endpoint
 app.MapGet("/api/document-map", async (IConfiguration cfg) =>

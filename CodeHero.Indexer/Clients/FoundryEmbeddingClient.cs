@@ -1,8 +1,7 @@
 using CodeHero.Indexer.Interfaces;
 using Microsoft.Extensions.Configuration;
-using System.Net.Http.Headers;
-using System.Text.Json;
 using System.Text;
+using System.Text.Json;
 
 namespace CodeHero.Indexer.Clients;
 

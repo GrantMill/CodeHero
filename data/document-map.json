@@ -567,9 +567,9 @@
       "REQ-007",
       "REQ-008"
     ],
-    "lastModified": "2025-11-10T11:03:39.7562955Z",
-    "size": 68913,
-    "contentHash": "E99DD2B17DB7DC869B934948EFE539548B0E49AE8AA631B783463FBA2E8B02EC"
+    "lastModified": "2025-11-10T12:24:52.9611149Z",
+    "size": 69319,
+    "contentHash": "7F0A81BA6A38EE8A128924EF1A813F76A060423021FDA6588C803682B121C692"
   },
   {
     "id": "4ADF198200E115C5823766ED487764919CFACBA4B79D9390FD1E71C5C4FFB291",
@@ -622,9 +622,9 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-07T17:29:46.0163462Z",
-    "size": 25841,
-    "contentHash": "54C5589ABE455E3D40BCA2BEBA9CBD92567DE9498F828B7AF04B1957465785C4"
+    "lastModified": "2025-11-11T12:46:58.5957837Z",
+    "size": 28768,
+    "contentHash": "8E610E0B1EF3212B663C8EE74E416211C669C31DED68E24982C73A8F68C19955"
   },
   {
     "id": "781B4D93852AB6CA7BA43242E46B138F69CDE647CDB28357EDFB8DDF8DACB7C6",
@@ -633,7 +633,7 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-04T17:26:45.6360631Z",
+    "lastModified": "2025-11-11T14:23:44.6352918Z",
     "size": 4132,
     "contentHash": "43D78A63A8CE2D89130516FDB4F64E0B3CB39B44B5B55DE328BEBBFC0DD3C6C4"
   },
@@ -728,7 +728,7 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-02T14:56:23.3048402Z",
+    "lastModified": "2025-11-11T14:22:16.686991Z",
     "size": 85673,
     "contentHash": "D3BDF185760A1D0BB7B1EC53D423A84432A9115D333B8F97D814818ED8307246"
   },
@@ -750,7 +750,7 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-02T14:56:26.262154Z",
+    "lastModified": "2025-11-11T14:22:26.7665028Z",
     "size": 85746,
     "contentHash": "5612DEA0CA26DF67884AF1135ADF28C8606C041837F300BE93CA0B0ECAD7B6A3"
   },
@@ -772,7 +772,7 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-02T14:56:29.9869627Z",
+    "lastModified": "2025-11-11T14:22:29.8096111Z",
     "size": 13487,
     "contentHash": "90E9EBCDA8419306AEECE5CE78BFB9AB8253E04C58D22343705BA8D2FDA92ED5"
   },
@@ -794,7 +794,7 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-02T14:56:35.0224258Z",
+    "lastModified": "2025-11-11T14:22:34.5185431Z",
     "size": 13481,
     "contentHash": "EBE3843195601CDC7B80903C74BB64459EA54227D494BB94C945F0A5A8F226B5"
   },
@@ -816,7 +816,7 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-02T14:56:38.9016809Z",
+    "lastModified": "2025-11-11T14:22:53.4675822Z",
     "size": 125198,
     "contentHash": "417BC1BF37534BEA7ED99ECB25D89D7EFCD2FB67AC40D6B7CF2259EF2816DBD4"
   },
@@ -838,7 +838,7 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-02T14:56:41.6476886Z",
+    "lastModified": "2025-11-11T14:22:59.1881747Z",
     "size": 125055,
     "contentHash": "CC0B3978AF372C74353FD62E41C7E873A2CF106A35FD3ECE9BAB6EAF9BF5A497"
   },
@@ -860,7 +860,7 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-02T14:56:15.5404284Z",
+    "lastModified": "2025-11-11T14:22:01.416533Z",
     "size": 324124,
     "contentHash": "F87140D7F11721E23CD55432AB59041BE9955ECF23F4D3311945D0632A10840C"
   },
@@ -882,7 +882,7 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-02T14:56:19.2568413Z",
+    "lastModified": "2025-11-11T14:22:11.3178529Z",
     "size": 323325,
     "contentHash": "EC39AE69EB0028D572BA9A7179B7638E277C65474A867C95AA863A740C82A7D0"
   },
@@ -1027,9 +1027,9 @@
     "tags": [
       "REQ-001"
     ],
-    "lastModified": "2025-11-08T09:38:28.0177263Z",
-    "size": 20295,
-    "contentHash": "959C7E2E9EF887B0F3264D4436C4359D046AA6F54C6941848EC26479D7568D49"
+    "lastModified": "2025-11-11T14:35:40.3403087Z",
+    "size": 20234,
+    "contentHash": "7632B8D85F677D7BC86AF636A739C09E10E03D51A8C569B74C24C222C1872992"
   },
   {
     "id": "124E63AD4EBC15EE5D12FE025CEE3FA9D70481C3556323182E357659D63D9CFE",
@@ -1141,15 +1141,37 @@
     "contentHash": "37B19DE5226A094CDBABFEC2DD9C845A1E01739C9BF4DF6AC62EB20656FCB97C"
   },
   {
+    "id": "C9B593C2B4F534D2714DE66138139B98D8ED623297D21E17BE29C8E595DA8D9A",
+    "relativePath": "CodeHero.Web/Services/RagClient.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-11T14:35:39.8130695Z",
+    "size": 1211,
+    "contentHash": "E2840FA1D41A24ACDF23CE6A6206FEF9AB470811F7A5C8C16679A22E094B48B0"
+  },
+  {
+    "id": "6978BA896BA7D54CB0FBF812294B94AD9259F339E54838D40317E7FBA03D66CD",
+    "relativePath": "CodeHero.Web/Services/RagContracts.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-11T14:35:39.9829591Z",
+    "size": 655,
+    "contentHash": "E8F343CB64B058B0EC9E0DEB8AD692A5BF87729C5CB3EF78B1095884DC3F0C01"
+  },
+  {
     "id": "52C91093D4FD313DB116B01FA42812A58DF9F472D7D26D4CB7EF67A3E57B17FA",
     "relativePath": "CodeHero.Web/Services/ServiceRegistration.cs",
     "title": "",
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-07T16:48:29.4047286Z",
-    "size": 1297,
-    "contentHash": "E8A9C044B3ECC146D57691BB55FD810FA238181FEDEC942C45EF21208AD6B12B"
+    "lastModified": "2025-11-11T14:33:08.4009536Z",
+    "size": 1282,
+    "contentHash": "59AF5660C5CD80792B33E635F4615D612CD84D2E2884FA910E5179E1A5AE9370"
   },
   {
     "id": "50FB8F7958C3195ADBD25D765B33F3F463BB2FE50E61A2B764D7099898F0CB72",
@@ -1202,9 +1224,9 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-06T16:07:03.2775789Z",
-    "size": 380,
-    "contentHash": "C997600398BF6726BEE92C071DF429F3570E9382F16D2A1A4BE1E6340E74E725"
+    "lastModified": "2025-11-11T14:25:10.8990203Z",
+    "size": 361,
+    "contentHash": "F04BBEA59FECF4A91FAC55E8AA035D6BFBFD02886ABD7EFD5FA19E6857FCE342"
   },
   {
     "id": "375799D13BE8ABB9772F6BCE613C60CAA97DFEB96C0AD87467CF8CD0A43529F2",
@@ -1213,9 +1235,9 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-06T08:52:09.91214Z",
-    "size": 233,
-    "contentHash": "B1FAA039D6504258F78657ABE57B98850640AE49400128CE4F9EA987CFB32ECA"
+    "lastModified": "2025-11-11T14:24:51.9419697Z",
+    "size": 231,
+    "contentHash": "8109A062E9EBF6DE2BD614EC1BFAF6DEB9ED03B41378F63A1AFCE9A41CCBC201"
   },
   {
     "id": "F735B3F7E9F7531BA0E5D1C54CB9B75A0F3CC4D6EDF42002C82F45685DAB0D84",
@@ -1259,9 +1281,9 @@
     "tags": [
       "REQ-002"
     ],
-    "lastModified": "2025-11-07T17:21:53.2244187Z",
-    "size": 13125,
-    "contentHash": "2E479307F2AD5BA2E6BF9A9B72B1E548A3BFC8EAFE443A1DBBA1C320E3D400EE"
+    "lastModified": "2025-11-10T17:28:49.6554231Z",
+    "size": 16262,
+    "contentHash": "F8A7DD94BDCBA41411284EE45333F62359D70100A31E67453E15BA6D64728F4A"
   },
   {
     "id": "02ED95CBD76AF3086227CF5DA3CDA81F198AFFAE865F20294504AF8AAEEA9D0C",
@@ -1270,7 +1292,7 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-07T12:13:12.2257878Z",
+    "lastModified": "2025-11-10T17:43:18.5226178Z",
     "size": 11038,
     "contentHash": "71DB6DF8B18526D5F5F6E6CB80E717D07A36874453A696D8711D121C1194572F"
   },
@@ -1303,9 +1325,9 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-06T17:12:31.2151105Z",
-    "size": 1390,
-    "contentHash": "83D18BCEE2BF06D3942A07C41A2C27A8A4C5DFA2D409D215BEA3ABFBB144DE12"
+    "lastModified": "2025-11-11T14:24:21.3319241Z",
+    "size": 1502,
+    "contentHash": "CB159EA8E6F43DF4BAB02885AC1FA7C391CB909FD8BC5A791FD367915D6A652A"
   },
   {
     "id": "861F68ED46B3BEEC7E65957D30BC1A6F72B45548581048B8DDF2D9EC7D5134EE",
@@ -1393,7 +1415,7 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-02T14:57:04.010643Z",
+    "lastModified": "2025-11-11T14:23:54.318863Z",
     "size": 2246,
     "contentHash": "4CC8A7E27A3A1D09546964DF17E5424E16975EBD537A5ACA10EC040616593FF6"
   },
@@ -1415,7 +1437,7 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-02T14:57:07.6248375Z",
+    "lastModified": "2025-11-11T14:24:02.2855439Z",
     "size": 2376,
     "contentHash": "DA938208CE4A6D5BB7691C0A19FB7926B8C904685EC0FA50FFC821783465A231"
   },
@@ -1439,9 +1461,9 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-06T11:18:03.399052Z",
-    "size": 3543,
-    "contentHash": "327DB295F2FCC71C0250C5C62CA6C63BE818E1C824935C0282350EDAF0883656"
+    "lastModified": "2025-11-11T14:18:24.7869547Z",
+    "size": 3525,
+    "contentHash": "C5326A3B28CC32338EB17D25ADBCFF6F15A6A26AC1AF1EE84B23C27D3BF2ED63"
   },
   {
     "id": "93ABBC1B060949E723E98DF842A7213F1D02FD27221390B714F4EAF0BD5D1336",
@@ -1601,9 +1623,9 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-07T11:42:44.159283Z",
-    "size": 19449,
-    "contentHash": "D52163F8392789894BFE8B2DA71D0110ABE0445589D0AF3B167328E24E8D3F23"
+    "lastModified": "2025-11-11T14:15:08.3578561Z",
+    "size": 19487,
+    "contentHash": "FB30DAE7E7A30F4AECD0919CB007BB1A3A0D9E209A306291ECABB8B1B5A986C5"
   },
   {
     "id": "FB081F679907632F9546E95D212A316E11B74FA19C03DB8032307D6F0A4B7465",
@@ -1678,9 +1700,9 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-05T17:27:34.3031093Z",
-    "size": 5871,
-    "contentHash": "467F8A802DABF878A262C4569A1F82AD185DD8A64CE8B4F165DF0085EE67562E"
+    "lastModified": "2025-11-11T14:14:35.5055219Z",
+    "size": 5837,
+    "contentHash": "92D8F264DA5EBCE7E6927B225028492793CCAFB93737AD078B9F7085ABEDE477"
   },
   {
     "id": "9D207607E9BC938B37F76D58F63E864B2CB3F5E87CC26FE02A61EF1D0917C2ED",
@@ -1727,9 +1749,9 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-05T16:09:37.5978957Z",
-    "size": 250,
-    "contentHash": "7B76AE0BAB937FEF4552D29E23CF6735B52643048FA3DB9FE9386C91A21B2D29"
+    "lastModified": "2025-11-11T14:13:58.585103Z",
+    "size": 258,
+    "contentHash": "D4B724EE68EC544D2E8CD3C8093A6D2A9E1FBEA05382559ADE17268C73942BDA"
   },
   {
     "id": "6F527F66864915D521CCF028D91FD813453C305F49CA50A79181DA60251516C2",
@@ -1738,9 +1760,9 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-05T16:18:08.1764641Z",
-    "size": 2218,
-    "contentHash": "8C12CE964F564B7BC9922F38D0AF27663F2CB4807286804FD1EB2D861E2D0DAD"
+    "lastModified": "2025-11-11T14:12:28.968094Z",
+    "size": 2163,
+    "contentHash": "D3CEA807E7CE7FEC07E4BB35F3E69A9F69351CCD2568D9E762EB6CCA830D622E"
   },
   {
     "id": "E3A5B20F7847994AF69E50F46558EE62E4B887D07F8CE2FD85AFDA8C7391F4E1",
@@ -1749,9 +1771,9 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-05T16:27:20.0630277Z",
-    "size": 5975,
-    "contentHash": "8679FFDD37315D282239C13B3C393FF843CE08A798FF5B076479CBE70CD563D6"
+    "lastModified": "2025-11-11T14:12:51.2125897Z",
+    "size": 5943,
+    "contentHash": "093D91BA100B7E58CE80C6721BBA1F7E60AF0F767406AAC068B45F686211D76A"
   },
   {
     "id": "A3E14C4A8899ABAD79E9A8A8549029E7C53F2FABA3EC17A5F3B139DE58E11CE9",
@@ -1771,9 +1793,9 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-05T16:09:37.5962839Z",
-    "size": 561,
-    "contentHash": "0FFD683319180DC2CED959C560E6F44C9E171B5F1A78CBC8026C48B63AE42A3C"
+    "lastModified": "2025-11-11T14:13:25.2399166Z",
+    "size": 607,
+    "contentHash": "C37083C3D4D557002F26D9D9A8C7CF6B5DFE5D4EC21DB132111709CF6C9FA0D0"
   },
   {
     "id": "001B996AE2E784B9FCFD5939578E8FB5310B01B266524836E1CD16E1476AEFCE",
@@ -1859,7 +1881,7 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-06T11:09:51.0144679Z",
+    "lastModified": "2025-11-11T12:43:29.2748771Z",
     "size": 712,
     "contentHash": "38F1F6AADADD271A35F43689E8E83A28C25CFDCE8F4204FBEB6FDC24E1AA8586"
   },
@@ -1870,9 +1892,9 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-10T11:23:51.0152182Z",
-    "size": 4053,
-    "contentHash": "8ADE1B4F5465643C6AAB98A578EC0D0CF3B0E7740B5333EEF2F5BEE84046226E"
+    "lastModified": "2025-11-11T14:35:39.5219684Z",
+    "size": 5815,
+    "contentHash": "5D90E9E2BEBD263D524FFDD1AF7DC62C0CFF90A89486B9EFC9A8D5544F37125A"
   },
   {
     "id": "5147E2CB734362BA286D5012BD6CBA54F50AA48EDEC15385BDE1386B0E2DAE59",
@@ -1881,9 +1903,9 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-10T12:11:22.5549089Z",
-    "size": 20489,
-    "contentHash": "4ECDCABEE20CC1D7D0C699E6BA0268145090B846B515F7267F7B4860652C158F"
+    "lastModified": "2025-11-11T14:35:39.3183408Z",
+    "size": 20421,
+    "contentHash": "2EA4184E0D3DE742D204D5BC42619E1B037E698217B1B07E508A3809D2A84140"
   },
   {
     "id": "2B7A97768F4455C5B1DCE9C9F398F18648195049C9FCCACED11DD2E24899AA6D",
@@ -1892,9 +1914,9 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-10T11:24:36.1334159Z",
-    "size": 3339,
-    "contentHash": "BA0981475AB01B3CAFEF660A2D9067AD3ED1B8E67BD5D5CE4CF8781B1F042777"
+    "lastModified": "2025-11-11T14:35:38.9208212Z",
+    "size": 3190,
+    "contentHash": "F3673184803FB911CD669169EBDFEDE9871FFAFFDC52480DDBA5DFD7198003E0"
   },
   {
     "id": "18C76F92295744BDC8B63108D0D7ED266E3A9AA8BE926187845B0B2750D08CBA",
@@ -1903,9 +1925,9 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-05T18:13:14.5436915Z",
-    "size": 355,
-    "contentHash": "23935CE11019D418C6C5DC8796E2F898AE5C8BBDEBC197D6E8C9719784DDC7D2"
+    "lastModified": "2025-11-11T14:09:39.5205182Z",
+    "size": 275,
+    "contentHash": "2EF601A9DD969365A9A40D79B099D4DBDE18BFFDA6B28A51B911CA8D654AB009"
   },
   {
     "id": "2D70D0D4CC806832D10EDD810EEB57BD73284ABBC78B3C19DD72FAB7E3DF5587",
@@ -1914,9 +1936,99 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-06T11:18:03.6156747Z",
-    "size": 1150,
-    "contentHash": "76A4BCC49C8662E87E328660B184A4A3B315935D75DBE964A9846707056A5641"
+    "lastModified": "2025-11-11T14:10:20.9857933Z",
+    "size": 970,
+    "contentHash": "B2402C30C66CD862542B03DEFF2ADE1243AA7945254CB6C2A3C37CF50C83B138"
+  },
+  {
+    "id": "B00CA00712F514465A4DB19F44059628BF94A46E41048C5C905564D958C1F4B1",
+    "relativePath": "CodeHero.ApiService/Services/Rag/AoaiQuestionRephraser.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-11T14:35:38.3573535Z",
+    "size": 4047,
+    "contentHash": "6001FEAB8B43B7720830929C6E5C02AE929C5D494928573B2ADAC7D6AB26BC6E"
+  },
+  {
+    "id": "E63302B8842AA6A45C0FE0578D507142082D6C2B40336CFD9A8C7D94B611BE6F",
+    "relativePath": "CodeHero.ApiService/Services/Rag/FakeHybridSearchService.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-11T14:35:36.9590147Z",
+    "size": 336,
+    "contentHash": "20ED981B6301146EF94B1AF98D437BDBED10E652E67D0EDA6659EECADF0FADAC"
+  },
+  {
+    "id": "1A9D391AEC1E36861B01C19AC84511E10FACD852576B42D4D80B005F01D90045",
+    "relativePath": "CodeHero.ApiService/Services/Rag/HybridSearchService.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-11T14:35:37.9046792Z",
+    "size": 4806,
+    "contentHash": "6EF15C62B2F2D5DC01917AB0CC01F6B29165208DF1D141F974F15A653A9298C1"
+  },
+  {
+    "id": "EB6DF08293C9002F623F902A63559417D43F045B561381E685EBF4298B5FDBBF",
+    "relativePath": "CodeHero.ApiService/Services/Rag/IHybridSearchService.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-11T14:35:38.1024682Z",
+    "size": 224,
+    "contentHash": "9A50C33AD76262A38953641B56022367F3B8132A82AE271A6DD45F0C87E91376"
+  },
+  {
+    "id": "7901A6FC7366D2582237DF1F2B4D29CF85EC7E29EF0E373E01A2E2A7E579972C",
+    "relativePath": "CodeHero.ApiService/Services/Rag/IQuestionRephraser.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-11T14:35:38.6446636Z",
+    "size": 214,
+    "contentHash": "9E7E7F619BEB716FBA23A606F6926D2C9049B2FEC8FCFE7ED4749485CAF12192"
+  },
+  {
+    "id": "4EFE81FCFB5D44CA973AA1FC743606F8E0BD46EDD0C7F5A7D9A3D9C40035FCE4",
+    "relativePath": "CodeHero.ApiService/Services/Rag/IRagAnswerService.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-11T14:35:37.4174952Z",
+    "size": 221,
+    "contentHash": "DE0CFA77E78FC58AFD3D0AB387C4C0D5F82ACEB0FFCF290675CDFF00CD20639D"
+  },
+  {
+    "id": "A6D50BEC08944C5F073497046CE5BFED825309903AD27FECF04E395DE46EB57D",
+    "relativePath": "CodeHero.ApiService/Services/Rag/PromptContextBuilder.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-11T14:35:37.6184098Z",
+    "size": 353,
+    "contentHash": "8D24FADB56BF7A7D52E8134320B172D56C286203F0A002FA82E497119F46C16E"
+  },
+  {
+    "id": "4FB0A38EEA8E22646F74E6B07E1D926B0AF88B146515D33E66CF2F31327756AB",
+    "relativePath": "CodeHero.ApiService/Services/Rag/RagAnswerService.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [
+      "REQ-001"
+    ],
+    "lastModified": "2025-11-11T14:35:37.2229144Z",
+    "size": 5304,
+    "contentHash": "FB947B0BABF165683C8D322F59D1A7F658DEB4CCAED39D6D07C9FA65D9DAFEC9"
   },
   {
     "id": "4276372E10E074894E5F248B0DD37E6F871630055658EE6ED331EF33E2A2B1E3",
@@ -1936,9 +2048,9 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-05T18:14:02.6055775Z",
-    "size": 388,
-    "contentHash": "FF46585F114DD9114393F7713CAF1F9AE37D48D156EC562BCA828204F407469D"
+    "lastModified": "2025-11-11T14:06:08.3013366Z",
+    "size": 373,
+    "contentHash": "E51B6A57337782FEC338CC1085F458CC58C9DAE79F45A474F7752334A54F60A7"
   },
   {
     "id": "B6F37857598586251137987E8B588604183ACDEE9F6355498043FE136590534A",
@@ -1947,9 +2059,9 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-06T11:18:03.8008411Z",
-    "size": 957,
-    "contentHash": "F00182439C62D0557D595D146444810854451BEC0927C069CCB95F139A78F880"
+    "lastModified": "2025-11-11T14:05:31.6856961Z",
+    "size": 867,
+    "contentHash": "99BCBFA9E4778FBD3800D039B0C04547FFF8DC34696C6ED74357952C3A83D90D"
   },
   {
     "id": "6B86855DB1DAFF7D06B05E2DD81837A966A41A95C918DA33555B1E12E1733D63",
@@ -1958,9 +2070,20 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-05T18:14:27.8778437Z",
-    "size": 1000,
-    "contentHash": "3440624FE9D57A1183A3C8814738362ABEAB67549DBB7502C5D7473E5459F93A"
+    "lastModified": "2025-11-11T14:05:10.0979793Z",
+    "size": 910,
+    "contentHash": "493D3881A78DBC2AB124919A01163D7A8237C14242EFCC6BB3407CDFB40824B4"
+  },
+  {
+    "id": "B9E53281F8DFD3601CAC54F1E8787D2744E51B3E7005DC1111DCFC1821A754E2",
+    "relativePath": "CodeHero.ApiService/Contracts/RagContracts.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-11T14:03:47.747884Z",
+    "size": 676,
+    "contentHash": "AC223A61FAE60D039831B44A9AAD4363333067898D17D0A63A37C3C450655286"
   },
   {
     "id": "BD49C9DA80BE6710A2B999F232DB35A5270E0E1892E97749D541F7A510950BA5",

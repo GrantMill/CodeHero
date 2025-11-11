@@ -1,11 +1,5 @@
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using CodeHero.Models;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
+using System.Collections.Concurrent;
 
 namespace CodeHero.Services;
 

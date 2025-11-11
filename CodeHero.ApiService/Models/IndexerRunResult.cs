@@ -1,5 +1,3 @@
-using System;
-
 namespace CodeHero.Models;
 
 public class IndexerRunResult

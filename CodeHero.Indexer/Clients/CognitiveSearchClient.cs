@@ -4,8 +4,6 @@ using Azure.Search.Documents.Models;
 using CodeHero.Indexer.Interfaces;
 using CodeHero.Indexer.Models;
 using Microsoft.Extensions.Configuration;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace CodeHero.Indexer.Clients;
 

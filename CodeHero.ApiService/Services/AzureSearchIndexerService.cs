@@ -1,15 +1,13 @@
 using Azure;
-using Azure.Search.Documents;
-using Azure.Search.Documents.Indexes;
 using Azure.Search.Documents.Indexes.Models;
 using Azure.Search.Documents.Models;
 using CodeHero.Models;
 using System.Collections.Concurrent;
+using System.Net.Http.Headers;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
-using System.Net.Http.Headers;
 
 namespace CodeHero.Services;
 

@@ -1,6 +1,4 @@
 using CodeHero.Services;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace CodeHero.Extensions;
 
