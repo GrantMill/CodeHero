@@ -4,6 +4,7 @@ using CodeHero.ApiService.Contracts;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using System.Collections.Generic;
 
 namespace CodeHero.ApiService.Services.Rag;
 
@@ -15,7 +16,7 @@ public sealed class HybridSearchService : IHybridSearchService
     private readonly ILogger<HybridSearchService> _log;
     private readonly string _vectorField = "contentVector";
     private readonly string _textField = "content";
-    private readonly string _sourceMeta = "metadata";
+    private readonly string _sourceMeta = "path";
 
     public HybridSearchService(SearchClient searchClient, IHttpClientFactory http, IConfiguration cfg, ILogger<HybridSearchService> log)
     {
@@ -92,12 +93,32 @@ public sealed class HybridSearchService : IHybridSearchService
 
     private string ExtractSource(SearchDocument doc)
     {
-        if (!doc.TryGetValue(_sourceMeta, out object? metaObj) || metaObj is not IDictionary<string, object> md)
-            return string.Empty;
-        if (!md.TryGetValue("source", out var srcObj) || srcObj is not IDictionary<string, object> src)
-            return string.Empty;
-        if (!src.TryGetValue("url", out var urlObj))
-            return string.Empty;
-        return urlObj?.ToString() ?? string.Empty;
+        // Try the retrievable 'path' field first (matches current index), accept string or object shapes.
+        if (doc.TryGetValue(_sourceMeta, out var pathObj))
+        {
+            if (pathObj is string s && !string.IsNullOrEmpty(s))
+                return s;
+
+            if (pathObj is IDictionary<string, object> pd && pd.TryGetValue("url", out var urlObj))
+                return urlObj?.ToString() ?? string.Empty;
+        }
+
+        // Fall back to resilient parsing of a 'metadata' object if present in documents.
+        if (doc.TryGetValue("metadata", out var metaObj) && metaObj is IDictionary<string, object> md)
+        {
+            if (md.TryGetValue("source", out var srcObj))
+            {
+                if (srcObj is string srcStr && !string.IsNullOrEmpty(srcStr))
+                    return srcStr;
+
+                if (srcObj is IDictionary<string, object> srcDict && srcDict.TryGetValue("url", out var urlObj))
+                    return urlObj?.ToString() ?? string.Empty;
+            }
+
+            if (md.TryGetValue("url", out var directUrl))
+                return directUrl?.ToString() ?? string.Empty;
+        }
+
+        return string.Empty;
     }
 }

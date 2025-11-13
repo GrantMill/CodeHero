@@ -98,254 +98,254 @@
 </div>
 
 @code {
- record Msg(string Role, string Text);
- List<Msg> messages = new();
- string status = string.Empty;
- ElementReference bottom;
- ElementReference audioRef;
- string recStatus = string.Empty;
- string supportStatus = string.Empty;
- string lastTranscript = string.Empty;
- string agentReply = string.Empty;
+    record Msg(string Role, string Text);
+    List<Msg> messages = new();
+    string status = string.Empty;
+    ElementReference bottom;
+    ElementReference audioRef;
+    string recStatus = string.Empty;
+    string supportStatus = string.Empty;
+    string lastTranscript = string.Empty;
+    string agentReply = string.Empty;
 
- // Alerts
- string? alertMessage;
- string alertKind = "info";
+    // Alerts
+    string? alertMessage;
+    string alertKind = "info";
 
- // Approval modal state
- bool showApproval = false;
- string? approvalHeader;
- string? approvalDiff;
+    // Approval modal state
+    bool showApproval = false;
+    string? approvalHeader;
+    string? approvalDiff;
 
- // Continuous mode
- bool enableContinuous = false;
- bool continuous = false;
- string phase = "Idle";
- DotNetObjectReference<AgentsChat>? selfRef;
- SemaphoreSlim phraseGate = new(1,1);
- CancellationTokenSource? continuousCts;
+    // Continuous mode
+    bool enableContinuous = false;
+    bool continuous = false;
+    string phase = "Idle";
+    DotNetObjectReference<AgentsChat>? selfRef;
+    SemaphoreSlim phraseGate = new(1,1);
+    CancellationTokenSource? continuousCts;
 
- // VAD sliders
- double vadThreshold =0.010; // default
- int vadSilenceMs =800;
+    // VAD sliders
+    double vadThreshold =0.010; // default
+    int vadSilenceMs =800;
 
- protected override void OnInitialized()
- {
- enableContinuous = Cfg.GetValue("Features:ContinuousDictation", true);
- }
+    protected override void OnInitialized()
+    {
+        enableContinuous = Cfg.GetValue("Features:ContinuousDictation", true);
+    }
 
- protected override async Task OnAfterRenderAsync(bool firstRender)
- {
- if (firstRender && enableContinuous)
- {
- selfRef = DotNetObjectReference.Create(this);
- }
- await Task.CompletedTask;
- }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && enableContinuous)
+        {
+            selfRef = DotNetObjectReference.Create(this);
+        }
+        await Task.CompletedTask;
+    }
 
- public async ValueTask DisposeAsync()
- {
- if (continuous)
- {
- try { await JS.InvokeVoidAsync("codeheroAudio.continuous.stop"); } catch { }
- continuousCts?.Cancel();
- }
- selfRef?.Dispose();
- phraseGate.Dispose();
- }
+    public async ValueTask DisposeAsync()
+    {
+        if (continuous)
+        {
+            try { await JS.InvokeVoidAsync("codeheroAudio.continuous.stop"); } catch { }
+            continuousCts?.Cancel();
+        }
+        selfRef?.Dispose();
+        phraseGate.Dispose();
+    }
 
- async Task ApplyContinuousSettings(ChangeEventArgs _)
- {
- if (!continuous) return;
- try
- {
- await JS.InvokeVoidAsync("codeheroAudio.continuous.stop");
- await JS.InvokeVoidAsync("codeheroAudio.continuous.start", selfRef, new { threshold = vadThreshold, minSilenceMs = vadSilenceMs });
- }
- catch { }
- }
+    async Task ApplyContinuousSettings(ChangeEventArgs _)
+    {
+        if (!continuous) return;
+        try
+        {
+            await JS.InvokeVoidAsync("codeheroAudio.continuous.stop");
+            await JS.InvokeVoidAsync("codeheroAudio.continuous.start", selfRef, new { threshold = vadThreshold, minSilenceMs = vadSilenceMs });
+        }
+        catch { }
+    }
 
- async Task LoadAudioTag(byte[] bytes)
- {
- var b64 = Convert.ToBase64String(bytes);
- await JS.InvokeVoidAsync("codeheroAudio.load", audioRef, "data:audio/wav;base64," + b64);
- }
+    async Task LoadAudioTag(byte[] bytes)
+    {
+        var b64 = Convert.ToBase64String(bytes);
+        await JS.InvokeVoidAsync("codeheroAudio.load", audioRef, "data:audio/wav;base64," + b64);
+    }
 
- async Task ApprovePendingAsync()
- {
- showApproval = false;
- var http = HttpFactory.CreateClient();
- if (http.BaseAddress is null) http.BaseAddress = new Uri(Nav.BaseUri, UriKind.Absolute);
- var you = "approve";
- messages.Add(new Msg("you", you));
- var replyResp = await http.PostAsync("api/agent/chat", new StringContent(you));
- if (replyResp.IsSuccessStatusCode)
- {
- var reply = await replyResp.Content.ReadAsStringAsync();
- messages.Add(new Msg("agent", reply));
- if (reply.StartsWith("[fs/writeText] Saved:", StringComparison.OrdinalIgnoreCase))
- {
- alertKind = "success"; alertMessage = reply;
- }
- else if (reply.StartsWith("[approval]", StringComparison.OrdinalIgnoreCase))
- {
- ShowApproval(reply);
- alertMessage = null;
- }
- else
- {
- alertKind = "info"; alertMessage = reply;
- var tts = await http.PostAsync("api/tts?voice=en-US-JennyNeural", new StringContent(reply));
- if (tts.IsSuccessStatusCode)
- {
- var wav = await tts.Content.ReadAsByteArrayAsync();
- await LoadAudioTag(wav);
- }
- }
- }
- await InvokeAsync(StateHasChanged);
- }
+    async Task ApprovePendingAsync()
+    {
+        showApproval = false;
+        var http = HttpFactory.CreateClient();
+        if (http.BaseAddress is null) http.BaseAddress = new Uri(Nav.BaseUri, UriKind.Absolute);
+        var you = "approve";
+        messages.Add(new Msg("you", you));
+        var replyResp = await http.PostAsync("api/agent/chat", new StringContent(you));
+        if (replyResp.IsSuccessStatusCode)
+        {
+            var reply = await replyResp.Content.ReadAsStringAsync();
+            messages.Add(new Msg("agent", reply));
+            if (reply.StartsWith("[fs/writeText] Saved:", StringComparison.OrdinalIgnoreCase))
+            {
+                alertKind = "success"; alertMessage = reply;
+            }
+            else if (reply.StartsWith("[approval]", StringComparison.OrdinalIgnoreCase))
+            {
+                ShowApproval(reply);
+                alertMessage = null;
+            }
+            else
+            {
+                alertKind = "info"; alertMessage = reply;
+                var tts = await http.PostAsync("api/tts?voice=en-US-JennyNeural", new StringContent(reply));
+                if (tts.IsSuccessStatusCode)
+                {
+                    var wav = await tts.Content.ReadAsByteArrayAsync();
+                    await LoadAudioTag(wav);
+                }
+            }
+        }
+        await InvokeAsync(StateHasChanged);
+    }
 
- async Task CancelPendingAsync()
- {
- showApproval = false;
- var http = HttpFactory.CreateClient();
- if (http.BaseAddress is null) http.BaseAddress = new Uri(Nav.BaseUri, UriKind.Absolute);
- var you = "cancel";
- messages.Add(new Msg("you", you));
- var replyResp = await http.PostAsync("api/agent/chat", new StringContent(you));
- if (replyResp.IsSuccessStatusCode)
- {
- var reply = await replyResp.Content.ReadAsStringAsync();
- messages.Add(new Msg("agent", reply));
- alertKind = "warning"; alertMessage = reply;
- }
- await InvokeAsync(StateHasChanged);
- }
+    async Task CancelPendingAsync()
+    {
+        showApproval = false;
+        var http = HttpFactory.CreateClient();
+        if (http.BaseAddress is null) http.BaseAddress = new Uri(Nav.BaseUri, UriKind.Absolute);
+        var you = "cancel";
+        messages.Add(new Msg("you", you));
+        var replyResp = await http.PostAsync("api/agent/chat", new StringContent(you));
+        if (replyResp.IsSuccessStatusCode)
+        {
+            var reply = await replyResp.Content.ReadAsStringAsync();
+            messages.Add(new Msg("agent", reply));
+            alertKind = "warning"; alertMessage = reply;
+        }
+        await InvokeAsync(StateHasChanged);
+    }
 
- // Continuous mode helpers
- async Task ToggleContinuous()
- {
- if (!enableContinuous) return;
- if (!continuous)
- {
- // Capability check (optional)
- try
- {
- var caps = await JS.InvokeAsync<AudioCapabilities>("codeheroAudio.support");
- supportStatus = $"secure={caps.secure}, mediaDevices={caps.hasMediaDevices}, getUserMedia={caps.hasGetUserMedia}, mediaRecorder={caps.hasMediaRecorder}, pref={caps.preferred ?? "n/a"}, mic={caps.micPerm}";
- }
- catch { }
+    // Continuous mode helpers
+    async Task ToggleContinuous()
+    {
+        if (!enableContinuous) return;
+        if (!continuous)
+        {
+            // Capability check (optional)
+            try
+            {
+                var caps = await JS.InvokeAsync<AudioCapabilities>("codeheroAudio.support");
+                supportStatus = $"secure={caps.secure}, mediaDevices={caps.hasMediaDevices}, getUserMedia={caps.hasGetUserMedia}, mediaRecorder={caps.hasMediaRecorder}, pref={caps.preferred ?? "n/a"}, mic={caps.micPerm}";
+            }
+            catch { }
 
- continuousCts = new CancellationTokenSource();
- phase = "Listening";
- await JS.InvokeVoidAsync("codeheroAudio.continuous.start", selfRef, new { threshold = vadThreshold, minSilenceMs = vadSilenceMs });
- continuous = true;
- }
- else
- {
- await JS.InvokeVoidAsync("codeheroAudio.continuous.stop");
- continuousCts?.Cancel();
- continuous = false;
- phase = "Idle";
- }
- }
+            continuousCts = new CancellationTokenSource();
+            phase = "Listening";
+            await JS.InvokeVoidAsync("codeheroAudio.continuous.start", selfRef, new { threshold = vadThreshold, minSilenceMs = vadSilenceMs });
+            continuous = true;
+        }
+        else
+        {
+            await JS.InvokeVoidAsync("codeheroAudio.continuous.stop");
+            continuousCts?.Cancel();
+            continuous = false;
+            phase = "Idle";
+        }
+    }
 
- [JSInvokable]
- public async Task OnVADState(string state)
- {
- phase = state switch { "speaking" => "Speaking", "listening" => "Listening", _ => phase };
- await InvokeAsync(StateHasChanged);
- }
+    [JSInvokable]
+    public async Task OnVADState(string state)
+    {
+        phase = state switch { "speaking" => "Speaking", "listening" => "Listening", _ => phase };
+        await InvokeAsync(StateHasChanged);
+    }
 
- [JSInvokable]
- public async Task OnPhrase(string base64)
- {
- // Allow only one phrase in flight to avoid overlap
- if (!await phraseGate.WaitAsync(0)) return;
- using var gateReleaser = new Releaser(phraseGate);
+    [JSInvokable]
+    public async Task OnPhrase(string base64)
+    {
+        // Allow only one phrase in flight to avoid overlap
+        if (!await phraseGate.WaitAsync(0)) return;
+        using var gateReleaser = new Releaser(phraseGate);
 
- using var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
- using var linked = CancellationTokenSource.CreateLinkedTokenSource(timeoutCts.Token, continuousCts?.Token ?? CancellationToken.None);
- try
- {
- var bytes = Convert.FromBase64String(base64);
- // Send to STT
- var http = HttpFactory.CreateClient();
- if (http.BaseAddress is null) http.BaseAddress = new Uri(Nav.BaseUri, UriKind.Absolute);
- using var content = new ByteArrayContent(bytes);
- content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("audio/wav");
- var resp = await http.PostAsync("api/stt", content, linked.Token);
- var text = resp.IsSuccessStatusCode ? (await resp.Content.ReadAsStringAsync(linked.Token)) : string.Empty;
- if (!string.IsNullOrWhiteSpace(text))
- {
- lastTranscript = text;
- messages.Add(new Msg("you", text));
- phase = "Thinking";
- // Ask agent and speak
- var replyResp = await http.PostAsync("api/agent/chat", new StringContent(text), linked.Token);
- if (replyResp.IsSuccessStatusCode)
- {
- agentReply = await replyResp.Content.ReadAsStringAsync(linked.Token);
- messages.Add(new Msg("agent", agentReply));
+        using var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+        using var linked = CancellationTokenSource.CreateLinkedTokenSource(timeoutCts.Token, continuousCts?.Token ?? CancellationToken.None);
+        try
+        {
+            var bytes = Convert.FromBase64String(base64);
+            // Send to STT
+            var http = HttpFactory.CreateClient();
+            if (http.BaseAddress is null) http.BaseAddress = new Uri(Nav.BaseUri, UriKind.Absolute);
+            using var content = new ByteArrayContent(bytes);
+            content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("audio/wav");
+            var resp = await http.PostAsync("api/stt", content, linked.Token);
+            var text = resp.IsSuccessStatusCode ? (await resp.Content.ReadAsStringAsync(linked.Token)) : string.Empty;
+            if (!string.IsNullOrWhiteSpace(text))
+            {
+                lastTranscript = text;
+                messages.Add(new Msg("you", text));
+                phase = "Thinking";
+                // Ask agent and speak
+                var replyResp = await http.PostAsync("api/agent/chat", new StringContent(text), linked.Token);
+                if (replyResp.IsSuccessStatusCode)
+                {
+                    agentReply = await replyResp.Content.ReadAsStringAsync(linked.Token);
+                    messages.Add(new Msg("agent", agentReply));
 
- // If this is an approval prompt, show dialog and do not TTS
- if (agentReply.StartsWith("[approval]", StringComparison.OrdinalIgnoreCase))
- {
- ShowApproval(agentReply);
- alertMessage = null;
- }
- else
- {
- alertKind = "info"; alertMessage = agentReply;
- var tts = await http.PostAsync("api/tts?voice=en-US-JennyNeural", new StringContent(agentReply), linked.Token);
- if (tts.IsSuccessStatusCode)
- {
- var wav = await tts.Content.ReadAsByteArrayAsync(linked.Token);
- await LoadAudioTag(wav);
- }
- }
- }
- }
- }
- catch (OperationCanceledException)
- {
- messages.Add(new Msg("error", "Timed out processing phrase."));
- }
- catch (Exception ex)
- {
- messages.Add(new Msg("error", ex.Message));
- }
- finally
- {
- phase = continuous ? "Listening" : "Idle";
- await InvokeAsync(StateHasChanged);
- }
- }
+                    // If this is an approval prompt, show dialog and do not TTS
+                    if (agentReply.StartsWith("[approval]", StringComparison.OrdinalIgnoreCase))
+                    {
+                        ShowApproval(agentReply);
+                        alertMessage = null;
+                    }
+                    else
+                    {
+                        alertKind = "info"; alertMessage = agentReply;
+                        var tts = await http.PostAsync("api/tts?voice=en-US-JennyNeural", new StringContent(agentReply), linked.Token);
+                        if (tts.IsSuccessStatusCode)
+                        {
+                            var wav = await tts.Content.ReadAsByteArrayAsync(linked.Token);
+                            await LoadAudioTag(wav);
+                        }
+                    }
+                }
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            messages.Add(new Msg("error", "Timed out processing phrase."));
+        }
+        catch (Exception ex)
+        {
+            messages.Add(new Msg("error", ex.Message));
+        }
+        finally
+        {
+            phase = continuous ? "Listening" : "Idle";
+            await InvokeAsync(StateHasChanged);
+        }
+    }
 
- void ShowApproval(string reply)
- {
- showApproval = true;
- // Split header and diff at first newline
- var idx = reply.IndexOf('\n');
- if (idx >0)
- {
- approvalHeader = reply.Substring(0, idx).Trim();
- approvalDiff = reply.Substring(idx +1);
- }
- else
- {
- approvalHeader = "Approval required";
- approvalDiff = reply;
- }
- StateHasChanged();
- }
+    void ShowApproval(string reply)
+    {
+        showApproval = true;
+        // Split header and diff at first newline
+        var idx = reply.IndexOf('\n');
+        if (idx >0)
+        {
+            approvalHeader = reply.Substring(0, idx).Trim();
+            approvalDiff = reply.Substring(idx +1);
+        }
+        else
+        {
+            approvalHeader = "Approval required";
+            approvalDiff = reply;
+        }
+        StateHasChanged();
+    }
 
- private sealed class Releaser : IAsyncDisposable, IDisposable
- {
- private readonly SemaphoreSlim _gate;
- public Releaser(SemaphoreSlim gate) => _gate = gate;
- public void Dispose() => _gate.Release();
- public ValueTask DisposeAsync() { _gate.Release(); return ValueTask.CompletedTask; }
- }
+    private sealed class Releaser : IAsyncDisposable, IDisposable
+    {
+        private readonly SemaphoreSlim _gate;
+        public Releaser(SemaphoreSlim gate) => _gate = gate;
+        public void Dispose() => _gate.Release();
+        public ValueTask DisposeAsync() { _gate.Release(); return ValueTask.CompletedTask; }
+    }
 }

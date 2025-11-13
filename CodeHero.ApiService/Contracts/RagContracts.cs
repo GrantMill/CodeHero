@@ -1,6 +1,6 @@
 namespace CodeHero.ApiService.Contracts;
 
-public sealed record ChatTurn(string User, string Assistant);
+public sealed record ChatTurn(string User, string Assistant, System.DateTimeOffset Timestamp = default);
 public sealed record ChatRequest(string ChatInput, IReadOnlyList<ChatTurn> ChatHistory);
 
 public sealed record SearchRequest(

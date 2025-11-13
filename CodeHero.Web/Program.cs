@@ -57,9 +57,21 @@ builder.Services.AddSingleton<SpeechDiagnosticsMonitor>();
 builder.Services.AddHttpClient<RagClient>((sp, c) =>
 {
     var cfg = sp.GetRequiredService<IConfiguration>();
-    var baseUrl = cfg["RagApi:BaseAddress"] ?? cfg["ApiService:BaseAddress"];
-    if (!string.IsNullOrWhiteSpace(baseUrl))
-        c.BaseAddress = new Uri(baseUrl);
+    var uriString = builder.Configuration["ApiService:BaseUrl"];
+    Uri? uri = null;
+    if (!string.IsNullOrWhiteSpace(uriString))
+        uri = new Uri(uriString);
+    if (uri is not null)
+        c.BaseAddress = uri;
+
+    // increase timeout to allow backend calls to complete (e.g., Foundry requests)
+    c.Timeout = TimeSpan.FromMinutes(2);
+});
+
+// Ensure typed RagClient does not inherit global resilience handlers which may impose short per-attempt timeouts
+builder.Services.Configure<Microsoft.Extensions.Http.HttpClientFactoryOptions>(typeof(RagClient).FullName!, options =>
+{
+    options.HttpMessageHandlerBuilderActions.Clear();
 });
 
 // Register a named HttpClient for Foundry with HTTP/1.1 and SocketsHttpHandler tuned to avoid HTTP/2 keepalive/ping issues

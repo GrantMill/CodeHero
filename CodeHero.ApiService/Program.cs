@@ -1,9 +1,15 @@
+using CodeHero.ApiService;
 using Azure;
 using Azure.Search.Documents;
 using CodeHero.ApiService.Contracts;
 using CodeHero.ApiService.Services.Rag;
 using CodeHero.Extensions;
 using CodeHero.Services;
+using Polly;
+using Polly.Extensions.Http;
+using System.Net.Http.Headers;
+using System.Net.Http;
+using System.Net;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,6 +30,44 @@ builder.Services.AddHostedService(sp => (BackgroundIndexerService)sp.GetRequired
 
 // RAG: Search client (optional)
 builder.Services.AddHttpClient();
+// Configure a named HttpClient for AOAI/Foundry calls with tuned timeouts and a simple retry handler
+builder.Services.AddTransient<SimpleRetryHandler>();
+builder.Services.AddTransient<FoundryPolicyHandler>();
+
+// Read resilience settings from configuration (fallback defaults)
+var foundryAttemptTimeoutSec = builder.Configuration.GetValue<int?>("Resilience:FoundryAttemptTimeoutSeconds") ?? 120;
+var foundryRetryCount = builder.Configuration.GetValue<int?>("Resilience:FoundryRetryCount") ?? 3;
+var foundryCircuitFailures = builder.Configuration.GetValue<int?>("Resilience:FoundryCircuitFailures") ?? 5;
+var foundryCircuitDurationSec = builder.Configuration.GetValue<int?>("Resilience:FoundryCircuitDurationSeconds") ?? 60;
+
+builder.Services.AddHttpClient("foundry", client =>
+{
+    // prefer HTTP/1.1 to avoid HTTP/2 transport/keepalive quirks
+    client.DefaultRequestVersion = HttpVersion.Version11;
+    client.DefaultVersionPolicy = HttpVersionPolicy.RequestVersionOrLower;
+
+    // allow long running completions and let callers cap runtime via CancellationToken
+    client.Timeout = Timeout.InfiniteTimeSpan;
+    client.DefaultRequestHeaders.Accept.Clear();
+    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+})
+.ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
+{
+    // Reduce chance of stale/closed connections being reused
+    PooledConnectionLifetime = TimeSpan.FromMinutes(5),
+    PooledConnectionIdleTimeout = TimeSpan.FromMinutes(2),
+    AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
+})
+.AddHttpMessageHandler<SimpleRetryHandler>()
+.AddHttpMessageHandler<FoundryPolicyHandler>();
+
+// Ensure the named 'foundry' client does not inherit global resilience/service-discovery handlers
+builder.Services.Configure<Microsoft.Extensions.Http.HttpClientFactoryOptions>("foundry", options =>
+{
+    options.HttpMessageHandlerBuilderActions.Clear();
+});
+
+// Register default SearchClient factory / instance
 builder.Services.AddSingleton(sp =>
 {
     var cfg = sp.GetRequiredService<IConfiguration>();
@@ -49,6 +93,39 @@ builder.Services.AddScoped<IRagAnswerService, RagAnswerService>();
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
+
+// Startup inspector: log foundry client options and ensure no global builder actions remain
+using (var scope = app.Services.CreateScope())
+{
+    var sp = scope.ServiceProvider;
+    var logger = sp.GetRequiredService<ILoggerFactory>().CreateLogger("Startup.FoundryInspector");
+    try
+    {
+        var optionsMonitor = sp.GetService<Microsoft.Extensions.Options.IOptionsMonitor<Microsoft.Extensions.Http.HttpClientFactoryOptions>>();
+        if (optionsMonitor is not null)
+        {
+            var opt = optionsMonitor.Get("foundry");
+            logger.LogInformation("Foundry HttpClientFactoryOptions: HttpMessageHandlerBuilderActions.Count={Count}", opt.HttpMessageHandlerBuilderActions?.Count ?? 0);
+            // re-clear to be extra safe
+            opt.HttpMessageHandlerBuilderActions?.Clear();
+            logger.LogInformation("Cleared Foundry HttpMessageHandlerBuilderActions; Count now={Count}", opt.HttpMessageHandlerBuilderActions?.Count ?? 0);
+        }
+        else
+        {
+            logger.LogWarning("IOptionsMonitor<HttpClientFactoryOptions> not available to inspect.");
+        }
+
+        // Log the named client defaults if possible
+        var httpFactory = sp.GetRequiredService<IHttpClientFactory>();
+        var client = httpFactory.CreateClient("foundry");
+        logger.LogInformation("Named 'foundry' HttpClient constructed: Timeout={Timeout} DefaultRequestVersion={Version} DefaultVersionPolicy={Policy} BaseAddress={Base}", client.Timeout, client.DefaultRequestVersion, client.DefaultVersionPolicy, client.BaseAddress);
+    }
+    catch (Exception ex)
+    {
+        var logger2 = sp.GetRequiredService<ILoggerFactory>().CreateLogger("Startup.FoundryInspector");
+        logger2.LogError(ex, "Error inspecting foundry client at startup");
+    }
+}
 
 // Configure the HTTP request pipeline.
 app.UseExceptionHandler();
@@ -124,27 +201,6 @@ app.MapGet("/api/search/indexer/diagnostics", (IConfiguration cfg) =>
     });
 });
 
-string[] summaries = ["Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"];
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast = Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast");
-
 app.MapDefaultEndpoints();
 
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}

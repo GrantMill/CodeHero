@@ -9,6 +9,7 @@
 @inject IWebHostEnvironment Env
 @inject IJSRuntime JS
 @inject FileStore Store
+@inject RagClient Rag // RAG pipeline client
 
 <h3>Agents</h3>
 
@@ -32,8 +33,12 @@
 
 <div class="mb-3">
  <button class="btn btn-primary" @onclick="Ping">Ping MCP</button>
- <button class="btn btn-secondary ms-2" @onclick="PingFoundry" disabled="@(foundryPingLoading)">Ping Foundry</button>
- <button class="btn btn-secondary ms-2" @onclick="TestPhi" disabled="@(foundryPhiLoading)">Test Phi</button>
+ <button class="btn btn-secondary ms-2"
+         @onclick="PingFoundry"
+         disabled="@(foundryPingLoading)">Ping Foundry</button>
+ <button class="btn btn-secondary ms-2"
+         @onclick="TestPhi"
+         disabled="@(foundryPhiLoading)">Test Phi</button>
  <span class="ms-2">@status</span>
 </div>
 
@@ -64,6 +69,58 @@
         </div>
     </div>
 }
+
+<!-- RAG card ALWAYS rendered so input is available before first turn -->
+<div class="card mb-3">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span>RAG Conversation (rephrase → hybrid search → answer)</span>
+        @if (ragLoading)
+        {
+            <div class="spinner-border spinner-border-sm" role="status"><span class="visually-hidden">Loading...</span></div>
+        }
+    </div>
+    <div class="card-body">
+        <div class="input-group mb-2">
+            <input class="form-control" placeholder="Ask about the app (e.g. 'What does CodeHero do?')" @bind="ragInput" />
+            <button class="btn btn-primary" @onclick="AskRagAsync" disabled="@(ragLoading || string.IsNullOrWhiteSpace(ragInput))">Send</button>
+            <button class="btn btn-outline-secondary" @onclick="ClearRag" disabled="@(ragLoading || ragHistory.Count==0)">Clear</button>
+        </div>
+        @if (!string.IsNullOrWhiteSpace(ragLastStandalone))
+        {
+            <div class="small text-muted mb-2">Summary: <code>@ragLastStandalone</code></div>
+        }
+        @if (ragHistory.Count == 0 && !ragLoading)
+        {
+            <div class="text-muted">No RAG turns yet. Enter a question above and click Send.</div>
+        }
+        @foreach (var turn in ragHistory)
+        {
+            <div class="mb-2">
+                <div class="fw-semibold">You (@turn.Timestamp:u):</div>
+                <pre class="mb-1" style="white-space:pre-wrap">@turn.User</pre>
+                <div class="fw-semibold">Assistant (@turn.Timestamp:u):</div>
+                <pre class="mb-1 bg-body-secondary p-2 rounded" style="white-space:pre-wrap">@turn.Assistant</pre>
+            </div>
+        }
+        @if (!string.IsNullOrWhiteSpace(ragError))
+        {
+            <div class="alert alert-danger">@ragError</div>
+        }
+        @if (diag is not null)
+        {
+            <div class="mt-3">
+                <h6>Diagnostic (raw responses)</h6>
+                <div class="small text-muted">Rephrase (status: @diag.RephraseStatus)</div>
+                <pre style="white-space:pre-wrap">@diag.RephraseRaw</pre>
+                <div class="small text-muted">Search (status: @diag.SearchStatus)</div>
+                <pre style="white-space:pre-wrap">@diag.SearchRaw</pre>
+                <div class="small text-muted">Answer (status: @diag.AnswerStatus)</div>
+                <pre style="white-space:pre-wrap">@diag.AnswerRaw</pre>
+            </div>
+        }
+    </div>
+    <div class="card-footer small text-muted">Answers may include JSON or citations. Temperature kept low for determinism.</div>
+</div>
 
 <div class="card">
  <div class="card-header">List requirements via MCP</div>
@@ -218,6 +275,14 @@
  string foundryPhiJson = string.Empty;
  string foundryPhiStatus = string.Empty;
 
+ // RAG state
+ List<ChatTurn> ragHistory = new();
+ string ragInput = string.Empty;
+ bool ragLoading = false;
+ string ragLastStandalone = string.Empty; // extracted from first line if JSON includes summary
+ string? ragError;
+ DiagnosticAnswerResponse? diag;
+
  // Prompts & guardrails (.agent)
  List<string> roleFiles = new();
  List<string> toolFiles = new();
@@ -329,12 +394,26 @@
          foundryPhiLoading = true;
          foundryPhiJson = string.Empty;
          foundryPhiStatus = string.Empty;
-         var http = HttpFactory.CreateClient();
-         if (http.BaseAddress is null) http.BaseAddress = new Uri(Nav.BaseUri, UriKind.Absolute);
+
          var prompt = "Explain what the application does.";
+
+         // Use a direct SocketsHttpHandler + HttpClient to avoid global resilience handlers on the default factory client
+         using var handler = new System.Net.Http.SocketsHttpHandler
+         {
+             AutomaticDecompression = System.Net.DecompressionMethods.GZip | System.Net.DecompressionMethods.Deflate,
+             PooledConnectionLifetime = TimeSpan.FromMinutes(10),
+             Expect100ContinueTimeout = TimeSpan.Zero,
+             UseProxy = false
+         };
+
+         using var client = new HttpClient(handler) { Timeout = Timeout.InfiniteTimeSpan };
+         if (client.BaseAddress is null) client.BaseAddress = new Uri(Nav.BaseUri, UriKind.Absolute);
+         client.DefaultRequestVersion = System.Net.HttpVersion.Version11;
+
          using var content = new StringContent(prompt, System.Text.Encoding.UTF8, "text/plain");
-         var resp = await http.PostAsync("api/agent/phi-test", content);
+         using var resp = await client.PostAsync("api/agent/phi-test", content);
          var text = await resp.Content.ReadAsStringAsync();
+
          if (resp.IsSuccessStatusCode)
          {
              try
@@ -380,6 +459,125 @@
          foundryPhiLoading = false;
          StateHasChanged();
      }
+ }
+
+ async Task AskRagAsync()
+ {
+     if (string.IsNullOrWhiteSpace(ragInput) || ragLoading) return;
+     ragLoading = true;
+     ragError = null;
+     diag = null;
+     try
+     {
+         var d = await Rag.AskDiagnosticAsync(ragInput, ragHistory, CancellationToken.None);
+         diag = d;
+         try { Rag.LastDiagnostic = d; } catch { }
+
+         var now = DateTimeOffset.UtcNow;
+
+         // 1) add rephrase result
+         var rephraseText = string.IsNullOrWhiteSpace(d.RephraseRaw) ? "(no rephrase)" : d.RephraseRaw;
+         ragHistory.Add(new ChatTurn("(rephrase)", rephraseText, now));
+
+         // 2) add search results
+         var searchText = string.IsNullOrWhiteSpace(d.SearchRaw) ? "(no search)" : d.SearchRaw;
+         ragHistory.Add(new ChatTurn("(search)", searchText, now));
+
+         // 3) show the actual payload sent to the answer endpoint (input to final model)
+         var answerReqJson = d.AnswerRequestJson ?? "(no answer request json)";
+         ragHistory.Add(new ChatTurn("(answer request)", answerReqJson, now));
+
+         // 4) final answer
+         if (d.ParsedAnswer is not null)
+         {
+             var final = d.ParsedAnswer.Output ?? string.Empty;
+             ragHistory.Add(new ChatTurn("(final answer)", final, now));
+
+             if (final.StartsWith('{'))
+             {
+                 try
+                 {
+                     using var doc = System.Text.Json.JsonDocument.Parse(final);
+                     if (doc.RootElement.TryGetProperty("summary", out var sumEl) && sumEl.ValueKind == System.Text.Json.JsonValueKind.String)
+                         ragLastStandalone = sumEl.GetString() ?? string.Empty;
+                 }
+                 catch { }
+             }
+         }
+         else
+         {
+             var fallback = d.AnswerRaw ?? "(no answer)";
+             ragHistory.Add(new ChatTurn("(final answer)", fallback, now));
+         }
+
+         // Add original user turn
+         ragHistory.Add(new ChatTurn(ragInput, string.Empty, now));
+
+         ragInput = string.Empty;
+     }
+     catch (Exception ex)
+     {
+         ragError = ex.Message;
+     }
+     finally
+     {
+         ragLoading = false;
+         StateHasChanged();
+     }
+ }
+
+ async Task AskRagDiagnosticAsync()
+ {
+     if (string.IsNullOrWhiteSpace(ragInput) || ragLoading) return;
+     ragLoading = true;
+     ragError = null;
+     diag = null;
+     try
+     {
+         var d = await Rag.AskDiagnosticAsync(ragInput, ragHistory, CancellationToken.None);
+         diag = d;
+         try { Rag.LastDiagnostic = d; } catch { }
+
+         var now = DateTimeOffset.UtcNow;
+
+         if (d.ParsedAnswer is not null)
+         {
+             if (d.ParsedAnswer.Output.StartsWith('{'))
+             {
+                 try
+                 {
+                     using var doc = System.Text.Json.JsonDocument.Parse(d.ParsedAnswer.Output);
+                     if (doc.RootElement.TryGetProperty("summary", out var sumEl) && sumEl.ValueKind == System.Text.Json.JsonValueKind.String)
+                         ragLastStandalone = sumEl.GetString() ?? string.Empty;
+                 }
+                 catch { }
+             }
+
+             ragHistory.Add(new ChatTurn(ragInput, d.ParsedAnswer.Output, now));
+         }
+         else
+         {
+             ragHistory.Add(new ChatTurn(ragInput, d.AnswerRaw ?? "(no answer)", now));
+         }
+
+         ragInput = string.Empty;
+     }
+     catch (Exception ex)
+     {
+         ragError = ex.Message;
+     }
+     finally
+     {
+         ragLoading = false;
+         StateHasChanged();
+     }
+ }
+
+ void ClearRag()
+ {
+     ragHistory.Clear();
+     ragLastStandalone = string.Empty;
+     ragError = null;
  }
 
  async Task ListReqs()
