@@ -1,4 +1,5 @@
 using CodeHero.ApiService.Contracts;
+using CodeHero.ApiService.Utilities;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
@@ -117,67 +118,31 @@ public sealed class RagAnswerService : IRagAnswerService
             }
 
             // Try to parse as JSON; if not JSON, treat the whole body as assistant text
-            JsonDocument? doc = null;
             try
             {
-                doc = JsonDocument.Parse(body);
+                var choice = OpenAiResponseParser.TryGetFirstChoiceContent(body);
+                if (choice is null)
+                {
+                    var raw = (body ?? string.Empty).Trim();
+                    if (string.IsNullOrEmpty(raw))
+                    {
+                        _log.LogWarning("Answer returned empty non-JSON body.");
+                        return new AnswerResponse("Answer generation returned empty response.", null, "low");
+                    }
+
+                    _log.LogInformation("Answer returned non-JSON or unexpected JSON; returning raw text. Length={Len}", raw.Length);
+                    return new AnswerResponse(raw, null, "medium");
+                }
+
+                var contentStr = choice ?? string.Empty;
+                var confidence = contentStr.Contains("confidence", StringComparison.OrdinalIgnoreCase) ? "reported" : "medium";
+                return new AnswerResponse(contentStr.Trim(), null, confidence);
             }
             catch (JsonException)
             {
                 var raw = (body ?? string.Empty).Trim();
-                if (string.IsNullOrEmpty(raw))
-                {
-                    _log.LogWarning("Answer returned empty non-JSON body.");
-                    return new AnswerResponse("Answer generation returned empty response.", null, "low");
-                }
-
-                _log.LogInformation("Answer returned non-JSON body; returning raw text. Length={Len}", raw.Length);
-                // confidence unknown, choose medium
+                _log.LogInformation("Answer returned non-JSON body after parse attempt; returning raw text. Length={Len}", raw.Length);
                 return new AnswerResponse(raw, null, "medium");
-            }
-
-            if (doc is null)
-            {
-                return new AnswerResponse("Answer generation returned invalid response.", null, "low");
-            }
-
-            // Safely extract choices[0].message.content
-            try
-            {
-                if (!doc.RootElement.TryGetProperty("choices", out var choices) || choices.ValueKind != JsonValueKind.Array || choices.GetArrayLength() == 0)
-                {
-                    _log.LogWarning("Answer JSON did not contain choices array; returning raw body.");
-                    var raw = body.Trim();
-                    return new AnswerResponse(raw, null, "medium");
-                }
-
-                var first = choices[0];
-                if (first.ValueKind != JsonValueKind.Object)
-                {
-                    _log.LogWarning("Answer JSON first choice is not an object; returning raw body.");
-                    return new AnswerResponse(body.Trim(), null, "medium");
-                }
-
-                if (!first.TryGetProperty("message", out var message) || message.ValueKind != JsonValueKind.Object)
-                {
-                    _log.LogWarning("Answer JSON choice did not contain message; returning raw body.");
-                    return new AnswerResponse(body.Trim(), null, "medium");
-                }
-
-                if (!message.TryGetProperty("content", out var contentEl) || contentEl.ValueKind != JsonValueKind.String)
-                {
-                    _log.LogWarning("Answer JSON message.content missing or not string; returning raw body.");
-                    return new AnswerResponse(body.Trim(), null, "medium");
-                }
-
-                var contentStr = contentEl.GetString() ?? string.Empty;
-                var confidence = contentStr.Contains("confidence", StringComparison.OrdinalIgnoreCase) ? "reported" : "medium";
-                return new AnswerResponse(contentStr.Trim(), null, confidence);
-            }
-            catch (Exception ex)
-            {
-                _log.LogError(ex, "Failed to extract answer from JSON; returning raw body.");
-                return new AnswerResponse(body.Trim(), null, "medium");
             }
         }
         catch (Exception ex)

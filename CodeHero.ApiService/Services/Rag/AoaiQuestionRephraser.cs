@@ -139,17 +139,9 @@ public sealed class AoaiQuestionRephraser : IQuestionRephraser
                 return request.ChatInput;
             }
 
-            // Parse and extract content if JSON, otherwise treat entire body as assistant text
-            string choiceText;
-            try
-            {
-                using var doc = JsonDocument.Parse(body);
-                choiceText = doc.RootElement.GetProperty("choices")[0].GetProperty("message").GetProperty("content").GetString() ?? string.Empty;
-            }
-            catch (Exception)
-            {
-                choiceText = (body ?? string.Empty).Trim();
-            }
+            // Use centralized parser
+            var parsed = OpenAiResponseParser.TryGetFirstChoiceContent(body);
+            var choiceText = parsed ?? (body ?? string.Empty).Trim();
 
             // If model asked for clarification, override with best-effort deterministic fallback
             if (string.IsNullOrWhiteSpace(choiceText) || ClarifyPattern.IsMatch(choiceText))
