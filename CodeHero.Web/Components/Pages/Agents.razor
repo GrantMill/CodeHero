@@ -96,10 +96,37 @@
         @foreach (var turn in ragHistory)
         {
             <div class="mb-2">
-                <div class="fw-semibold">You (@turn.Timestamp:u):</div>
-                <pre class="mb-1" style="white-space:pre-wrap">@turn.User</pre>
-                <div class="fw-semibold">Assistant (@turn.Timestamp:u):</div>
-                <pre class="mb-1 bg-body-secondary p-2 rounded" style="white-space:pre-wrap">@turn.Assistant</pre>
+                @* Render role and content based on markers: if turn.User is a marker like "(rephrase)" show Agent asking and then CodeHero rephrase *@
+                @if (turn.User != null && turn.User.StartsWith("("))
+                {
+                    if (turn.User == "(rephrase)")
+                    {
+                        <div class="fw-semibold">Agent (@turn.Timestamp:u): Asking</div>
+                        <div class="fw-semibold">CodeHero (@turn.Timestamp:u):</div>
+                        <pre class="mb-1 bg-body-secondary p-2 rounded" style="white-space:pre-wrap">@turn.Assistant</pre>
+                    }
+                    else if (turn.User == "(final answer)")
+                    {
+                        <div class="fw-semibold">CodeHero (@turn.Timestamp:u):</div>
+                        <pre class="mb-1 bg-body-secondary p-2 rounded" style="white-space:pre-wrap">@turn.Assistant</pre>
+                    }
+                    else
+                    {
+                        var label = turn.User switch
+                        {
+                            "(search)" => "Agent: Search results:",
+                            "(answer request)" => "Agent: Model input:",
+                            _ => "Agent:"
+                        };
+                        <div class="fw-semibold">@label (@turn.Timestamp:u)</div>
+                        <pre class="mb-1 bg-body-secondary p-2 rounded" style="white-space:pre-wrap">@turn.Assistant</pre>
+                    }
+                }
+                else
+                {
+                    <div class="fw-semibold">You (@turn.Timestamp:u):</div>
+                    <pre class="mb-1" style="white-space:pre-wrap">@turn.User</pre>
+                }
             </div>
         }
         @if (!string.IsNullOrWhiteSpace(ragError))
@@ -242,163 +269,163 @@
 </div>
 
 @code {
- string status = string.Empty;
- List<string> files = new();
- List<string> agents = new();
+    string status = string.Empty;
+    List<string> files = new();
+    List<string> agents = new();
 
- // orchestrator assets
- string orchestratorMmd = string.Empty;
- string orchestratorPromptText = string.Empty;
+    // orchestrator assets
+    string orchestratorMmd = string.Empty;
+    string orchestratorPromptText = string.Empty;
 
- // structured capabilities state
- AgentCaps? selectedCaps;
- string? selectedAgent;
+    // structured capabilities state
+    AgentCaps? selectedCaps;
+    string? selectedAgent;
 
- string newId = "REQ-002";
- string newTitle = "New Requirement";
- string createdFile = string.Empty;
+    string newId = "REQ-002";
+    string newTitle = "New Requirement";
+    string createdFile = string.Empty;
 
- // local agents state
- string orchestratorPrompt = string.Empty;
- string orchestratorReply = string.Empty;
- string sttText = string.Empty;
- string ttsText = string.Empty;
- string ttsVoice = "en-US-JennyNeural";
- string? ttsSrc;
+    // local agents state
+    string orchestratorPrompt = string.Empty;
+    string orchestratorReply = string.Empty;
+    string sttText = string.Empty;
+    string ttsText = string.Empty;
+    string ttsVoice = "en-US-JennyNeural";
+    string? ttsSrc;
 
- // Diagnostics for Foundry ping
- bool foundryPingLoading = false;
- string foundryPingJson = string.Empty;
- string foundryPingStatus = string.Empty;
+    // Diagnostics for Foundry ping
+    bool foundryPingLoading = false;
+    string foundryPingJson = string.Empty;
+    string foundryPingStatus = string.Empty;
 
- bool foundryPhiLoading = false;
- string foundryPhiJson = string.Empty;
- string foundryPhiStatus = string.Empty;
+    bool foundryPhiLoading = false;
+    string foundryPhiJson = string.Empty;
+    string foundryPhiStatus = string.Empty;
 
- // RAG state
- List<ChatTurn> ragHistory = new();
- string ragInput = string.Empty;
- bool ragLoading = false;
- string ragLastStandalone = string.Empty; // extracted from first line if JSON includes summary
- string? ragError;
- DiagnosticAnswerResponse? diag;
+    // RAG state
+    List<ChatTurn> ragHistory = new();
+    string ragInput = string.Empty;
+    bool ragLoading = false;
+    string ragLastStandalone = string.Empty; // extracted from first line if JSON includes summary
+    string? ragError;
+    DiagnosticAnswerResponse? diag;
 
- // Prompts & guardrails (.agent)
- List<string> roleFiles = new();
- List<string> toolFiles = new();
- string? selectedPromptText;
- string? selectedPromptPath;
+    // Prompts & guardrails (.agent)
+    List<string> roleFiles = new();
+    List<string> toolFiles = new();
+    string? selectedPromptText;
+    string? selectedPromptPath;
 
- protected override void OnInitialized()
- {
- // Discover .agent files
- try
- {
- var root = Env.ContentRootPath;
- var roles = Path.Combine(root, ".agent", "roles");
- var tools = Path.Combine(root, ".agent", "tools");
- if (Directory.Exists(roles)) roleFiles = Directory.EnumerateFiles(roles, "*.*", SearchOption.TopDirectoryOnly)
- .Where(f => f.EndsWith(".yml", StringComparison.OrdinalIgnoreCase) || f.EndsWith(".yaml", StringComparison.OrdinalIgnoreCase) || f.EndsWith(".md", StringComparison.OrdinalIgnoreCase))
- .OrderBy(Path.GetFileName).ToList();
- if (Directory.Exists(tools)) toolFiles = Directory.EnumerateFiles(tools, "*.*", SearchOption.TopDirectoryOnly)
- .Where(f => f.EndsWith(".yml", StringComparison.OrdinalIgnoreCase) || f.EndsWith(".yaml", StringComparison.OrdinalIgnoreCase) || f.EndsWith(".md", StringComparison.OrdinalIgnoreCase))
- .OrderBy(Path.GetFileName).ToList();
- }
- catch { }
+    protected override void OnInitialized()
+    {
+        // Discover .agent files
+        try
+        {
+            var root = Env.ContentRootPath;
+            var roles = Path.Combine(root, ".agent", "roles");
+            var tools = Path.Combine(root, ".agent", "tools");
+            if (Directory.Exists(roles)) roleFiles = Directory.EnumerateFiles(roles, "*.*", SearchOption.TopDirectoryOnly)
+            .Where(f => f.EndsWith(".yml", StringComparison.OrdinalIgnoreCase) || f.EndsWith(".yaml", StringComparison.OrdinalIgnoreCase) || f.EndsWith(".md", StringComparison.OrdinalIgnoreCase))
+            .OrderBy(Path.GetFileName).ToList();
+            if (Directory.Exists(tools)) toolFiles = Directory.EnumerateFiles(tools, "*.*", SearchOption.TopDirectoryOnly)
+            .Where(f => f.EndsWith(".yml", StringComparison.OrdinalIgnoreCase) || f.EndsWith(".yaml", StringComparison.OrdinalIgnoreCase) || f.EndsWith(".md", StringComparison.OrdinalIgnoreCase))
+            .OrderBy(Path.GetFileName).ToList();
+        }
+        catch { }
 
- // Load architecture assets
- try { orchestratorMmd = Store.ReadText(StoreRoot.Architecture, "orchestrator.mmd", ".mmd", ".md"); }
- catch { orchestratorMmd = "flowchart LR\nA[missing orchestrator.mmd]"; }
- try { orchestratorPromptText = Store.ReadText(StoreRoot.Architecture, "orchestrator.prompt.md", ".md", ".txt"); }
- catch { orchestratorPromptText = string.Empty; }
- }
+        // Load architecture assets
+        try { orchestratorMmd = Store.ReadText(StoreRoot.Architecture, "orchestrator.mmd", ".mmd", ".md"); }
+        catch { orchestratorMmd = "flowchart LR\nA[missing orchestrator.mmd]"; }
+        try { orchestratorPromptText = Store.ReadText(StoreRoot.Architecture, "orchestrator.prompt.md", ".md", ".txt"); }
+        catch { orchestratorPromptText = string.Empty; }
+    }
 
- void LoadPrompt(string path)
- {
- try { selectedPromptText = System.IO.File.ReadAllText(path); selectedPromptPath = path; }
- catch { selectedPromptText = ""; selectedPromptPath = path; }
- }
+    void LoadPrompt(string path)
+    {
+        try { selectedPromptText = System.IO.File.ReadAllText(path); selectedPromptPath = path; }
+        catch { selectedPromptText = ""; selectedPromptPath = path; }
+    }
 
- async Task CopyPrompt()
- {
- try { await JS.InvokeVoidAsync("navigator.clipboard.writeText", selectedPromptText ?? string.Empty); } catch { }
- }
+    async Task CopyPrompt()
+    {
+        try { await JS.InvokeVoidAsync("navigator.clipboard.writeText", selectedPromptText ?? string.Empty); } catch { }
+    }
 
- async Task CopyOrchestratorPrompt()
- {
- try { await JS.InvokeVoidAsync("navigator.clipboard.writeText", orchestratorPromptText ?? string.Empty); } catch { }
- }
+    async Task CopyOrchestratorPrompt()
+    {
+        try { await JS.InvokeVoidAsync("navigator.clipboard.writeText", orchestratorPromptText ?? string.Empty); } catch { }
+    }
 
- async Task Ping()
- {
- try
- {
- if (await Client.InitializeAsync())
- {
- status = await Client.PingAsync() ? "pong" : "no pong";
- }
- else status = "init failed";
- }
- catch (Exception ex)
- {
- status = ex.Message;
- }
- }
+    async Task Ping()
+    {
+        try
+        {
+            if (await Client.InitializeAsync())
+            {
+                status = await Client.PingAsync() ? "pong" : "no pong";
+            }
+            else status = "init failed";
+        }
+        catch (Exception ex)
+        {
+            status = ex.Message;
+        }
+    }
 
- async Task PingFoundry()
- {
-     try
-     {
-         foundryPingLoading = true;
-         foundryPingJson = string.Empty;
-         foundryPingStatus = string.Empty;
-         var http = HttpFactory.CreateClient();
-         if (http.BaseAddress is null) http.BaseAddress = new Uri(Nav.BaseUri, UriKind.Absolute);
-         var resp = await http.GetAsync("diagnostics/foundry/ping");
-         var text = await resp.Content.ReadAsStringAsync();
-         if (resp.IsSuccessStatusCode)
-         {
-             try
-             {
-                 using var doc = System.Text.Json.JsonDocument.Parse(text);
-                 foundryPingJson = System.Text.Json.JsonSerializer.Serialize(doc, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
-             }
-             catch
-             {
-                 foundryPingJson = text;
-             }
-             foundryPingStatus = resp.StatusCode.ToString();
-         }
-         else
-         {
-             foundryPingJson = text;
-             foundryPingStatus = $"Error {(int)resp.StatusCode}";
-         }
-     }
-     catch (Exception ex)
-     {
-         foundryPingJson = ex.ToString();
-         foundryPingStatus = "Exception";
-     }
-     finally
-     {
-         foundryPingLoading = false;
-         StateHasChanged();
-     }
- }
+    async Task PingFoundry()
+    {
+        try
+        {
+            foundryPingLoading = true;
+            foundryPingJson = string.Empty;
+            foundryPingStatus = string.Empty;
+            var http = HttpFactory.CreateClient();
+            if (http.BaseAddress is null) http.BaseAddress = new Uri(Nav.BaseUri, UriKind.Absolute);
+            var resp = await http.GetAsync("diagnostics/foundry/ping");
+            var text = await resp.Content.ReadAsStringAsync();
+            if (resp.IsSuccessStatusCode)
+            {
+                try
+                {
+                    using var doc = System.Text.Json.JsonDocument.Parse(text);
+                    foundryPingJson = System.Text.Json.JsonSerializer.Serialize(doc, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+                }
+                catch
+                {
+                    foundryPingJson = text;
+                }
+                foundryPingStatus = resp.StatusCode.ToString();
+            }
+            else
+            {
+                foundryPingJson = text;
+                foundryPingStatus = $"Error {(int)resp.StatusCode}";
+            }
+        }
+        catch (Exception ex)
+        {
+            foundryPingJson = ex.ToString();
+            foundryPingStatus = "Exception";
+        }
+        finally
+        {
+            foundryPingLoading = false;
+            StateHasChanged();
+        }
+    }
 
- async Task TestPhi()
- {
-     try
-     {
-         foundryPhiLoading = true;
-         foundryPhiJson = string.Empty;
-         foundryPhiStatus = string.Empty;
+    async Task TestPhi()
+    {
+        try
+        {
+            foundryPhiLoading = true;
+            foundryPhiJson = string.Empty;
+            foundryPhiStatus = string.Empty;
 
-         var prompt = "Explain what the application does.";
+            var prompt = "Explain what the application does.";
 
-         // Use a direct SocketsHttpHandler + HttpClient to avoid global resilience handlers on the default factory client
-         using var handler = new System.Net.Http.SocketsHttpHandler
+            // Use a direct SocketsHttpHandler + HttpClient to avoid global resilience handlers on the default factory client
+            using var handler = new System.Net.Http.SocketsHttpHandler
          {
              AutomaticDecompression = System.Net.DecompressionMethods.GZip | System.Net.DecompressionMethods.Deflate,
              PooledConnectionLifetime = TimeSpan.FromMinutes(10),
@@ -406,310 +433,323 @@
              UseProxy = false
          };
 
-         using var client = new HttpClient(handler) { Timeout = Timeout.InfiniteTimeSpan };
-         if (client.BaseAddress is null) client.BaseAddress = new Uri(Nav.BaseUri, UriKind.Absolute);
-         client.DefaultRequestVersion = System.Net.HttpVersion.Version11;
+            using var client = new HttpClient(handler) { Timeout = Timeout.InfiniteTimeSpan };
+            if (client.BaseAddress is null) client.BaseAddress = new Uri(Nav.BaseUri, UriKind.Absolute);
+            client.DefaultRequestVersion = System.Net.HttpVersion.Version11;
 
-         using var content = new StringContent(prompt, System.Text.Encoding.UTF8, "text/plain");
-         using var resp = await client.PostAsync("api/agent/phi-test", content);
-         var text = await resp.Content.ReadAsStringAsync();
+            using var content = new StringContent(prompt, System.Text.Encoding.UTF8, "text/plain");
+            using var resp = await client.PostAsync("api/agent/phi-test", content);
+            var text = await resp.Content.ReadAsStringAsync();
 
-         if (resp.IsSuccessStatusCode)
-         {
-             try
-             {
-                 using var doc = System.Text.Json.JsonDocument.Parse(text);
-                 // Try to extract assistant content at choices[0].message.content
-                 if (doc.RootElement.TryGetProperty("choices", out var choices) && choices.GetArrayLength() > 0)
-                 {
-                     var first = choices[0];
-                     if (first.TryGetProperty("message", out var msg) && msg.TryGetProperty("content", out var contentEl) && contentEl.ValueKind == System.Text.Json.JsonValueKind.String)
-                     {
-                         foundryPhiJson = contentEl.GetString() ?? string.Empty;
-                     }
-                     else
-                     {
-                         foundryPhiJson = System.Text.Json.JsonSerializer.Serialize(doc, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
-                     }
-                 }
-                 else
-                 {
-                     foundryPhiJson = System.Text.Json.JsonSerializer.Serialize(doc, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
-                 }
-             }
-             catch
-             {
-                 foundryPhiJson = text;
-             }
-             foundryPhiStatus = resp.StatusCode.ToString();
-         }
-         else
-         {
-             foundryPhiJson = text;
-             foundryPhiStatus = $"Error {(int)resp.StatusCode}";
-         }
-     }
-     catch (Exception ex)
-     {
-         foundryPhiJson = ex.ToString();
-         foundryPhiStatus = "Exception";
-     }
-     finally
-     {
-         foundryPhiLoading = false;
-         StateHasChanged();
-     }
- }
+            if (resp.IsSuccessStatusCode)
+            {
+                try
+                {
+                    using var doc = System.Text.Json.JsonDocument.Parse(text);
+                    // Try to extract assistant content at choices[0].message.content
+                    if (doc.RootElement.TryGetProperty("choices", out var choices) && choices.GetArrayLength() > 0)
+                    {
+                        var first = choices[0];
+                        if (first.TryGetProperty("message", out var msg) && msg.TryGetProperty("content", out var contentEl) && contentEl.ValueKind == System.Text.Json.JsonValueKind.String)
+                        {
+                            foundryPhiJson = contentEl.GetString() ?? string.Empty;
+                        }
+                        else
+                        {
+                            foundryPhiJson = System.Text.Json.JsonSerializer.Serialize(doc, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+                        }
+                    }
+                    else
+                    {
+                        foundryPhiJson = System.Text.Json.JsonSerializer.Serialize(doc, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+                    }
+                }
+                catch
+                {
+                    foundryPhiJson = text;
+                }
+                foundryPhiStatus = resp.StatusCode.ToString();
+            }
+            else
+            {
+                foundryPhiJson = text;
+                foundryPhiStatus = $"Error {(int)resp.StatusCode}";
+            }
+        }
+        catch (Exception ex)
+        {
+            foundryPhiJson = ex.ToString();
+            foundryPhiStatus = "Exception";
+        }
+        finally
+        {
+            foundryPhiLoading = false;
+            StateHasChanged();
+        }
+    }
 
- async Task AskRagAsync()
- {
-     if (string.IsNullOrWhiteSpace(ragInput) || ragLoading) return;
-     ragLoading = true;
-     ragError = null;
-     diag = null;
-     try
-     {
-         var d = await Rag.AskDiagnosticAsync(ragInput, ragHistory, CancellationToken.None);
-         diag = d;
-         try { Rag.LastDiagnostic = d; } catch { }
+    async Task AskRagAsync()
+    {
+        if (string.IsNullOrWhiteSpace(ragInput) || ragLoading) return;
+        ragLoading = true;
+        ragError = null;
+        diag = null;
+        try
+        {
+            var d = await Rag.AskDiagnosticAsync(ragInput, ragHistory, CancellationToken.None);
+            diag = d;
+            try { Rag.LastDiagnostic = d; } catch { }
 
-         var now = DateTimeOffset.UtcNow;
+            var now = DateTimeOffset.UtcNow;
 
-         // 1) add rephrase result
-         var rephraseText = string.IsNullOrWhiteSpace(d.RephraseRaw) ? "(no rephrase)" : d.RephraseRaw;
-         ragHistory.Add(new ChatTurn("(rephrase)", rephraseText, now));
+            // Add original user turn first so chat reads top-down: You -> Agent -> CodeHero
+            ragHistory.Add(new ChatTurn(ragInput, string.Empty, now));
 
-         // 2) add search results
-         var searchText = string.IsNullOrWhiteSpace(d.SearchRaw) ? "(no search)" : d.SearchRaw;
-         ragHistory.Add(new ChatTurn("(search)", searchText, now));
+            // 1) add rephrase result (agent asking CodeHero)
+            var rephraseText = string.IsNullOrWhiteSpace(d.RephraseRaw) ? "(no rephrase)" : d.RephraseRaw;
+            ragHistory.Add(new ChatTurn("(rephrase)", rephraseText, now));
 
-         // 3) show the actual payload sent to the answer endpoint (input to final model)
-         var answerReqJson = d.AnswerRequestJson ?? "(no answer request json)";
-         ragHistory.Add(new ChatTurn("(answer request)", answerReqJson, now));
+            // 2) add search results
+            var searchText = string.IsNullOrWhiteSpace(d.SearchRaw) ? "(no search)" : d.SearchRaw;
+            ragHistory.Add(new ChatTurn("(search)", searchText, now));
 
-         // 4) final answer
-         if (d.ParsedAnswer is not null)
-         {
-             var final = d.ParsedAnswer.Output ?? string.Empty;
-             ragHistory.Add(new ChatTurn("(final answer)", final, now));
+            // 3) show the actual payload sent to the answer endpoint (input to final model)
+            var answerReqJson = d.AnswerRequestJson ?? "(no answer request json)";
+            ragHistory.Add(new ChatTurn("(answer request)", answerReqJson, now));
 
-             if (final.StartsWith('{'))
-             {
-                 try
-                 {
-                     using var doc = System.Text.Json.JsonDocument.Parse(final);
-                     if (doc.RootElement.TryGetProperty("summary", out var sumEl) && sumEl.ValueKind == System.Text.Json.JsonValueKind.String)
-                         ragLastStandalone = sumEl.GetString() ?? string.Empty;
-                 }
-                 catch { }
-             }
-         }
-         else
-         {
-             var fallback = d.AnswerRaw ?? "(no answer)";
-             ragHistory.Add(new ChatTurn("(final answer)", fallback, now));
-         }
+            // 4) final answer (CodeHero)
+            if (d.ParsedAnswer is not null)
+            {
+                var final = d.ParsedAnswer.Output ?? string.Empty;
+                ragHistory.Add(new ChatTurn("(final answer)", final, now));
 
-         // Add original user turn
-         ragHistory.Add(new ChatTurn(ragInput, string.Empty, now));
+                if (final.StartsWith('{'))
+                {
+                    try
+                    {
+                        using var doc = System.Text.Json.JsonDocument.Parse(final);
+                        if (doc.RootElement.TryGetProperty("summary", out var sumEl) && sumEl.ValueKind == System.Text.Json.JsonValueKind.String)
+                            ragLastStandalone = sumEl.GetString() ?? string.Empty;
+                    }
+                    catch { }
+                }
+            }
+            else
+            {
+                var fallback = d.AnswerRaw ?? "(no answer)";
+                ragHistory.Add(new ChatTurn("(final answer)", fallback, now));
+            }
 
-         ragInput = string.Empty;
-     }
-     catch (Exception ex)
-     {
-         ragError = ex.Message;
-     }
-     finally
-     {
-         ragLoading = false;
-         StateHasChanged();
-     }
- }
+            ragInput = string.Empty;
+        }
+        catch (Exception ex)
+        {
+            ragError = ex.Message;
+        }
+        finally
+        {
+            ragLoading = false;
+            StateHasChanged();
+        }
+    }
 
- async Task AskRagDiagnosticAsync()
- {
-     if (string.IsNullOrWhiteSpace(ragInput) || ragLoading) return;
-     ragLoading = true;
-     ragError = null;
-     diag = null;
-     try
-     {
-         var d = await Rag.AskDiagnosticAsync(ragInput, ragHistory, CancellationToken.None);
-         diag = d;
-         try { Rag.LastDiagnostic = d; } catch { }
+    async Task AskRagDiagnosticAsync()
+    {
+        if (string.IsNullOrWhiteSpace(ragInput) || ragLoading) return;
+        ragLoading = true;
+        ragError = null;
+        diag = null;
+        try
+        {
+            var d = await Rag.AskDiagnosticAsync(ragInput, ragHistory, CancellationToken.None);
+            diag = d;
+            try { Rag.LastDiagnostic = d; } catch { }
 
-         var now = DateTimeOffset.UtcNow;
+            var now = DateTimeOffset.UtcNow;
 
-         if (d.ParsedAnswer is not null)
-         {
-             if (d.ParsedAnswer.Output.StartsWith('{'))
-             {
-                 try
-                 {
-                     using var doc = System.Text.Json.JsonDocument.Parse(d.ParsedAnswer.Output);
-                     if (doc.RootElement.TryGetProperty("summary", out var sumEl) && sumEl.ValueKind == System.Text.Json.JsonValueKind.String)
-                         ragLastStandalone = sumEl.GetString() ?? string.Empty;
-                 }
-                 catch { }
-             }
+            if (d.ParsedAnswer is not null)
+            {
+                if (d.ParsedAnswer.Output.StartsWith('{'))
+                {
+                    try
+                    {
+                        using var doc = System.Text.Json.JsonDocument.Parse(d.ParsedAnswer.Output);
+                        if (doc.RootElement.TryGetProperty("summary", out var sumEl) && sumEl.ValueKind == System.Text.Json.JsonValueKind.String)
+                            ragLastStandalone = sumEl.GetString() ?? string.Empty;
+                    }
+                    catch { }
+                }
 
-             ragHistory.Add(new ChatTurn(ragInput, d.ParsedAnswer.Output, now));
-         }
-         else
-         {
-             ragHistory.Add(new ChatTurn(ragInput, d.AnswerRaw ?? "(no answer)", now));
-         }
+                ragHistory.Add(new ChatTurn(ragInput, d.ParsedAnswer.Output, now));
+            }
+            else
+            {
+                ragHistory.Add(new ChatTurn(ragInput, d.AnswerRaw ?? "(no answer)", now));
+            }
 
-         ragInput = string.Empty;
-     }
-     catch (Exception ex)
-     {
-         ragError = ex.Message;
-     }
-     finally
-     {
-         ragLoading = false;
-         StateHasChanged();
-     }
- }
+            ragInput = string.Empty;
+        }
+        catch (Exception ex)
+        {
+            ragError = ex.Message;
+        }
+        finally
+        {
+            ragLoading = false;
+            StateHasChanged();
+        }
+    }
 
- void ClearRag()
- {
-     ragHistory.Clear();
-     ragLastStandalone = string.Empty;
-     ragError = null;
- }
+    void ClearRag()
+    {
+        ragHistory.Clear();
+        ragLastStandalone = string.Empty;
+        ragError = null;
+    }
 
- async Task ListReqs()
- {
- try
- {
- if (await Client.InitializeAsync())
- {
- files = (await Client.ListAsync(StoreRoot.Requirements, new[] { ".md" })).ToList();
- }
- }
- catch (Exception ex)
- {
- status = ex.Message;
- }
- }
+    async Task ListReqs()
+    {
+        try
+        {
+            if (await Client.InitializeAsync())
+            {
+                files = (await Client.ListAsync(StoreRoot.Requirements, new[] { ".md" })).ToList();
+            }
+        }
+        catch (Exception ex)
+        {
+            status = ex.Message;
+        }
+    }
 
- async Task ListAgents()
- {
- try
- {
- if (await Client.InitializeAsync())
- {
- agents = (await Client.ListAgentsAsync()).ToList();
- }
- }
- catch (Exception ex)
- {
- status = ex.Message;
- }
- }
+    async Task ListAgents()
+    {
+        try
+        {
+            if (await Client.InitializeAsync())
+            {
+                agents = (await Client.ListAgentsAsync()).ToList();
+            }
+        }
+        catch (Exception ex)
+        {
+            status = ex.Message;
+        }
+    }
 
- async Task ShowCaps(string agent)
- {
- try
- {
- if (await Client.InitializeAsync())
- {
- var capsEl = await Client.GetAgentCapabilitiesAsync(agent);
- selectedCaps = System.Text.Json.JsonSerializer.Deserialize<AgentCaps>(capsEl.GetRawText(), new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web));
- selectedAgent = agent;
- }
- }
- catch (Exception ex)
- {
- status = ex.Message;
- }
- }
+    async Task ShowCaps(string agent)
+    {
+        try
+        {
+            if (await Client.InitializeAsync())
+            {
+                var capsEl = await Client.GetAgentCapabilitiesAsync(agent);
+                selectedCaps = System.Text.Json.JsonSerializer.Deserialize<AgentCaps>(capsEl.GetRawText(), new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web));
+                selectedAgent = agent;
+            }
+        }
+        catch (Exception ex)
+        {
+            status = ex.Message;
+        }
+    }
 
- async Task CreateReq()
- {
- try
- {
- if (await Client.InitializeAsync())
- {
- createdFile = await Client.ScribeCreateRequirementAsync(newId, newTitle);
- }
- }
- catch (Exception ex)
- {
- status = ex.Message;
- }
- }
+    async Task CreateReq()
+    {
+        try
+        {
+            if (await Client.InitializeAsync())
+            {
+                createdFile = await Client.ScribeCreateRequirementAsync(newId, newTitle);
+            }
+        }
+        catch (Exception ex)
+        {
+            status = ex.Message;
+        }
+    }
 
- async Task SendOrchestratorAsync()
- {
- try
- {
- var http = HttpFactory.CreateClient();
- if (http.BaseAddress is null) http.BaseAddress = new Uri(Nav.BaseUri, UriKind.Absolute);
- var resp = await http.PostAsync("api/agent/chat", new StringContent(orchestratorPrompt));
- orchestratorReply = resp.IsSuccessStatusCode ? (await resp.Content.ReadAsStringAsync()) : resp.StatusCode.ToString();
- }
- catch (Exception ex)
- {
- orchestratorReply = ex.Message;
- }
- }
+    async Task SendOrchestratorAsync()
+    {
+        try
+        {
+            // Use a direct SocketsHttpHandler + HttpClient to bypass global resilience handlers
+            using var handler = new System.Net.Http.SocketsHttpHandler
+                {
+                    AutomaticDecompression = System.Net.DecompressionMethods.GZip | System.Net.DecompressionMethods.Deflate,
+                    PooledConnectionLifetime = TimeSpan.FromMinutes(10),
+                    Expect100ContinueTimeout = TimeSpan.Zero,
+                    UseProxy = false
+                };
 
- async Task OnAudioSelected(InputFileChangeEventArgs e)
- {
- try
- {
- var file = e.File;
- using var ms = new MemoryStream();
- await file.OpenReadStream(maxAllowedSize:20 *1024 *1024).CopyToAsync(ms);
- var http = HttpFactory.CreateClient();
- if (http.BaseAddress is null) http.BaseAddress = new Uri(Nav.BaseUri, UriKind.Absolute);
- using var content = new ByteArrayContent(ms.ToArray());
- content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("audio/wav");
- var resp = await http.PostAsync("api/stt", content);
- sttText = resp.IsSuccessStatusCode ? (await resp.Content.ReadAsStringAsync()) : resp.StatusCode.ToString();
- }
- catch (Exception ex)
- {
- sttText = ex.Message;
- }
- }
+            using var client = new System.Net.Http.HttpClient(handler) { Timeout = System.Threading.Timeout.InfiniteTimeSpan };
+            if (client.BaseAddress is null) client.BaseAddress = new Uri(Nav.BaseUri, UriKind.Absolute);
+            client.DefaultRequestVersion = System.Net.HttpVersion.Version11;
 
- async Task SynthesizeAsync()
- {
- try
- {
- var http = HttpFactory.CreateClient();
- if (http.BaseAddress is null) http.BaseAddress = new Uri(Nav.BaseUri, UriKind.Absolute);
- var resp = await http.PostAsync($"api/tts?voice={Uri.EscapeDataString(ttsVoice)}", new StringContent(ttsText));
- if (resp.IsSuccessStatusCode)
- {
- var bytes = await resp.Content.ReadAsByteArrayAsync();
- ttsSrc = "data:audio/wav;base64," + Convert.ToBase64String(bytes);
- }
- else
- {
- ttsSrc = null; status = resp.StatusCode.ToString();
- }
- }
- catch (Exception ex)
- {
- ttsSrc = null; status = ex.Message;
- }
- }
+            using var content = new StringContent(orchestratorPrompt ?? string.Empty, System.Text.Encoding.UTF8, "text/plain");
+            using var resp = await client.PostAsync("api/agent/chat", content);
+            orchestratorReply = resp.IsSuccessStatusCode ? (await resp.Content.ReadAsStringAsync()) : resp.StatusCode.ToString();
+        }
+        catch (Exception ex)
+        {
+            orchestratorReply = ex.Message;
+        }
+    }
 
- // DTOs for capabilities
- private sealed class AgentCaps
- {
- public string agent { get; set; } = string.Empty;
- public List<ToolDef> tools { get; set; } = new();
- }
- private sealed class ToolDef
- {
- public string name { get; set; } = string.Empty;
- public string? description { get; set; }
- public System.Text.Json.JsonElement? parameters { get; set; }
- }
+    async Task OnAudioSelected(InputFileChangeEventArgs e)
+    {
+        try
+        {
+            var file = e.File;
+            using var ms = new MemoryStream();
+            await file.OpenReadStream(maxAllowedSize:20 *1024 *1024).CopyToAsync(ms);
+            var http = HttpFactory.CreateClient();
+            if (http.BaseAddress is null) http.BaseAddress = new Uri(Nav.BaseUri, UriKind.Absolute);
+            using var content = new ByteArrayContent(ms.ToArray());
+            content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("audio/wav");
+            var resp = await http.PostAsync("api/stt", content);
+            sttText = resp.IsSuccessStatusCode ? (await resp.Content.ReadAsStringAsync()) : resp.StatusCode.ToString();
+        }
+        catch (Exception ex)
+        {
+            sttText = ex.Message;
+        }
+    }
+
+    async Task SynthesizeAsync()
+    {
+        try
+        {
+            var http = HttpFactory.CreateClient();
+            if (http.BaseAddress is null) http.BaseAddress = new Uri(Nav.BaseUri, UriKind.Absolute);
+            var resp = await http.PostAsync($"api/tts?voice={Uri.EscapeDataString(ttsVoice)}", new StringContent(ttsText));
+            if (resp.IsSuccessStatusCode)
+            {
+                var bytes = await resp.Content.ReadAsByteArrayAsync();
+                ttsSrc = "data:audio/wav;base64," + Convert.ToBase64String(bytes);
+            }
+            else
+            {
+                ttsSrc = null; status = resp.StatusCode.ToString();
+            }
+        }
+        catch (Exception ex)
+        {
+            ttsSrc = null; status = ex.Message;
+        }
+    }
+
+    // DTOs for capabilities
+    private sealed class AgentCaps
+    {
+        public string agent { get; set; } = string.Empty;
+        public List<ToolDef> tools { get; set; } = new();
+    }
+
+    private sealed class ToolDef
+    {
+        public string name { get; set; } = string.Empty;
+        public string? description { get; set; }
+        public System.Text.Json.JsonElement? parameters { get; set; }
+    }
 }

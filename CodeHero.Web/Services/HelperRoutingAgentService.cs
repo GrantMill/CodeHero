@@ -9,24 +9,8 @@ namespace CodeHero.Web.Services;
 /*
 Plan (pseudocode):
 1. Keep existing routing logic for scribe/list/read intents.
-2. After retrieval of candidate passages (top results), instead of hard-coded "what does the application do" block:
-   - Always call a new private method SummarizeWithPhiAsync(question, top, confidence) if explanatory (either LooksLikeWhatDoesAppDo or generic explanatory: presence of verbs like "explain", "what", "describe").
-3. SummarizeWithPhiAsync:
-   - If no sources -> return existing fallback.
-   - Build a source payload (JSON) with path, snippet, score.
-   - Construct system prompt instructing Phi-4 to:
-        * Use only provided sources.
-        * Produce conversational intelligent summary.
-        * Add markdown links referencing relative paths.
-        * Provide follow-up suggestions.
-        * Output JSON matching the Helper schema.
-   - POST to Azure Foundry/OpenAI deployments route: {Endpoint}/openai/deployments/{Deployment}/chat/completions?api-version={ApiVersion}.
-     Headers: api-key (from config key AzureAI:Foundry:Key or AzureAI:Foundry:ApiKey), Accept: application/json.
-   - Body: { "messages": [ {role: "system", content: systemPrompt}, {role: "user", content: userPayload} ] }
-   - Parse response first choice content as JSON. Return it. On failure, fall back to deterministic citation rendering (existing code path) but now using JSON schema.
-4. Inject IHttpClientFactory into constructor (add private readonly _http).
-5. Minor cleanup: avoid adding duplicate candidates (remove second candidates.Add with PathCombine); keep PathCombine helper for consistent forward slashes.
-6. Keep existing scoring/snippet extraction.
+2. If the user isn't requesting an MCP capability (create/list/read), run the RAG diagnostic pipeline (via RagClient) and return a structured annotated reply that includes markers the UI can render.
+3. Centralize construction of the annotated diagnostic string in a private helper FormatDiagnosticResponse.
 */
 
 public class HelperRoutingAgentService : IAgentService
@@ -35,6 +19,7 @@ public class HelperRoutingAgentService : IAgentService
     private readonly IMcpClient _mcp;
     private readonly IConfiguration _cfg;
     private readonly IHttpClientFactory _http;
+    private readonly RagClient _rag;
     private readonly ILogger<HelperRoutingAgentService> _log;
 
     private static readonly Regex ScribeKeywords = new("\\b(create|add|new requirement|draft requirement|scribe)\\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
@@ -48,12 +33,14 @@ public class HelperRoutingAgentService : IAgentService
         IMcpClient mcp,
         IConfiguration cfg,
         IHttpClientFactory http,
+        RagClient rag,
         ILogger<HelperRoutingAgentService> log)
     {
         _orchestrator = orchestrator;
         _mcp = mcp;
         _cfg = cfg;
         _http = http;
+        _rag = rag;
         _log = log;
     }
 
@@ -69,6 +56,28 @@ public class HelperRoutingAgentService : IAgentService
         var isReadReq = ReadVerb.IsMatch(text) && ReqNouns.IsMatch(text);
         if (isListReq || isReadReq)
             return await _orchestrator.ChatAsync(text, ct);
+
+        // If the user did not request any MCP capability (scribe/list/read), prefer the RAG diagnostic pipeline
+        // and return an annotated diagnostic string that includes rephrase, search, request, and final answer markers.
+        try
+        {
+            if (_rag is not null)
+            {
+                var diag = await _rag.AskDiagnosticAsync(text, Array.Empty<ChatTurn>(), ct);
+                try { _rag.LastDiagnostic = diag; } catch { }
+                if (diag is not null)
+                {
+                    var annotated = FormatDiagnosticResponse(diag);
+                    if (!string.IsNullOrWhiteSpace(annotated))
+                        return annotated;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _log?.LogWarning(ex, "RagClient diagnostic failed in HelperRoutingAgentService; falling back to retrieval/summarization.");
+            // proceed to retrieval + summarization fallback below
+        }
 
         // Retrieval over Requirements & Architecture
         var qterms = TokenizeQuery(text).Take(10).ToArray();
@@ -129,7 +138,27 @@ public class HelperRoutingAgentService : IAgentService
 
         if (needsSummarization && top.Length > 0)
         {
-            // Use Phi-4 (Foundry deployment) to synthesize answer
+            // Prefer the RagClient pipeline (rephrase -> search -> answer) which centralizes behavior
+            try
+            {
+                if (_rag is not null)
+                {
+                    var diag = await _rag.AskDiagnosticAsync(text, Array.Empty<ChatTurn>(), ct);
+                    try { _rag.LastDiagnostic = diag; } catch { }
+                    if (diag is not null)
+                    {
+                        var annotated = FormatDiagnosticResponse(diag);
+                        if (!string.IsNullOrWhiteSpace(annotated))
+                            return annotated;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _log?.LogWarning(ex, "RagClient summarization failed; falling back to direct Foundry call.");
+            }
+
+            // Fallback: Use Phi-4 (Foundry deployment) to synthesize answer
             var phiAnswer = await SummarizeWithPhiAsync(text, top, confidence, ct);
             if (!string.IsNullOrWhiteSpace(phiAnswer))
                 return phiAnswer;
@@ -169,6 +198,32 @@ public class HelperRoutingAgentService : IAgentService
         };
 
         return JsonSerializer.Serialize(fallbackObj, new JsonSerializerOptions { WriteIndented = true });
+    }
+
+    private static string FormatDiagnosticResponse(DiagnosticAnswerResponse d)
+    {
+        if (d is null) return string.Empty;
+        var sb = new StringBuilder();
+        // Rephrase
+        sb.AppendLine("(rephrase)");
+        sb.AppendLine(string.IsNullOrWhiteSpace(d.RephraseRaw) ? "(no rephrase)" : d.RephraseRaw.Trim());
+        // Search
+        sb.AppendLine();
+        sb.AppendLine("(search)");
+        sb.AppendLine(string.IsNullOrWhiteSpace(d.SearchRaw) ? "(no search)" : d.SearchRaw.Trim());
+        // Answer request
+        sb.AppendLine();
+        sb.AppendLine("(answer request)");
+        if (!string.IsNullOrWhiteSpace(d.AnswerRequestJson))
+            sb.AppendLine(d.AnswerRequestJson.Trim());
+        else
+            sb.AppendLine("(no answer request json)");
+        // Final answer
+        sb.AppendLine();
+        sb.AppendLine("(final answer)");
+        var final = d.ParsedAnswer?.Output ?? d.AnswerRaw ?? string.Empty;
+        sb.AppendLine(string.IsNullOrWhiteSpace(final) ? "(no answer)" : final.Trim());
+        return sb.ToString();
     }
 
     private static bool LooksLikeWhatDoesAppDo(string text)

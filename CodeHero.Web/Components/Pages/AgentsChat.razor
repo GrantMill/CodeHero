@@ -2,12 +2,15 @@
 @rendermode InteractiveServer
 @using CodeHero.Web.Services
 @using Microsoft.JSInterop
+@using System.Text
 @inject IMcpClient Client
 @inject IHttpClientFactory HttpFactory
+@inject RagClient Rag
 @inject ILogger<AgentsChat> Log
 @inject IJSRuntime JS
 @inject NavigationManager Nav
 @inject IConfiguration Cfg
+@inject IAgentService Agent
 
 <h3 class="text-body">Chat</h3>
 
@@ -15,6 +18,11 @@
 {
  <div class="alert alert-@alertKind" role="alert">@alertMessage</div>
 }
+
+<div class="form-check form-switch mb-2">
+    <input class="form-check-input" type="checkbox" id="showFinalOnly" @bind="showFinalOnly" />
+    <label class="form-check-label" for="showFinalOnly">Show only final answer (hide intermediate diagnostics)</label>
+</div>
 
 <div class="border rounded p-2 bg-body-tertiary" style="height:50vh; overflow:auto;">
  @if (messages.Count ==0)
@@ -24,8 +32,22 @@
  @foreach (var m in messages)
  {
  <div class="mb-2">
- <strong class="text-body">@m.Role:</strong>
- <pre class="mb-0 bg-transparent text-body" style="white-space:pre-wrap">@m.Text</pre>
+     @* Normalize role display: support suffixes like 'codehero.rephrase' and 'codehero.final' *@
+     @{ 
+         var roleParts = (m.Role ?? string.Empty).Split('.');
+         var baseRole = roleParts.Length > 0 ? roleParts[0] : (m.Role ?? string.Empty);
+         var subRole = roleParts.Length > 1 ? roleParts[1] : string.Empty;
+         var displayRole = baseRole switch
+         {
+             "you" => "You",
+             "agent" => "Agent",
+             "codehero" => "CodeHero",
+             "error" => "Error",
+             _ => (baseRole ?? string.Empty)
+         };
+     }
+     <strong class="text-body">@displayRole@if(!string.IsNullOrEmpty(subRole)){<text> (@subRole)</text>}</strong>
+     <pre class="mb-0 bg-transparent text-body" style="white-space:pre-wrap">@m.Text</pre>
  </div>
  }
  <div @ref="bottom"></div>
@@ -107,6 +129,7 @@
     string supportStatus = string.Empty;
     string lastTranscript = string.Empty;
     string agentReply = string.Empty;
+    bool showFinalOnly = true;
 
     // Alerts
     string? alertMessage;
@@ -128,6 +151,12 @@
     // VAD sliders
     double vadThreshold =0.010; // default
     int vadSilenceMs =800;
+
+    // Intent regexes (match HelperRoutingAgentService heuristics)
+    private static readonly System.Text.RegularExpressions.Regex ScribeKeywords = new System.Text.RegularExpressions.Regex("\\b(create|add|new requirement|draft requirement|scribe)\\b", System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.Compiled);
+    private static readonly System.Text.RegularExpressions.Regex ReqNouns = new System.Text.RegularExpressions.Regex("\\b(req|requirement|requirements|REQ-)\\b", System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.Compiled);
+    private static readonly System.Text.RegularExpressions.Regex ListVerbs = new System.Text.RegularExpressions.Regex("\\b(list|show|display)\\b", System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.Compiled);
+    private static readonly System.Text.RegularExpressions.Regex ReadVerb = new System.Text.RegularExpressions.Regex("\\bread\\b", System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.Compiled);
 
     protected override void OnInitialized()
     {
@@ -174,11 +203,22 @@
     async Task ApprovePendingAsync()
     {
         showApproval = false;
-        var http = HttpFactory.CreateClient();
-        if (http.BaseAddress is null) http.BaseAddress = new Uri(Nav.BaseUri, UriKind.Absolute);
         var you = "approve";
         messages.Add(new Msg("you", you));
-        var replyResp = await http.PostAsync("api/agent/chat", new StringContent(you));
+
+        // Use direct SocketsHttpHandler + HttpClient to avoid global resilience handlers (30s cancellations)
+        using var handler = new System.Net.Http.SocketsHttpHandler
+        {
+            AutomaticDecompression = System.Net.DecompressionMethods.GZip | System.Net.DecompressionMethods.Deflate,
+            PooledConnectionLifetime = TimeSpan.FromMinutes(10),
+            Expect100ContinueTimeout = TimeSpan.Zero,
+            UseProxy = false
+        };
+        using var client = new System.Net.Http.HttpClient(handler) { Timeout = System.Threading.Timeout.InfiniteTimeSpan };
+        if (client.BaseAddress is null) client.BaseAddress = new Uri(Nav.BaseUri, UriKind.Absolute);
+        client.DefaultRequestVersion = System.Net.HttpVersion.Version11;
+
+        var replyResp = await client.PostAsync("api/agent/chat", new StringContent(you));
         if (replyResp.IsSuccessStatusCode)
         {
             var reply = await replyResp.Content.ReadAsStringAsync();
@@ -189,13 +229,14 @@
             }
             else if (reply.StartsWith("[approval]", StringComparison.OrdinalIgnoreCase))
             {
+                messages.Add(new Msg("agent", reply));
                 ShowApproval(reply);
                 alertMessage = null;
             }
             else
             {
                 alertKind = "info"; alertMessage = reply;
-                var tts = await http.PostAsync("api/tts?voice=en-US-JennyNeural", new StringContent(reply));
+                var tts = await client.PostAsync("api/tts?voice=en-US-JennyNeural", new StringContent(reply));
                 if (tts.IsSuccessStatusCode)
                 {
                     var wav = await tts.Content.ReadAsByteArrayAsync();
@@ -209,11 +250,21 @@
     async Task CancelPendingAsync()
     {
         showApproval = false;
-        var http = HttpFactory.CreateClient();
-        if (http.BaseAddress is null) http.BaseAddress = new Uri(Nav.BaseUri, UriKind.Absolute);
         var you = "cancel";
         messages.Add(new Msg("you", you));
-        var replyResp = await http.PostAsync("api/agent/chat", new StringContent(you));
+
+        using var handler = new System.Net.Http.SocketsHttpHandler
+        {
+            AutomaticDecompression = System.Net.DecompressionMethods.GZip | System.Net.DecompressionMethods.Deflate,
+            PooledConnectionLifetime = TimeSpan.FromMinutes(10),
+            Expect100ContinueTimeout = TimeSpan.Zero,
+            UseProxy = false
+        };
+        using var client = new System.Net.Http.HttpClient(handler) { Timeout = System.Threading.Timeout.InfiniteTimeSpan };
+        if (client.BaseAddress is null) client.BaseAddress = new Uri(Nav.BaseUri, UriKind.Absolute);
+        client.DefaultRequestVersion = System.Net.HttpVersion.Version11;
+
+        var replyResp = await client.PostAsync("api/agent/chat", new StringContent(you));
         if (replyResp.IsSuccessStatusCode)
         {
             var reply = await replyResp.Content.ReadAsStringAsync();
@@ -265,48 +316,147 @@
         if (!await phraseGate.WaitAsync(0)) return;
         using var gateReleaser = new Releaser(phraseGate);
 
-        using var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+        // Allow longer runtime for RAG/Foundry calls; use the server-configured Foundry attempt timeout
+        // to avoid UI-side cancellation that is shorter than server caps. Add a small buffer.
+        var serverTimeoutSec = Cfg.GetValue<int?>("Resilience:FoundryAttemptTimeoutSeconds") ?? 120;
+        var uiTimeoutSec = Math.Max(60, serverTimeoutSec + 5); // at least 60s, or server timeout + buffer
+        using var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(uiTimeoutSec));
         using var linked = CancellationTokenSource.CreateLinkedTokenSource(timeoutCts.Token, continuousCts?.Token ?? CancellationToken.None);
         try
         {
             var bytes = Convert.FromBase64String(base64);
             // Send to STT
-            var http = HttpFactory.CreateClient();
-            if (http.BaseAddress is null) http.BaseAddress = new Uri(Nav.BaseUri, UriKind.Absolute);
+            using var handler = new System.Net.Http.SocketsHttpHandler
+            {
+                AutomaticDecompression = System.Net.DecompressionMethods.GZip | System.Net.DecompressionMethods.Deflate,
+                PooledConnectionLifetime = TimeSpan.FromMinutes(10),
+                Expect100ContinueTimeout = TimeSpan.Zero,
+                UseProxy = false
+            };
+            using var client = new System.Net.Http.HttpClient(handler) { Timeout = System.Threading.Timeout.InfiniteTimeSpan };
+            if (client.BaseAddress is null) client.BaseAddress = new Uri(Nav.BaseUri, UriKind.Absolute);
+            client.DefaultRequestVersion = System.Net.HttpVersion.Version11;
+            
             using var content = new ByteArrayContent(bytes);
             content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("audio/wav");
-            var resp = await http.PostAsync("api/stt", content, linked.Token);
+            var resp = await client.PostAsync("api/stt", content, linked.Token);
             var text = resp.IsSuccessStatusCode ? (await resp.Content.ReadAsStringAsync(linked.Token)) : string.Empty;
             if (!string.IsNullOrWhiteSpace(text))
             {
                 lastTranscript = text;
                 messages.Add(new Msg("you", text));
                 phase = "Thinking";
-                // Ask agent and speak
-                var replyResp = await http.PostAsync("api/agent/chat", new StringContent(text), linked.Token);
-                if (replyResp.IsSuccessStatusCode)
+                // Centralize decision in HelperRoutingAgentService: UI delegates all requests to the helper and
+                // renders annotated responses the helper returns. The helper will decide whether to call MCP or RAG.
+                try
                 {
-                    agentReply = await replyResp.Content.ReadAsStringAsync(linked.Token);
-                    messages.Add(new Msg("agent", agentReply));
+                    var agentResp = await Agent.ChatAsync(text, linked.Token) ?? string.Empty;
 
-                    // If this is an approval prompt, show dialog and do not TTS
-                    if (agentReply.StartsWith("[approval]", StringComparison.OrdinalIgnoreCase))
+                    // If helper produced an annotated diagnostic (contains marker '(rephrase)'), parse and render
+                    if (agentResp.IndexOf("(rephrase)", StringComparison.OrdinalIgnoreCase) >= 0)
                     {
-                        ShowApproval(agentReply);
-                        alertMessage = null;
+                        messages.Add(new Msg("agent", "Asking"));
+
+                        // Simple parser: capture sections between marker lines like '(rephrase)', '(search)', '(answer request)', '(final answer)'
+
+                        var sections = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                        var lines = agentResp.Split(new[] { '\r', '\n' }, StringSplitOptions.None);
+                        string? curKey = null;
+                        var curSb = new System.Text.StringBuilder();
+                        foreach (var ln in lines)
+                        {
+                            var trimmed = ln.Trim();
+                            if (trimmed.Length == 0)
+                            {
+                                if (curKey is not null)
+                                {
+                                    curSb.AppendLine();
+                                }
+                                continue;
+                            }
+                            if (trimmed.StartsWith("(") && trimmed.EndsWith(")"))
+                            {
+                                // save previous
+                                if (curKey is not null)
+                                {
+                                    sections[curKey] = curSb.ToString().Trim();
+                                    curSb.Clear();
+                                }
+                                curKey = trimmed.Substring(1, trimmed.Length - 2).Trim();
+                                continue;
+                            }
+                            if (curKey is null) continue; // skip until we hit first marker
+                            curSb.AppendLine(ln);
+                        }
+                        if (curKey is not null)
+                            sections[curKey] = curSb.ToString().Trim();
+
+                        // Render rephrase
+                        if (sections.TryGetValue("rephrase", out var reph))
+                        {
+                            messages.Add(new Msg("codehero.rephrase", string.IsNullOrWhiteSpace(reph) ? "(no rephrase)" : reph));
+                        }
+
+                        // Optionally render search and request when visible
+                        if (!showFinalOnly)
+                        {
+                            if (sections.TryGetValue("search", out var search))
+                            {
+                                messages.Add(new Msg("agent", "Search results"));
+                                messages.Add(new Msg("codehero.search", string.IsNullOrWhiteSpace(search) ? "(no search)" : search));
+                            }
+                            if (sections.TryGetValue("answer request", out var reqjson))
+                            {
+                                messages.Add(new Msg("agent", "Model input"));
+                                messages.Add(new Msg("codehero.request", string.IsNullOrWhiteSpace(reqjson) ? "(no answer request json)" : reqjson));
+                            }
+                        }
+
+                        // Final answer
+                        if (sections.TryGetValue("final answer", out var final))
+                        {
+                            messages.Add(new Msg("codehero.final", string.IsNullOrWhiteSpace(final) ? "(no answer)" : final));
+                            if (!string.IsNullOrWhiteSpace(final))
+                            {
+                                var tts = await client.PostAsync("api/tts?voice=en-US-JennyNeural", new StringContent(final), linked.Token);
+                                if (tts.IsSuccessStatusCode)
+                                {
+                                    var wav = await tts.Content.ReadAsByteArrayAsync(linked.Token);
+                                    await LoadAudioTag(wav);
+                                }
+                            }
+                        }
                     }
                     else
                     {
-                        alertKind = "info"; alertMessage = agentReply;
-                        var tts = await http.PostAsync("api/tts?voice=en-US-JennyNeural", new StringContent(agentReply), linked.Token);
-                        if (tts.IsSuccessStatusCode)
+                        // No annotations: display as single final answer from agent/orchestrator
+                        messages.Add(new Msg("agent", "Asking"));
+                        messages.Add(new Msg("codehero.final", agentResp));
+                        if (!string.IsNullOrWhiteSpace(agentResp))
                         {
-                            var wav = await tts.Content.ReadAsByteArrayAsync(linked.Token);
-                            await LoadAudioTag(wav);
+                            var tts = await client.PostAsync("api/tts?voice=en-US-JennyNeural", new StringContent(agentResp), linked.Token);
+                            if (tts.IsSuccessStatusCode)
+                            {
+                                var wav = await tts.Content.ReadAsByteArrayAsync(linked.Token);
+                                await LoadAudioTag(wav);
+                            }
                         }
                     }
                 }
-            }
+                 catch (OperationCanceledException)
+                 {
+                     messages.Add(new Msg("error", "Timed out processing phrase."));
+                 }
+                 catch (Exception ex)
+                 {
+                     messages.Add(new Msg("error", ex.Message));
+                 }
+                 finally
+                 {
+                     phase = continuous ? "Listening" : "Idle";
+                     await InvokeAsync(StateHasChanged);
+                 }
+             }
         }
         catch (OperationCanceledException)
         {
@@ -339,6 +489,48 @@
             approvalDiff = reply;
         }
         StateHasChanged();
+    }
+
+    // Try to extract the final, user-facing answer from a fuller diagnostic reply.
+    // Strategies:
+    // - If reply contains a '(final answer)' marker, take the following text
+    // - If reply is JSON and contains a 'summary' property, return that
+    // - Otherwise return the original reply
+    private static string ExtractFinalAnswer(string reply)
+    {
+        if (string.IsNullOrWhiteSpace(reply)) return reply;
+        try
+        {
+            var marker = "(final answer)";
+            var idx = reply.IndexOf(marker, StringComparison.OrdinalIgnoreCase);
+            if (idx >= 0)
+            {
+                var after = reply.Substring(idx + marker.Length).Trim();
+                if (!string.IsNullOrEmpty(after)) return after;
+            }
+
+            // Try JSON parse for 'summary' field
+            var trimmed = reply.Trim();
+            if (trimmed.StartsWith('{') || trimmed.StartsWith('['))
+            {
+                using var doc = System.Text.Json.JsonDocument.Parse(trimmed);
+                if (doc.RootElement.TryGetProperty("summary", out var sum) && sum.ValueKind == System.Text.Json.JsonValueKind.String)
+                {
+                    return sum.GetString() ?? trimmed;
+                }
+                // fallback: if root has 'output' or 'choices'[0].message.content
+                if (doc.RootElement.TryGetProperty("output", out var outEl) && outEl.ValueKind == System.Text.Json.JsonValueKind.String)
+                    return outEl.GetString() ?? trimmed;
+                if (doc.RootElement.TryGetProperty("choices", out var choices) && choices.ValueKind == System.Text.Json.JsonValueKind.Array && choices.GetArrayLength() > 0)
+                {
+                    var first = choices[0];
+                    if (first.TryGetProperty("message", out var msg) && msg.TryGetProperty("content", out var contentEl) && contentEl.ValueKind == System.Text.Json.JsonValueKind.String)
+                        return contentEl.GetString() ?? trimmed;
+                }
+            }
+        }
+        catch { /* ignore parse errors */ }
+        return reply;
     }
 
     private sealed class Releaser : IAsyncDisposable, IDisposable

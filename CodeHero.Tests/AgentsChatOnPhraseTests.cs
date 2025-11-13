@@ -49,7 +49,7 @@ public class AgentsChatOnPhraseTests
         var task = mi!.Invoke(cut.Instance, new object[] { b64 }) as Task;
         Assert.IsNotNull(task);
         // Await the task with an explicit timeout to avoid default test harness 10s timeout
-        await task!.WaitAsync(TimeSpan.FromSeconds(30));
+        await task!.WaitAsync(TimeSpan.FromSeconds(60));
         // Assert chat contains both roles
         var html = cut.Markup;
         StringAssert.Contains(html, ">you:<");

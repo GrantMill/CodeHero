@@ -10,6 +10,9 @@ using Polly.Extensions.Http;
 using System.Net.Http.Headers;
 using System.Net.Http;
 using System.Net;
+using System.Text.Json;
+using CodeHero.ApiService.Utilities;
+using System.Linq;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -145,6 +148,153 @@ app.MapPost("/api/search/hybrid", async (SearchRequest req, IHybridSearchService
 app.MapPost("/api/chat/answer", async (AnswerRequest req, IRagAnswerService rag, CancellationToken ct) =>
     Results.Ok(await rag.AnswerAsync(req, ct)));
 
+// Orchestrated agent chat endpoint: accept plain-text POST body and route to MCP orchestrator if applicable
+// otherwise run the RAG pipeline (rephrase -> search -> answer) and return plain-text output.
+app.MapPost("/api/agent/chat", async (HttpRequest httpReq, IQuestionRephraser rephraser, IHybridSearchService search, IRagAnswerService rag, ILoggerFactory loggerFactory, CancellationToken ct) =>
+{
+    var logger = loggerFactory.CreateLogger("AgentChatEndpoint");
+    string text;
+    using (var sr = new StreamReader(httpReq.Body))
+    {
+        text = await sr.ReadToEndAsync(ct);
+    }
+    text = text?.Trim() ?? string.Empty;
+    if (string.IsNullOrWhiteSpace(text)) return Results.BadRequest("empty input");
+
+    // Create a linked CTS with the configured foundry attempt timeout so long-running RAG/Foundry calls
+    // aren't prematurely cancelled by shorter upstream timeouts. This gives the pipeline a consistent cap.
+    var linked = CancellationHelper.CreateLinkedCtsWithId(ct, TimeSpan.FromSeconds(foundryAttemptTimeoutSec));
+    using var linkedCts = linked.Cts;
+    var linkedId = linked.Id;
+    var token = linkedCts.Token;
+
+    try
+    {
+        // First attempt: quick heuristic for MCP list/read intents to avoid RAG call
+        var norm = text.ToLowerInvariant();
+        if (norm.Contains("list") && norm.Contains("req"))
+        {
+            // Try to call IMcpClient.CallRawAsync dynamically to avoid compile-time dependency on Web project types
+            var svc = httpReq.HttpContext.RequestServices.GetService(typeof(object));
+            if (svc is not null)
+            {
+                var callRaw = svc.GetType().GetMethod("CallRawAsync", new Type[] { typeof(string), typeof(object), typeof(CancellationToken) });
+                if (callRaw is not null)
+                {
+                    var task = (Task<string>?)callRaw.Invoke(svc, new object[] { "fs/list", new { root = "requirements", exts = new[] { ".md" } }, token });
+                    if (task is not null)
+                    {
+                        var raw = await task;
+                        try
+                        {
+                            using var doc = JsonDocument.Parse(raw);
+                            if (doc.RootElement.TryGetProperty("result", out var result) && result.TryGetProperty("files", out var filesEl) && filesEl.ValueKind == JsonValueKind.Array)
+                            {
+                                var files = filesEl.EnumerateArray().Select(e => e.GetString()).Where(s => !string.IsNullOrEmpty(s));
+                                return Results.Ok(string.Join("\n", files!));
+                            }
+                        }
+                        catch { /* fall through to RAG */ }
+                    }
+                }
+            }
+        }
+
+        // Otherwise: RAG pipeline with per-stage diagnostics
+        var chatReq = new ChatRequest(text, Array.Empty<ChatTurn>());
+
+        var swRephrase = System.Diagnostics.Stopwatch.StartNew();
+        string? standalone = null;
+        try
+        {
+            standalone = await rephraser.RephraseAsync(chatReq, token);
+        }
+        catch (OperationCanceledException) when (token.IsCancellationRequested)
+        {
+            logger.LogWarning("AgentChat: rephrase canceled after {Ms}ms (caller token).", swRephrase.ElapsedMilliseconds);
+            throw;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "AgentChat: rephrase failed after {Ms}ms", swRephrase.ElapsedMilliseconds);
+            throw;
+        }
+        finally { swRephrase.Stop(); }
+        logger.LogInformation("AgentChat: rephrase -> {Standalone} (ms={Ms})", standalone, swRephrase.ElapsedMilliseconds);
+
+        var swSearch = System.Diagnostics.Stopwatch.StartNew();
+        SearchResponse? searchResp = null;
+        try
+        {
+            var searchReq = new SearchRequest(standalone ?? text, TopK: 6);
+            searchResp = await search.SearchAsync(searchReq, token);
+        }
+        catch (OperationCanceledException) when (token.IsCancellationRequested)
+        {
+            logger.LogWarning("AgentChat: search canceled after {Ms}ms (caller token).", swSearch.ElapsedMilliseconds);
+            throw;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "AgentChat: search failed after {Ms}ms", swSearch.ElapsedMilliseconds);
+            throw;
+        }
+        finally { swSearch.Stop(); }
+        var contexts = searchResp?.Results ?? Array.Empty<SearchHit>();
+        logger.LogInformation("AgentChat: search returned {Count} contexts (ms={Ms})", contexts.Count(), swSearch.ElapsedMilliseconds);
+
+        var swAnswer = System.Diagnostics.Stopwatch.StartNew();
+        AnswerResponse? answer = null;
+        try
+        {
+            var answerReq = new AnswerRequest(text, Array.Empty<ChatTurn>(), contexts);
+            answer = await rag.AnswerAsync(answerReq, token);
+            var outText = answer?.Output ?? answer?.Reasoning ?? "(no answer)";
+            logger.LogInformation("AgentChat: completed (rephraseMs={r}, searchMs={s}, answerMs={a})", swRephrase.ElapsedMilliseconds, swSearch.ElapsedMilliseconds, swAnswer.ElapsedMilliseconds);
+            return Results.Ok(outText);
+        }
+        catch (OperationCanceledException) when (token.IsCancellationRequested)
+        {
+            logger.LogWarning("AgentChat: answer canceled after {Ms}ms (caller token). Building partial summary from contexts.", swAnswer.ElapsedMilliseconds);
+            // Fallback: produce concise partial summary from available contexts so UI can show something useful
+            if (contexts is not null && contexts.Any())
+            {
+                var parts = contexts.Take(6).Select((c, i) => $"[{i+1}] {Truncate(c.Source, 100)}: {Truncate(c.Content?.Replace('\n',' ') ?? string.Empty, 240)}");
+                var partial = "Partial results (answer timed out):\n" + string.Join("\n\n", parts);
+                return Results.Ok(partial);
+            }
+            return Results.Ok("Answer generation timed out and no contexts were available.");
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "AgentChat: answer failed after {Ms}ms; returning partial search summary.", swAnswer.ElapsedMilliseconds);
+            if (contexts is not null && contexts.Any())
+            {
+                var parts = contexts.Take(6).Select((c, i) => $"[{i+1}] {Truncate(c.Source, 100)}: {Truncate(c.Content?.Replace('\n',' ') ?? string.Empty, 240)}");
+                var partial = "Partial results (answer failed):\n" + string.Join("\n\n", parts);
+                return Results.Ok(partial);
+            }
+            return Results.Problem("Answer generation failed and no partial results available.");
+        }
+        finally { swAnswer.Stop(); }
+
+        static string Truncate(string? s, int max)
+        {
+            if (string.IsNullOrEmpty(s)) return string.Empty;
+            return s.Length <= max ? s : s.Substring(0, max) + "...";
+        }
+    }
+    catch (OperationCanceledException)
+    {
+        return Results.StatusCode(504);
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Agent chat failed");
+        return Results.Problem("Agent processing failed");
+    }
+});
+
 // Document map endpoint
 app.MapGet("/api/document-map", async (IConfiguration cfg) =>
 {
@@ -177,30 +327,7 @@ app.MapGet("/api/search/indexer/status/{jobId:guid}", async (IBackgroundIndexer 
     return Results.Ok(status);
 });
 
-// Indexer status endpoint for diagnostics
-app.MapGet("/api/search/indexer/diagnostics", (IConfiguration cfg) =>
-{
-    var endpoint = cfg["Search:Endpoint"] ?? cfg["AzureSearch:Endpoint"];
-    var hasEndpoint = !string.IsNullOrWhiteSpace(endpoint);
-    var hasApiKey = !string.IsNullOrWhiteSpace(cfg["Search:ApiKey"] ?? cfg["AzureSearch:ApiKey"]);
-    var indexName = cfg["Search:IndexName"] ?? cfg["AzureSearch:IndexName"] ?? "(default: codehero-docs)";
-    var contentRoot = cfg["ContentRoot"] ?? Directory.GetCurrentDirectory();
-    var dataDir = Path.Combine(contentRoot, "data");
-    var mapPath = Path.Combine(dataDir, "document-map.json");
-    var mapExists = File.Exists(mapPath);
-
-    return Results.Ok(new
-    {
-        HasEndpoint = hasEndpoint,
-        HasApiKey = hasApiKey,
-        Endpoint = hasEndpoint ? endpoint : null,
-        IndexName = indexName,
-        ContentRoot = contentRoot,
-        DocumentMapPath = mapPath,
-        DocumentMapExists = mapExists
-    });
-});
-
+// Ensure default endpoints and run the application
 app.MapDefaultEndpoints();
 
 app.Run();

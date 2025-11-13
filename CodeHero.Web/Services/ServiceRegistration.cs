@@ -14,11 +14,13 @@ public static class ServiceRegistration
 
         services.AddSingleton<IMcpClient, McpClient>();
         // Register the Foundry-backed agent (for direct chat) and the LLM-based orchestrator and helper
-        services.AddSingleton<AzureFoundryAgentService>();
-        services.AddSingleton<LlmOrchestratorAgentService>();
-        services.AddSingleton<HelperRoutingAgentService>();
+        // These agents depend (transitively) on scoped services in Blazor (e.g., NavigationManager),
+        // so register them as scoped to avoid resolving scoped services from the root provider.
+        services.AddScoped<AzureFoundryAgentService>();
+        services.AddScoped<LlmOrchestratorAgentService>();
+        services.AddScoped<HelperRoutingAgentService>();
         // Expose the routing wrapper as the IAgentService implementation
-        services.AddSingleton<IAgentService>(sp => sp.GetRequiredService<HelperRoutingAgentService>());
+        services.AddScoped<IAgentService>(sp => sp.GetRequiredService<HelperRoutingAgentService>());
         return services;
     }
 }
