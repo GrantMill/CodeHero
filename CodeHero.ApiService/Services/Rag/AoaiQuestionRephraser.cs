@@ -58,7 +58,7 @@ public sealed class AoaiQuestionRephraser : IQuestionRephraser
         Follow up Input: {request.ChatInput}
         Standalone Question:
         """;
-
+        
         var endpoint = _cfg["AOAI:Endpoint"] ?? _cfg["AzureAI:Foundry:Endpoint"] ?? string.Empty;
         var key = _cfg["AOAI:Key"] ?? _cfg["AzureAI:Foundry:Key"] ?? _cfg["AzureAI:Foundry:ApiKey"] ?? string.Empty;
         var deployment = _cfg["AOAI:ChatDeployment"] ?? _cfg["AzureAI:Foundry:PhiDeployment"] ?? _cfg["AzureAI:Foundry:ChatDeployment"] ?? _cfg["AzureAI:Foundry:Deployment"] ?? _cfg["AzureAI:Foundry:Model"] ?? "Phi-4";
@@ -82,23 +82,47 @@ public sealed class AoaiQuestionRephraser : IQuestionRephraser
             max_tokens = 256
         };
 
-        var handler = new SocketsHttpHandler
-        {
-            AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
-            PooledConnectionLifetime = TimeSpan.FromMinutes(10),
-            Expect100ContinueTimeout = TimeSpan.Zero,
-            UseProxy = false
-        };
-
-        using var client = new HttpClient(handler) { Timeout = Timeout.InfiniteTimeSpan };
-        client.DefaultRequestVersion = HttpVersion.Version11;
-        client.DefaultRequestHeaders.Remove("api-key");
-        client.DefaultRequestHeaders.Add("api-key", key);
-        client.DefaultRequestHeaders.Accept.Clear();
-        client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
+        HttpClient? client = null;
+        bool disposeClient = false;
         try
         {
+            // Prefer factory-created client (so tests can inject a stubbed client). If factory client unavailable, fall back to direct SocketsHttpHandler.
+            try
+            {
+                client = _http?.CreateClient("foundry");
+                if (client is not null)
+                {
+                    try { client.Timeout = Timeout.InfiniteTimeSpan; } catch { }
+                    client.DefaultRequestHeaders.Remove("api-key");
+                    client.DefaultRequestHeaders.Add("api-key", key);
+                    client.DefaultRequestHeaders.Accept.Clear();
+                    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                }
+            }
+            catch (Exception ex)
+            {
+                _log?.LogDebug(ex, "AoaiQuestionRephraser: IHttpClientFactory CreateClient failed; will create local handler client.");
+                client = null;
+            }
+
+            if (client is null)
+            {
+                var handler = new SocketsHttpHandler
+                {
+                    AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
+                    PooledConnectionLifetime = TimeSpan.FromMinutes(10),
+                    Expect100ContinueTimeout = TimeSpan.Zero,
+                    UseProxy = false
+                };
+                client = new HttpClient(handler) { Timeout = Timeout.InfiniteTimeSpan };
+                client.DefaultRequestVersion = HttpVersion.Version11;
+                client.DefaultRequestHeaders.Remove("api-key");
+                client.DefaultRequestHeaders.Add("api-key", key);
+                client.DefaultRequestHeaders.Accept.Clear();
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                disposeClient = true;
+            }
+
             using var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
             using var req = new HttpRequestMessage(HttpMethod.Post, url) { Content = content };
             req.Headers.ConnectionClose = true;
@@ -148,6 +172,11 @@ public sealed class AoaiQuestionRephraser : IQuestionRephraser
         {
             _log.LogError(ex, "Rephrase call threw; returning original input.");
             return request.ChatInput;
+        }
+        finally
+        {
+            if (disposeClient && client is not null)
+                client.Dispose();
         }
     }
 
