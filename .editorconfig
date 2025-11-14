@@ -129,6 +129,7 @@ csharp_style_prefer_method_group_conversion = true
 csharp_style_prefer_primary_constructors = true
 csharp_style_prefer_simple_property_accessors = true
 csharp_style_prefer_top_level_statements = true
+csharp_using_directive_placement = outside_namespace
 
 # Expression-level preferences
 csharp_prefer_simple_default_expression = true
@@ -245,3 +246,11 @@ dotnet_naming_style.begins_with_i.required_prefix = I
 dotnet_naming_style.begins_with_i.required_suffix = 
 dotnet_naming_style.begins_with_i.word_separator = 
 dotnet_naming_style.begins_with_i.capitalization = pascal_case
+
+# Razor files
+[*.razor]
+indent_style = space
+indent_size = 4
+end_of_line = crlf
+trim_trailing_whitespace = true
+insert_final_newline = true

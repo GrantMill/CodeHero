@@ -1,5 +1,3 @@
-using System.Net.Http;
-
 namespace CodeHero.ApiService.Utilities;
 
 public static class CancellationHelper

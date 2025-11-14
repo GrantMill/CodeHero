@@ -1,6 +1,5 @@
 using Polly;
 using Polly.Extensions.Http;
-using System.Net.Http;
 
 namespace CodeHero.ApiService;
 

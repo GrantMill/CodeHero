@@ -1,0 +1,14 @@
+<Project>
+  <PropertyGroup>
+    <!-- Ensure consistent language version across projects -->
+    <LangVersion>preview</LangVersion>
+    <!-- Generate XML documentation files for all projects (can be turned off per project) -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!-- Do not treat missing XML docs as errors yet -->
+    <NoWarn>$(NoWarn);1591</NoWarn>
+    <!-- Nullable reference types on -->
+    <Nullable>enable</Nullable>
+    <!-- Implicit usings for modern .NET -->
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+</Project>

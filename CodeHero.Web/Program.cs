@@ -4,13 +4,13 @@ using CodeHero.Web.Services;
 using Markdig;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.ResponseCompression;
+using Microsoft.Extensions.Http;
+using Microsoft.Extensions.Options;
 using Polly;
 using Polly.Extensions.Http;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Http.Headers;
-using Microsoft.Extensions.Http;
-using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 

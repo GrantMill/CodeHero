@@ -8,4 +8,4 @@ export function set(key, value) {
 
 export function remove(key) {
     window.localStorage.removeItem(key);
-}
+} 
