@@ -70,17 +70,17 @@ builder.Services.Configure<Microsoft.Extensions.Http.HttpClientFactoryOptions>("
     options.HttpMessageHandlerBuilderActions.Clear();
 });
 
-// Register default SearchClient factory / instance
-builder.Services.AddSingleton(sp =>
+// Register SearchClient instance only when configured to avoid nullable-return issues
 {
-    var cfg = sp.GetRequiredService<IConfiguration>();
+    var cfg = builder.Configuration;
     var searchEndpoint = cfg["Search:Endpoint"] ?? cfg["AzureSearch:Endpoint"];
     var searchKey = cfg["Search:Key"] ?? cfg["Search:ApiKey"] ?? cfg["AzureSearch:ApiKey"];
     var indexName = cfg["Search:IndexName"] ?? cfg["AzureSearch:IndexName"] ?? "codehero-docs";
-    if (string.IsNullOrWhiteSpace(searchEndpoint) || string.IsNullOrWhiteSpace(searchKey))
-        return null; // not configured
-    return new SearchClient(new Uri(searchEndpoint), indexName, new AzureKeyCredential(searchKey));
-});
+    if (!string.IsNullOrWhiteSpace(searchEndpoint) && !string.IsNullOrWhiteSpace(searchKey))
+    {
+        builder.Services.AddSingleton(new SearchClient(new Uri(searchEndpoint), indexName, new AzureKeyCredential(searchKey)));
+    }
+}
 
 builder.Services.AddScoped<IQuestionRephraser, QuestionRephraser>();
 builder.Services.AddScoped<IHybridSearchService>(sp =>

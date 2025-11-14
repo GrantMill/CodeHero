@@ -393,7 +393,7 @@ if (enableSpeechApi)
 #else
  var text = await reader.ReadToEndAsync();
 #endif
-            var audio = await speech.SynthesizeAsync(text, voice, ct: cts.Token);
+            byte[] audio = await speech.SynthesizeAsync(text, voice, ct: cts.Token);
             respBytes = audio?.LongLength ?? 0;
             sw.Stop();
             log.LogInformation("TTS completed. Status={Status} DurationMs={DurationMs} ReqBytes={ReqBytes} RespBytes={RespBytes} Voice={Voice}", status, sw.ElapsedMilliseconds, reqBytes, respBytes, voice);

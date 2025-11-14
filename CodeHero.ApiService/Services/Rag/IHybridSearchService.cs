@@ -57,7 +57,7 @@ namespace CodeHero.ApiService.Services.Rag;
 /// </list>
 /// </remarks>
 /// <remarks>
-/// Microsoft Learn MCP Server - Tooling & Workflow Summary
+/// Microsoft Learn MCP Server - Tooling and Workflow Summary
 /// <para>The Microsoft Learn MCP Server exposes three primary helper tools and a recommended workflow:</para>
 /// <list type="bullet">
 ///   <item>

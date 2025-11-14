@@ -141,7 +141,9 @@ internal class SimpleRetryHandler : DelegatingHandler
         // copy Options if present (best-effort)
         foreach (var prop in original.Options)
         {
-            clone.Options.Set(new System.Net.Http.HttpRequestOptionsKey<object>(prop.Key), prop.Value);
+            // Use object? generic parameter to match HttpRequestOptionsKey<TValue?> signature and avoid nullability mismatch
+            var key = new System.Net.Http.HttpRequestOptionsKey<object?>(prop.Key);
+            clone.Options.Set(key, prop.Value);
         }
 #endif
 
