@@ -4,6 +4,10 @@ using System.Text.Json;
 
 namespace CodeHero.Web.Services;
 
+/// <summary>
+/// Agent implementation that uses Azure AI Foundry chat completions to generate replies.
+/// Requires endpoint, api key, api-version and a model/deployment configured via <see cref="IConfiguration"/>.
+/// </summary>
 public sealed class AzureFoundryAgentService : IAgentService
 {
     private readonly string _endpoint;
@@ -12,6 +16,9 @@ public sealed class AzureFoundryAgentService : IAgentService
     private readonly string _deployment;
     private readonly IHttpClientFactory _http;
 
+    /// <summary>
+    /// Initializes the agent with configuration and an <see cref="IHttpClientFactory"/>.
+    /// </summary>
     public AzureFoundryAgentService(IConfiguration config, IHttpClientFactory http)
     {
         _endpoint = (config["AzureAI:Foundry:Endpoint"] ?? string.Empty).TrimEnd('/');
@@ -22,6 +29,7 @@ public sealed class AzureFoundryAgentService : IAgentService
         _http = http;
     }
 
+    /// <inheritdoc />
     public async Task<string> ChatAsync(string input, IReadOnlyList<ChatTurn>? chatHistory = null, CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(_endpoint) || string.IsNullOrWhiteSpace(_key) || string.IsNullOrWhiteSpace(_deployment))

@@ -4,13 +4,24 @@ using System.Text.RegularExpressions;
 
 namespace CodeHero.Web.Services;
 
+/// <summary>
+/// Thin client for calling the ApiService RAG endpoints (rephrase, search, answer) and
+/// optionally collecting a diagnostic view of each step to aid UI rendering and debugging.
+/// </summary>
 public sealed class RagClient
 {
     private readonly HttpClient _http;
+
+    /// <summary>
+    /// Most recent diagnostic response returned by <see cref="AskDiagnosticAsync"/>.
+    /// </summary>
     public DiagnosticAnswerResponse? LastDiagnostic { get; set; }
 
     private static readonly Regex ClarifyPattern = new(@"\b(clarify|clarification|more details|could you|please provide|what do you mean|can you explain)\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="RagClient"/> with a typed <see cref="HttpClient"/> and <see cref="NavigationManager"/>.
+    /// </summary>
     public RagClient(HttpClient http, NavigationManager nav)
     {
         _http = http;
@@ -22,6 +33,10 @@ public sealed class RagClient
         }
     }
 
+    /// <summary>
+    /// Calls the diagnostic RAG pipeline and returns only the final answer. Stores the full
+    /// diagnostic in <see cref="LastDiagnostic"/> for inspection.
+    /// </summary>
     public async Task<AnswerResponse> AskAsync(string chatInput, IReadOnlyList<ChatTurn> history, CancellationToken ct = default)
     {
         var diag = await AskDiagnosticAsync(chatInput, history, ct);
@@ -56,6 +71,10 @@ public sealed class RagClient
         return client;
     }
 
+    /// <summary>
+    /// Calls the diagnostic RAG pipeline (rephrase ? search ? answer) and returns raw step outputs
+    /// plus a parsed answer if available.
+    /// </summary>
     public async Task<DiagnosticAnswerResponse> AskDiagnosticAsync(string chatInput, IReadOnlyList<ChatTurn> history, CancellationToken ct = default)
     {
         var corr = Guid.NewGuid().ToString("D");

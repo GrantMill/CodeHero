@@ -57,6 +57,13 @@ public sealed class HybridSearchService : IHybridSearchService
     private readonly string _textField = "content";
     private readonly string _sourceMeta = "path";
 
+    /// <summary>
+    /// Initializes a new <see cref="HybridSearchService"/> with required dependencies.
+    /// </summary>
+    /// <param name="searchClient">Azure AI Search client targeting the configured index.</param>
+    /// <param name="http">HTTP client factory used for embedding calls.</param>
+    /// <param name="cfg">Configuration for embedding model and Foundry endpoint.</param>
+    /// <param name="log">Logger for diagnostics/telemetry.</param>
     public HybridSearchService(SearchClient searchClient, IHttpClientFactory http, IConfiguration cfg, ILogger<HybridSearchService> log)
     {
         _searchClient = searchClient;
