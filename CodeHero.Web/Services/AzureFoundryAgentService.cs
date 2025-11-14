@@ -22,7 +22,7 @@ public sealed class AzureFoundryAgentService : IAgentService
         _http = http;
     }
 
-    public async Task<string> ChatAsync(string input, CancellationToken ct = default)
+    public async Task<string> ChatAsync(string input, IReadOnlyList<ChatTurn>? chatHistory = null, CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(_endpoint) || string.IsNullOrWhiteSpace(_key) || string.IsNullOrWhiteSpace(_deployment))
         {

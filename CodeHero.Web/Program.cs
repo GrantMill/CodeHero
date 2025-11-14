@@ -519,7 +519,7 @@ if (enableAgentApi)
     app.MapPost("/api/agent/chat", async (IAgentService agent, HttpContext ctx) =>
     {
         var text = await new StreamReader(ctx.Request.Body).ReadToEndAsync();
-        var reply = await agent.ChatAsync(text, ctx.RequestAborted);
+        var reply = await agent.ChatAsync(text, null, ctx.RequestAborted);
         return Results.Text(reply);
     }).DisableAntiforgery();
 }

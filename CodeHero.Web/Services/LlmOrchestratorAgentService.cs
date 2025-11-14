@@ -49,7 +49,7 @@ public sealed class LlmOrchestratorAgentService : IAgentService
         if (!_useModelsRoute && string.IsNullOrWhiteSpace(_deployment)) _deployment = "gpt-4o-mini";
     }
 
-    public async Task<string> ChatAsync(string text, CancellationToken ct = default)
+    public async Task<string> ChatAsync(string text, IReadOnlyList<ChatTurn>? chatHistory = null, CancellationToken ct = default)
     {
         using var activity = AgentTelemetry.Activity.StartActivity("orchestrator.chat");
         try

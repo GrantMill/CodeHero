@@ -82,7 +82,7 @@ builder.Services.AddSingleton(sp =>
     return new SearchClient(new Uri(searchEndpoint), indexName, new AzureKeyCredential(searchKey));
 });
 
-builder.Services.AddScoped<IQuestionRephraser, AoaiQuestionRephraser>();
+builder.Services.AddScoped<IQuestionRephraser, QuestionRephraser>();
 builder.Services.AddScoped<IHybridSearchService>(sp =>
 {
     var sc = sp.GetService<SearchClient>();
@@ -259,7 +259,7 @@ app.MapPost("/api/agent/chat", async (HttpRequest httpReq, IQuestionRephraser re
             // Fallback: produce concise partial summary from available contexts so UI can show something useful
             if (contexts is not null && contexts.Any())
             {
-                var parts = contexts.Take(6).Select((c, i) => $"[{i+1}] {Truncate(c.Source, 100)}: {Truncate(c.Content?.Replace('\n',' ') ?? string.Empty, 240)}");
+                var parts = contexts.Take(6).Select((c, i) => $"[{i + 1}] {Truncate(c.Source, 100)}: {Truncate(c.Content?.Replace('\n', ' ') ?? string.Empty, 240)}");
                 var partial = "Partial results (answer timed out):\n" + string.Join("\n\n", parts);
                 return Results.Ok(partial);
             }
@@ -270,7 +270,7 @@ app.MapPost("/api/agent/chat", async (HttpRequest httpReq, IQuestionRephraser re
             logger.LogError(ex, "AgentChat: answer failed after {Ms}ms; returning partial search summary.", swAnswer.ElapsedMilliseconds);
             if (contexts is not null && contexts.Any())
             {
-                var parts = contexts.Take(6).Select((c, i) => $"[{i+1}] {Truncate(c.Source, 100)}: {Truncate(c.Content?.Replace('\n',' ') ?? string.Empty, 240)}");
+                var parts = contexts.Take(6).Select((c, i) => $"[{i + 1}] {Truncate(c.Source, 100)}: {Truncate(c.Content?.Replace('\n', ' ') ?? string.Empty, 240)}");
                 var partial = "Partial results (answer failed):\n" + string.Join("\n\n", parts);
                 return Results.Ok(partial);
             }

@@ -17,7 +17,7 @@ public sealed class McpOrchestratorAgentService : IAgentService
 
     public McpOrchestratorAgentService(IMcpClient mcp) => _mcp = mcp;
 
-    public async Task<string> ChatAsync(string text, CancellationToken ct = default)
+    public async Task<string> ChatAsync(string text, IReadOnlyList<ChatTurn>? chatHistory = null, CancellationToken ct = default)
     {
         var raw = (text ?? string.Empty).Trim();
         if (string.IsNullOrEmpty(raw)) return "(empty)";

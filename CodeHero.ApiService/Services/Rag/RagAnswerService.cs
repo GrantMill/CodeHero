@@ -7,12 +7,39 @@ using System.Text.Json;
 
 namespace CodeHero.ApiService.Services.Rag;
 
+/// <summary>
+/// Service that generates answers using a retrieval-augmented generation (RAG) flow via Azure OpenAI / Foundry.
+/// </summary>
+/// <remarks>
+/// This service builds a system prompt and user message from provided contexts and chat history, then invokes
+/// the configured Foundry/OpenAI chat completions endpoint. It measures request timings (TTFB and total),
+/// attempts to parse a JSON response via <see cref="OpenAiResponseParser"/>, and returns a domain <see cref="AnswerResponse"/>.
+/// The implementation handles common errors internally and returns an <see cref="AnswerResponse"/> indicating failure,
+/// rather than throwing for typical remote or parsing failures.
+/// </remarks>
 public sealed class RagAnswerService : IRagAnswerService
 {
+    /// <summary>
+    /// Factory for creating named or typed HTTP clients. Not used directly for the request but kept for DI and potential use.
+    /// </summary>
     private readonly IHttpClientFactory _http;
+
+    /// <summary>
+    /// Application configuration used to read Azure/OpenAI settings (endpoint, key, deployment, api-version).
+    /// </summary>
     private readonly IConfiguration _cfg;
+
+    /// <summary>
+    /// Logger for telemetry and diagnostics.
+    /// </summary>
     private readonly ILogger<RagAnswerService> _log;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="RagAnswerService"/> class.
+    /// </summary>
+    /// <param name="http">An <see cref="IHttpClientFactory"/> used for creating HttpClient instances (injected via DI).</param>
+    /// <param name="cfg">Application <see cref="IConfiguration"/> containing AzureAI/Foundry settings.</param>
+    /// <param name="log">A logger instance used to record informational, warning and error messages.</param>
     public RagAnswerService(IHttpClientFactory http, IConfiguration cfg, ILogger<RagAnswerService> log)
     {
         _http = http;
@@ -20,6 +47,33 @@ public sealed class RagAnswerService : IRagAnswerService
         _log = log;
     }
 
+    /// <summary>
+    /// Generates an answer for the provided request using the configured Foundry/OpenAI deployment.
+    /// </summary>
+    /// <param name="req">The <see cref="AnswerRequest"/> containing the user's input, contexts, and chat history.</param>
+    /// <param name="ct">A <see cref="CancellationToken"/> used to cancel the operation; observed during HTTP calls.</param>
+    /// <returns>
+    /// An <see cref="AnswerResponse"/> containing the assistant text (or an error/fallback message) and a confidence indicator.
+    /// </returns>
+    /// <remarks>
+    /// Behavior steps:
+    /// 1. Build concatenated contexts via <see cref="PromptContextBuilder.Build"/>.
+    /// 2. Construct a system prompt with instructions and include the contexts.
+    /// 3. Merge chat history and current user input into a single user message payload.
+    /// 4. Read Foundry configuration values from <see cref="IConfiguration"/> (endpoint, key, deployment, api-version).
+    /// 5. If configuration is missing, return a fallback <see cref="AnswerResponse"/>.
+    /// 6. Create a JSON payload with messages and parameters (temperature, max_tokens).
+    /// 7. Use a dedicated <see cref="SocketsHttpHandler"/> and <see cref="HttpClient"/> to send the request to the Foundry endpoint,
+    ///    measuring TTFB and total elapsed time for telemetry.
+    /// 8. On non-success HTTP status codes, return an error <see cref="AnswerResponse"/>.
+    /// 9. Attempt to parse the response body as a JSON chat completion using <see cref="OpenAiResponseParser.TryGetFirstChoiceContent"/>.
+    ///    If parsing fails or no first choice is found, fall back to returning the raw response body.
+    /// 10. Detect explicit "confidence" metadata in the returned content and set the response confidence accordingly.
+    /// 11. Catch any exceptions, log the error, and return an error <see cref="AnswerResponse"/>.
+    ///
+    /// Note: The method handles exceptions internally and typically returns an <see cref="AnswerResponse"/> describing failures.
+    /// The <paramref name="ct"/> token is passed to HTTP calls and will cause the operation to complete early if cancelled.
+    /// </remarks>
     public async Task<AnswerResponse> AnswerAsync(AnswerRequest req, CancellationToken ct = default)
     {
         var contexts = PromptContextBuilder.Build(req.Contexts);
@@ -48,7 +102,7 @@ public sealed class RagAnswerService : IRagAnswerService
         var history = string.Join("\n", req.ChatHistory.Select(h =>
             $"user:\n{h.User}\nassistant:\n{h.Assistant}"));
 
-        var user = $$"""
+        var user = $"""
         Chat history:
         {history}
 
@@ -56,10 +110,10 @@ public sealed class RagAnswerService : IRagAnswerService
         {req.ChatInput}
         """;
 
-        var endpoint = _cfg["AOAI:Endpoint"] ?? _cfg["AzureAI:Foundry:Endpoint"] ?? string.Empty;
-        var key = _cfg["AOAI:Key"] ?? _cfg["AzureAI:Foundry:Key"] ?? _cfg["AzureAI:Foundry:ApiKey"] ?? string.Empty;
-        var deployment = _cfg["AOAI:ChatDeployment"] ?? _cfg["AzureAI:Foundry:PhiDeployment"] ?? _cfg["AzureAI:Foundry:ChatDeployment"] ?? _cfg["AzureAI:Foundry:Deployment"] ?? _cfg["AzureAI:Foundry:Model"] ?? "Phi-4";
-        var apiVersion = _cfg["AOAI:ApiVersion"] ?? _cfg["AzureAI:Foundry:ApiVersion"] ?? "2024-08-01-preview";
+        var endpoint = _cfg["AzureAI:Foundry:Endpoint"] ?? string.Empty;
+        var key = _cfg["AzureAI:Foundry:Key"] ?? string.Empty;
+        var deployment = _cfg["AzureAI:Foundry:PhiDeployment"] ?? "Phi-4";
+        var apiVersion = _cfg["AzureAI:Foundry:ApiVersion"] ?? "2024-08-01-preview";
 
         if (string.IsNullOrWhiteSpace(endpoint) || string.IsNullOrWhiteSpace(key))
         {

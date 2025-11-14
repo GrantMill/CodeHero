@@ -350,7 +350,8 @@
                 // renders annotated responses the helper returns. The helper will decide whether to call MCP or RAG.
                 try
                 {
-                    var agentResp = await Agent.ChatAsync(text, linked.Token) ?? string.Empty;
+                    var history = BuildChatHistoryFromMessages();
+                    var agentResp = await Agent.ChatAsync(text, history, linked.Token) ?? string.Empty;
 
                     // If helper produced an annotated diagnostic (contains marker '(rephrase)'), parse and render
                     if (agentResp.IndexOf("(rephrase)", StringComparison.OrdinalIgnoreCase) >= 0)
@@ -531,6 +532,36 @@
         }
         catch { /* ignore parse errors */ }
         return reply;
+    }
+
+    // Build a ChatTurn history from the UI messages so the helper/RAG has prior context.
+    IReadOnlyList<ChatTurn> BuildChatHistoryFromMessages()
+    {
+        var turns = new List<ChatTurn>();
+        for (int i = 0; i < messages.Count; i++)
+        {
+            var m = messages[i];
+            if (string.Equals(m.Role, "you", StringComparison.OrdinalIgnoreCase))
+            {
+                var user = m.Text ?? string.Empty;
+                var sb = new StringBuilder();
+                int j = i + 1;
+                for (; j < messages.Count && !string.Equals(messages[j].Role, "you", StringComparison.OrdinalIgnoreCase); j++)
+                {
+                    // include assistant and codehero messages as assistant content
+                    var roleBase = (messages[j].Role ?? string.Empty).Split('.')[0];
+                    if (string.Equals(roleBase, "agent", StringComparison.OrdinalIgnoreCase) || string.Equals(roleBase, "codehero", StringComparison.OrdinalIgnoreCase) || string.Equals(roleBase, "error", StringComparison.OrdinalIgnoreCase))
+                    {
+                        if (sb.Length > 0) sb.Append('\n');
+                        sb.Append(messages[j].Text ?? string.Empty);
+                    }
+                }
+                var assistant = sb.ToString();
+                turns.Add(new ChatTurn(user, assistant, DateTimeOffset.UtcNow));
+                i = j - 1;
+            }
+        }
+        return turns;
     }
 
     private sealed class Releaser : IAsyncDisposable, IDisposable

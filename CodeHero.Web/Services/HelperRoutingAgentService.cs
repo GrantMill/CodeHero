@@ -44,18 +44,18 @@ public class HelperRoutingAgentService : IAgentService
         _log = log;
     }
 
-    public async Task<string> ChatAsync(string text, CancellationToken ct = default)
+    public async Task<string> ChatAsync(string text, IReadOnlyList<ChatTurn>? chatHistory = null, CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(text)) return string.Empty;
 
         // Delegate create / list / read intents to orchestrator
         if (ScribeKeywords.IsMatch(text))
-            return await _orchestrator.ChatAsync(text, ct);
+            return await _orchestrator.ChatAsync(text, chatHistory, ct);
 
         var isListReq = ListVerbs.IsMatch(text) && ReqNouns.IsMatch(text);
         var isReadReq = ReadVerb.IsMatch(text) && ReqNouns.IsMatch(text);
         if (isListReq || isReadReq)
-            return await _orchestrator.ChatAsync(text, ct);
+            return await _orchestrator.ChatAsync(text, chatHistory, ct);
 
         // If the user did not request any MCP capability (scribe/list/read), prefer the RAG diagnostic pipeline
         // and return an annotated diagnostic string that includes rephrase, search, request, and final answer markers.
@@ -63,7 +63,7 @@ public class HelperRoutingAgentService : IAgentService
         {
             if (_rag is not null)
             {
-                var diag = await _rag.AskDiagnosticAsync(text, Array.Empty<ChatTurn>(), ct);
+                var diag = await _rag.AskDiagnosticAsync(text, chatHistory ?? Array.Empty<ChatTurn>(), ct);
                 try { _rag.LastDiagnostic = diag; } catch { }
                 if (diag is not null)
                 {
@@ -143,7 +143,7 @@ public class HelperRoutingAgentService : IAgentService
             {
                 if (_rag is not null)
                 {
-                    var diag = await _rag.AskDiagnosticAsync(text, Array.Empty<ChatTurn>(), ct);
+                    var diag = await _rag.AskDiagnosticAsync(text, chatHistory ?? Array.Empty<ChatTurn>(), ct);
                     try { _rag.LastDiagnostic = diag; } catch { }
                     if (diag is not null)
                     {
