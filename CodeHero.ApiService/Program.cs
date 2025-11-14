@@ -1,18 +1,18 @@
-using CodeHero.ApiService;
 using Azure;
 using Azure.Search.Documents;
+using CodeHero.ApiService;
 using CodeHero.ApiService.Contracts;
 using CodeHero.ApiService.Services.Rag;
+using CodeHero.ApiService.Utilities;
 using CodeHero.Extensions;
 using CodeHero.Services;
 using Polly;
 using Polly.Extensions.Http;
-using System.Net.Http.Headers;
-using System.Net.Http;
-using System.Net;
-using System.Text.Json;
-using CodeHero.ApiService.Utilities;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
