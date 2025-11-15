@@ -1,5 +1,11 @@
 # RAG over Repo (Docs, Diagrams, Code)
 
+Metadata
+- source_req: REQ-003
+- generator: SpecKit.speckit.specify (GitHub Copilot)
+- version: 1.0.0
+- timestamp: 2025-11-15T00:00:00Z
+
 - Feature Branch: `004-rag-over-repo`
 - Created: 2025-11-15
 - Status: Draft
@@ -30,6 +36,7 @@ Primary flows
 - Respect file allowlists; avoid indexing secrets or generated binaries.
 - Toggle to enable/disable RAG and choose model/provider via configuration.
 - Align with repo-first; all config lives in repo.
+- Constitution: `.specify/memory/constitution.md` governs data handling, observability, and blocking CI gates.
 
 ## Integration Points
 - File system watcher or build step to trigger re-index.
@@ -52,6 +59,12 @@ Primary flows
 - “Where are requirements stored?” cites `docs/requirements` and `FileStore` APIs.
 - Responses include footnote links to files (and line ranges where feasible).
 - Config switch to disable/enable RAG and choose model/provider.
+
+## Success Criteria
+- ≥ 95% of answers include at least one correct citation to a repo file when RAG is enabled.
+- Index refresh completes within 5 minutes for current repo size (P95 ≤ 10 minutes).
+- Zero inclusion of files outside the allowlist; denylist events are logged with file paths.
+- Toggle reliably disables RAG with clear user feedback; no citations shown when disabled.
 
 ### Key Failure Modes
 
