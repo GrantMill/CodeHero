@@ -1,5 +1,12 @@
 # Agentic Scribe: Conversational Requirements Capture
 
+<<<<<<< HEAD
+Metadata
+- source_req: REQ-001
+- generator: SpecKit.speckit.specify (GitHub Copilot)
+- version: 1.0.0
+# Agentic Scribe: Conversational Requirements Capture
+
 Metadata
 - source_req: REQ-001
 - generator: SpecKit.speckit.specify (GitHub Copilot)
@@ -36,7 +43,7 @@ Primary flows
 - Repo-first and PR-based edits; scribe proposes changes, user reviews in PR.
 - Voice capture must be opt-in and clearly indicated when recording.
 - Use existing architecture constraints in `docs/architecture/TechChoices.md`; avoid locking tool/model choices.
- - Constitution: `constitution.md` governs agent boundaries, privacy, dependency policy, and CI gates.
+- Constitution: `constitution.md` governs agent boundaries, privacy, dependency policy, and CI gates.
 
 ## Integration Points
 - STT/TTS endpoints (local dev containers or cloud per TechChoices).
@@ -77,4 +84,4 @@ Primary flows
 - STT/TTS model/provider selection remains flexible; define minimal quality thresholds.
 
 related_requirements:
-  - docs/requirements/REQ-001.md
+ - docs/requirements/REQ-001.md
