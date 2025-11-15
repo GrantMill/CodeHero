@@ -68,7 +68,6 @@ Primary flows
 - Zero unsafe path writes outside allowed roots (enforced via allowlist validation).
 
 ### Key Failure Modes
-
 - Plan validation fails or unsafe parameters detected  plan is rejected with explanation; no actions taken.
 - User declines approval  execution is canceled and summary is provided with next steps.
 - Tool call fails (timeout/error)  error is surfaced and partial results summarized; fallback to answer-only when possible.
