@@ -1,12 +1,5 @@
 # Agentic Scribe: Conversational Requirements Capture
 
-<<<<<<< HEAD
-Metadata
-- source_req: REQ-001
-- generator: SpecKit.speckit.specify (GitHub Copilot)
-- version: 1.0.0
-# Agentic Scribe: Conversational Requirements Capture
-
 Metadata
 - source_req: REQ-001
 - generator: SpecKit.speckit.specify (GitHub Copilot)
@@ -18,7 +11,7 @@ Metadata
 - Status: Draft
 
 ## Summary
-Enable a microphone-driven “Scribe” that captures requirements conversationally, grounds answers on architecture and code, and supports basic UI navigation hints. This reduces typing friction and keeps requirements aligned with the repo.
+Enable a microphone-driven Scribe that captures requirements conversationally, grounds answers on architecture and code, and supports basic UI navigation hints. This reduces typing friction and keeps requirements aligned with the repo.
 
 ## Goals
 - Allow users to create and update requirement docs via voice input.
@@ -36,8 +29,8 @@ Enable a microphone-driven “Scribe” that captures requirements conversationa
 - Developer: asks scribe to read/locate requirements and architecture notes.
 
 Primary flows
-- “Create a requirement” → capture title/body/acceptance → write `docs/requirements/REQ-###.md` (new ID policy TBD).
-- “Read requirement” → scribe reads and cites doc sections; can answer clarifying questions grounded in repo.
+- Create a requirement  capture title/body/acceptance  write `docs/requirements/REQ-###.md` (new ID policy TBD).
+- Read requirement  scribe reads and cites doc sections; can answer clarifying questions grounded in repo.
 
 ## Domain and Technical Constraints
 - Repo-first and PR-based edits; scribe proposes changes, user reviews in PR.
@@ -62,21 +55,21 @@ Primary flows
 
 ## Acceptance Criteria
 - Creating a requirement via voice produces a properly formatted Markdown file with title and acceptance list.
-- Scribe answers “where is X requirement?” grounded with citations to the file path.
+- Scribe answers where is X requirement? grounded with citations to the file path.
 - Scribe can read back an existing requirement and acceptance list via TTS.
 - UI navigation intent is acknowledged verbally; deep navigation beyond scope.
 
 ## Success Criteria
-- 90% of dictated requirements include title and ≥3 acceptance bullets without manual correction.
-- 95% of scribe “read” operations cite the correct file path.
-- Time to draft a requirement via voice ≤ 3 minutes for typical length (P95 ≤ 5 minutes).
+- 90% of dictated requirements include title and 3 acceptance bullets without manual correction.
+- 95% of scribe read operations cite the correct file path.
+- Time to draft a requirement via voice  3 minutes for typical length (P95  5 minutes).
 - Zero writes outside `docs/requirements/**` (enforced by guardrails).
 
 ### Key Failure Modes
 
-- Transcription fails or low confidence → user is prompted to repeat or switch to keyboard.
-- Write attempt outside `docs/requirements/` or path traversal detected → operation is blocked and user informed.
-- TTS unavailable → fallback to text-only response with instruction to enable audio.
+- Transcription fails or low confidence  user is prompted to repeat or switch to keyboard.
+- Write attempt outside `docs/requirements/` or path traversal detected  operation is blocked and user informed.
+- TTS unavailable  fallback to text-only response with instruction to enable audio.
 
 ## Risks and Open Questions
 - REQ numbering policy for new files (central allocator vs next free ID) needs team decision.
