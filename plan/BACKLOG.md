@@ -33,12 +33,16 @@
 - [x] [A] Document Map UI (search, preview metadata/headings, DTO parsing, styling)
 - [x] [A] Indexer API (AzureSearchIndexerService) invoked from UI (no console app / no GH Actions runner)
 - [x] [A] Indexer run history UI (client localStorage persistence)
-- [x] [A] Navigation entries (Repository Indexer, Document Map)
+- [x] [x] Navigation entries (Repository Indexer, Document Map)
 - [ ] [A] Persist indexer run history on server (API) to survive restarts
 - [ ] [A] Tag / file-type filters in Document Map (e.g., REQ-* vs *.razor vs *.cs)
 - [ ] [A] Deep-link selection in Document Map via `?path=` query param
-- [ ] [A] Expose RAG search.query & search.get endpoints (hybrid retrieval over existing indexed documents)
+- [x] [A] Expose RAG search.query & search.get endpoints (hybrid retrieval over existing indexed documents)
 - [ ] [A] Add confidence scoring / relevance metrics in API response
+
+> Notes (updated):
+> - The indexer and Document Map UI are present and the indexer is invoked from the API service. Indexer run history is shown in the UI but currently stored in client localStorage; server persistence is pending.
+> - Hybrid search endpoint is exposed (`/api/search/hybrid`) and the hybrid search implementation returns Azure Search result scores. This provides a basic relevance metric; we should normalize/map these scores to a confidence band and include explicit confidence and followup suggestions in the API response (task outstanding).
 
 ---
 ## New Agents Rollout (Model Strategy Separation)
@@ -54,7 +58,7 @@
 - [ ] [A] Confidence scoring (high/medium/low) based on average relevance; include followups when <0.7
 - [ ] [A] Citation formatting (file:line or doc:section) enforcement
 - [ ] [A] Add feature flag `features.rag.enabled`
-- [ ] [H] Curate evaluation set (10–20 queries) and store baseline relevance scores
+- [H] Curate evaluation set (10–20 queries) and store baseline relevance scores
 - [ ] [A] Telemetry: retrieval quality (avg score, passages count), cache hits
 - [ ] [A] Guardrail: redact secrets/tokens from snippets
 
@@ -64,7 +68,7 @@
 - [ ] [A] Chain: Orchestrator route → optional Helper pre-pass → Scribe
 - [ ] [A] Acceptance criteria Gherkin validation (Given/When/Then pattern)
 - [ ] [A] Feature flag `features.scribe.strictJson`
-- [ ] [H] Human review checklist for generated requirements (quality gate)
+- [H] Human review checklist for generated requirements (quality gate)
 
 ### Planner Agent (Optional PR Breakdown) — Future
 - [ ] [A] System prompt JSON schema for multi-PR plan (branch naming, tasks, telemetry, rollout)
@@ -88,7 +92,7 @@
 - [x] [A] Indexer API operational (repo scan -> Azure Search) (console/GH action approach deprecated)
 - [x] [A] Document Map shipped
 - [ ] [A] Server persistence for indexer history
-- [ ] [A] Expose search.query & search.get endpoints (hybrid retrieval)
+- [x] [A] Expose search.query & search.get endpoints (hybrid retrieval)
 
 ### Phase2 — Helper Agent & Retrieval Quality
 - [ ] [A] Helper prompt + tool chain
