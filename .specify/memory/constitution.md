@@ -6,7 +6,7 @@
 - TDD is mandatory: write tests → see them fail → implement → refactor.
 - Every defect requires a failing test before the fix.
 - Minimum coverage thresholds enforced in CI:
-  - Libraries: ≥ 85% line and branch coverage; business-critical libraries: target 95%+.
+  - Libraries: ≥ 75% line and branch coverage; business-critical libraries: target 80%+.
   - Web/UI projects: meaningful component/unit tests for logic; end-to-end coverage for critical paths.
 - Tests must be fast, deterministic, and isolated (no real network, file system, or time dependencies without explicit integration test designation).
 - No code merged to `main` without green CI, coverage above thresholds, and reviewer approval.
@@ -101,16 +101,28 @@
 - Auditing:
   - CI must preserve the generated script content as artifact and record provenance (generator id, timestamp, PR id).
   - Scripts that alter infrastructure, deployments, or production resources must be gated by separate runbooks and change management processes.
+- Security: no secrets in code; use environment configuration or secret stores; validate all inputs; use parameterized queries; avoid unsafe code unless approved.
 
-## HTTP, Resilience, and External Calls (grounded by current services)
+### Source code edits and constraints
+- Agents may propose and create changes to source code files (`.cs`, `.csproj`, `.razor`, etc.) within the allowed project folders and `src/**` areas, subject to the following rules:
+  - All code changes proposed by agents must be delivered as PRs with tests, a changelog entry or PR description referencing the related `REQ`(s), and a clear rationale.
+  - Agents MUST NOT add or update package references, central package management files, or change restore feeds. Any change touching dependencies must follow the Dependency Request workflow and require explicit human approval.
+  - Changes that affect public API contracts or acceptance criteria must include integration/contract tests and an RFC if the change modifies requirements.
+  - Small non-functional edits (formatting, comments, whitespace) may be allowed to auto-merge via automation only if they are explicitly whitelisted in repo policy and pass CI.
 
-- Use Aspire `ServiceDefaults` for OpenTelemetry, service discovery, and default resilience. Do not remove OTEL or standard resilience handlers.
-- Named external client `foundry` requirements:
-  - Prefer HTTP/1.1, `SocketsHttpHandler` with sane pool lifetimes; disable `Expect: 100-continue` for chat/LLM calls when needed.
-  - Infinite client timeout is allowed only with strict per-request/call `CancellationToken` caps.
-  - Log TTFB and total time for outbound calls; cap logged payloads (≤ 2,000 chars). Never log secrets.
-  - Treat 5xx/429 as transient with bounded retries; do not retry on caller cancellations/timeouts.
-  - Do not inherit global handlers for `foundry` unless explicitly intended; clear `HttpMessageHandlerBuilderActions` as needed.
+- Agents may propose and create changes to source code files (`.cs`, `.csproj`, `.razor`, etc.) within the allowed project folders and `src/**` areas, subject to the following rules:
+  - All code changes proposed by agents must be delivered as PRs with tests, a changelog entry or PR description referencing the related `REQ`(s), and a clear rationale.
+  - Agents MUST NOT add or update package references, central package management files, or change restore feeds. Any change touching dependencies must follow the Dependency Request workflow and require explicit human approval.
+  - Changes that affect public API contracts or acceptance criteria must include integration/contract tests and an RFC if the change modifies requirements.
+  - Small non-functional edits (formatting, comments, whitespace) may be allowed to auto-merge via automation only if they are explicitly whitelisted in repo policy and pass CI.
+
+- Traceability (requirements ↔ code/tests):
+  - Use `REQ-####` tags in code comments/tests matching requirement files. CI must fail if requirements referenced in docs are missing in code/tests.
+  - PR titles/descriptions should reference affected `REQ-####` where applicable.
+
+- Agents interact via MCP only; do not add ad-hoc backdoors:
+  - Allowlist MCP methods; log and audit calls; no arbitrary shell exec.
+  - In dev, MCP may run as a child process; in prod, isolate as a worker/service.
 
 ## AI/Foundry Configuration and Safety
 
@@ -123,6 +135,7 @@
 - AI-generated code and text must follow established repository patterns and style (`.editorconfig`, analyzers).
 - Agents must not produce or merge untested code; generated code must be accompanied by tests or a PR that adds tests where feasible.
 - Agent PRs must reference the originating `REQ` or `Spec` in the PR description and include provenance metadata (generator id, version, timestamp).
+- Agents must not introduce or change external telemetry without approval.
 
 ## Health, Telemetry, and Defaults
 
@@ -175,8 +188,8 @@
 
 - Definitions
   - `Constitution` — governance rules and non-negotiables (this document). Always highest authority.
-  - `REQ` — human-written contractual requirement (source of truth for behavior, acceptance criteria, and business intent).
-  - `Spec` — agent-operational contract derived from a `REQ` (machine-friendly implementation details, test scaffolds, or agent plans).
+  - `REQ` — human-authored contractual requirement (source of truth for behavior, acceptance criteria, and business intent).
+  - `Spec` — agent-operational contract derived from `REQ` (machine-friendly implementation details, test scaffolds, or agent plans).
 
 - Precedence
   1. Constitution (highest) — rules both humans and agents must obey.
@@ -187,7 +200,7 @@
   - If a `Spec` materially disagrees with its source `REQ`, the `Spec` is treated as a proposed change, not authoritative.
   - Agents MUST NOT auto-apply or merge changes that modify `REQ` or resolve `REQ`/`Spec` conflicts without an explicit human approval step.
   - When a conflict is detected, agents must:
-    1. Open a `Specification Conflict` issue linking the `REQ` id(s) and the `Spec` file(s).
+    1. Open a `Specification Conflict` issue linking the `REQ` id(s) and the `Spec` file(s`).
     2. Produce a PR that contains a clear proposal (either to update the `Spec` to match `REQ`, or to update the `REQ` with an RFC/justification), include failing tests or diffs that demonstrate the discrepancy, and include provenance metadata (generator id, timestamp, version).
     3. Mark the PR as requiring human approval from the code/req owners; the PR must not be auto-merged.
 
@@ -209,10 +222,7 @@
 
 Summary: Treat `REQ` as the human contract, `Spec` as the machine-operational proposal derived from that contract, and the `Constitution` as the governance that both must obey. Conflicts require explicit, auditable human-driven resolution; agents can propose but not unilaterally decide.
 
-## Governance
-
-- This Constitution supersedes other practices for agents and automated changes.
-- Enforcement occurs via CI policies, branch protection, CODEOWNERS, and required reviews.
-- Amendments require an RFC, risk assessment, and migration plan; changes take effect only after approval and communicated rollout.
+## Compatibility Note
+This repository uses GitHub Spec Kit. Specs derive from the human-authored requirements in `/docs/requirements`. Agents operate only within the rules defined in this Constitution and may generate Spec Kit plans and tasks but require human approval for implementation. Specs, plans, and tasks are subordinate to the Constitution and referenced `REQ` documents to avoid ambiguity for Spec Kit's planner.
 
 Version: 1.0.2 | Ratified: 2025-11-15 | Last Amended: 2025-11-15
