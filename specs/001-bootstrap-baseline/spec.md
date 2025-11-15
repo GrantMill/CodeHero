@@ -7,6 +7,12 @@ Metadata
 - version: 1.0.0
 - timestamp: 2025-11-15T00:00:00Z
 
+Metadata
+- source_req: REQ-000
+- generator: SpecKit.speckit.specify (GitHub Copilot)
+- version: 1.0.0
+- timestamp: 2025-11-15T00:00:00Z
+
 - Feature Branch: `001-bootstrap-baseline`
 - Created: 2025-11-15
 - Status: Draft
