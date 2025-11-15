@@ -1,5 +1,11 @@
 # Bootstrap Baseline
 
+Metadata
+- source_req: REQ-000
+- generator: SpecKit.speckit.specify (GitHub Copilot)
+- version: 1.0.0
+- timestamp: 2025-11-15T00:00:00Z
+
 - Feature Branch: `001-bootstrap-baseline`
 - Created: 2025-11-15
 - Status: Draft
@@ -30,7 +36,7 @@ Primary flows
 - Repo-first and human-in-the-loop per Vision: small diffs, PR approvals for critical changes.
 - Library-first design; avoid introducing new services without explicit review.
 - Use existing tech choices in `docs/architecture/TechChoices.md` as context; do not commit to new stacks.
-- Constitution file not present; treat Vision and architecture docs as governing constraints until Constitution is added.
+- Constitution: governed by `.specify/memory/constitution.md` (to be promoted to repo root in a follow-up PR).
 
 ## Integration Points
 - CI: GitHub Actions workflow(s) that build the solution and run tests on PRs.
@@ -53,6 +59,12 @@ Primary flows
 - CI: On any PR, solution builds and tests run; failures block merge.
 - Traceability: REQ IDs referenced in PR descriptions/commits and discoverable across docs and tests.
 
+## Success Criteria
+- 100% of PRs run CI build and tests; merges require green checks.
+- 90%+ of merged PRs reference at least one `REQ-####` when applicable.
+- Median CI duration ≤ 10 minutes; P95 ≤ 20 minutes.
+- Backlog shows separate human vs agent tasks for all new items going forward.
+
 ### Key Failure Modes
 
 - CI build or tests fail → PR shows failing checks with logs and prevents merge.
@@ -61,7 +73,7 @@ Primary flows
 
 ## Risks and Open Questions
 
-- Constitution file missing at repo root; add and align once available.
+- Constitution currently stored under `.specify/memory/constitution.md`; propose adding `constitution.md` at repo root for clarity and CI enforcement.
 - CI matrix scope and test filters may need tuning as projects grow.
 - Traceability conventions (commit/PR formats) need team agreement.
 
