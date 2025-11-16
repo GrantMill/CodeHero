@@ -18,15 +18,15 @@ var host = Host.CreateDefaultBuilder(args)
  .ConfigureServices((ctx, services) =>
  {
      // Provide a minimal IWebHostEnvironment for FileStore in a console host
-     services.AddSingleton<IWebHostEnvironment>(sp => new SimpleWebEnv
-     {
-         ApplicationName = "CodeHero.McpServer",
-         EnvironmentName = ctx.HostingEnvironment.EnvironmentName,
-         ContentRootPath = Directory.GetCurrentDirectory(),
-         ContentRootFileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(Directory.GetCurrentDirectory()),
-         WebRootFileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(Directory.GetCurrentDirectory()),
-         WebRootPath = null
-     });
+        services.AddSingleton<IWebHostEnvironment>(sp => new SimpleWebEnv
+        {
+            ApplicationName = "CodeHero.McpServer",
+            EnvironmentName = ctx.HostingEnvironment.EnvironmentName,
+            ContentRootPath = Directory.GetCurrentDirectory(),
+            ContentRootFileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(Directory.GetCurrentDirectory()),
+            WebRootFileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(Directory.GetCurrentDirectory()),
+            WebRootPath = Directory.GetCurrentDirectory()
+        });
 
      // FileStore will be constructed on demand in fs/* handlers to avoid startup config requirements.
  })
