@@ -1,11 +1,10 @@
 # Orchestrator LLM (Generalist with Tool Use)
 
-Metadata
+Metadata:
 - source_req: REQ-002
 - generator: SpecKit.speckit.specify (GitHub Copilot)
 - version: 1.0.0
 - timestamp: 2025-11-15T00:00:00Z
-
 - Feature Branch: `003-orchestrator-llm`
 - Created: 2025-11-15
 - Status: Draft
@@ -29,14 +28,14 @@ Provide a generalist Orchestrator that answers questions and, when needed, plans
 - Product Owner: requests simple operations (e.g., locate docs), reviews proposed changes before apply.
 
 Primary flows
-- Answer-only: question → retrieve context → answer with citations.
-- Plan+Act: request change → propose plan (diffs/previews) → user approves → execute tool calls → summarize results.
+- Answer-only: question  retrieve context  answer with citations.
+- Plan+Act: request change  propose plan (diffs/previews)  user approves  execute tool calls  summarize results.
 
 ## Domain and Technical Constraints
 - Respect repo-first, PR-based workflow; any write requires explicit approval.
 - Tool allowlist limited to safe ops (list/read/write files within approved roots, test run, diff preview).
-- Telemetry must avoid storing raw user content beyond what’s necessary for auditing.
- - Constitution: `constitution.md` defines guardrails for dependency policy, test gates, and agent boundaries.
+- Telemetry must avoid storing raw user content beyond whats necessary for auditing.
+- Constitution: `constitution.md` defines guardrails for dependency policy, test gates, and agent boundaries.
 
 ## Integration Points
 - MCP tools: fs/list, fs/readText, fs/writeText; later code/diff, code/edit, code/test per roadmap.
@@ -63,16 +62,15 @@ Primary flows
 - Telemetry: traces exist for plan, tool calls, durations, outcomes.
 
 ## Success Criteria
-- ≥ 95% of write-capable operations require and honor explicit user approval.
-- ≥ 90% of tool plans execute without unexpected errors; failures provide actionable messages.
+-  95% of write-capable operations require and honor explicit user approval.
+-  90% of tool plans execute without unexpected errors; failures provide actionable messages.
 - Telemetry present for 100% of plan executions with durations and outcomes recorded.
 - Zero unsafe path writes outside allowed roots (enforced via allowlist validation).
 
 ### Key Failure Modes
-
-- Plan validation fails or unsafe parameters detected → plan is rejected with explanation; no actions taken.
-- User declines approval → execution is canceled and summary is provided with next steps.
-- Tool call fails (timeout/error) → error is surfaced and partial results summarized; fallback to answer-only when possible.
+- Plan validation fails or unsafe parameters detected  plan is rejected with explanation; no actions taken.
+- User declines approval  execution is canceled and summary is provided with next steps.
+- Tool call fails (timeout/error)  error is surfaced and partial results summarized; fallback to answer-only when possible.
 
 ## Risks and Open Questions
 - Tool surface expansion may require additional guardrails and review UX.
