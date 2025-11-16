@@ -72,3 +72,16 @@ Troubleshooting
 - No MediaRecorder → PCM fallback is used; use a modern Chromium/Firefox build.
 
 License: MIT
+
+## Spec Kit Usage
+
+- Specs live under `specs/**/spec.md`, one per major requirement (`REQ-####`).
+- Each spec links back to its human requirement in `docs/requirements/REQ-####*.md`.
+- Commands:
+	- `/speckit.specify` — generate or refresh a spec from a requirement.
+	- `/speckit.plan` — create a plan (phases, user stories) from a spec.
+	- `/speckit.tasks` — derive actionable tasks from the plan and spec.
+- Global roadmap: `plan/BACKLOG.md` (tracks human vs agent work).
+- Per-feature tasks: adjacent to each spec directory under `specs/**`.
+
+Agents MUST follow `constitution.md` when generating specs, plans, tasks, and code. Specs are subordinate to the Constitution and their source REQs.

@@ -1,0 +1,21 @@
+name: Spec Kit check
+
+on:
+  pull_request:
+    paths:
+      - 'specs/**'
+      - 'constitution.md'
+      - 'docs/requirements/**'
+
+jobs:
+  specify-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install Spec Kit
+        run: pip install git+https://github.com/github/spec-kit.git
+      - name: Run Spec Kit check
+        run: specify check || echo "Spec Kit check completed (non-blocking for now)"
