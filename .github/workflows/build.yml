@@ -55,7 +55,9 @@ jobs:
 
       - name: Run tests (with coverage)
         run: |
-          dotnet test CodeHero.sln --no-build --configuration Release --verbosity normal --logger "trx;LogFileName=test-results.trx" --filter "TestCategory!=Integration" --collect:"XPlat Code Coverage"
+          # Ensure results are written to a known directory so we can find coverage artifacts
+          mkdir -p TestResults
+          dotnet test CodeHero.sln --no-build --configuration Release --verbosity normal --logger "trx;LogFileName=test-results.trx" --results-directory TestResults --filter "TestCategory!=Integration" --collect:"XPlat Code Coverage"
 
       - name: Report coverage and enforce threshold
         run: |
@@ -64,9 +66,9 @@ jobs:
           dotnet tool restore || true
           dotnet tool install --global dotnet-reportgenerator-globaltool --version 5.0.0 || true
           export PATH="$PATH:$HOME/.dotnet/tools"
-          # find coverage files
-          COVERAGE_FILE=$(ls **/coverage.cobertura.xml 2>/dev/null | head -n 1 || true)
-          if [ -z "$COVERAGE_FILE" ]; then echo "Coverage file not found" >&2; exit 1; fi
+          # find coverage files (cobertura or other common names) robustly
+          COVERAGE_FILE=$(find . -type f \( -iname "coverage.cobertura.xml" -o -iname "coverage.xml" -o -iname "*.cobertura.xml" -o -iname "coverage.opencover.xml" \) -print -quit || true)
+          if [ -z "$COVERAGE_FILE" ]; then echo "Coverage file not found" >&2; ls -R TestResults || true; exit 1; fi
           reportgenerator -reports:"$COVERAGE_FILE" -targetdir:"coverage-report" -reporttypes:TextSummary || true
           # parse TextSummary for total coverage percent
           COVERAGE_PERCENT=$(cat coverage-report/Summary.txt | grep -oP 'Coverage \(line\):\s+\K[0-9]+\.[0-9]+' | head -n1 || true)
