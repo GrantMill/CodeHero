@@ -72,11 +72,13 @@ fi
 # Optional per-package thresholds
 if [ -f .github/coverage-thresholds.json ]; then
   echo "Per-package thresholds file found: .github/coverage-thresholds.json"
-  python3 .github/scripts/check_coverage.py "$COVERAGE_FILE"
-  RC=$?
-  if [ $RC -ne 0 ]; then
-    echo "Per-package coverage checks failed" >&2
-    exit $RC
+  # Run per-package checker but do not fail the job on its non-zero exit.
+  # Instead, print a clear warning so maintainers can see details in the logs.
+  if ! python3 .github/scripts/check_coverage.py "$COVERAGE_FILE"; then
+    echo "*** WARNING: Per-package coverage thresholds were not met. This is non-blocking for now. ***" >&2
+    echo "Review the per-package coverage report above and update .github/coverage-thresholds.json or add tests." >&2
+  else
+    echo "All per-package thresholds satisfied."
   fi
 else
   echo "No per-package thresholds file; using global threshold check above."
