@@ -36,7 +36,7 @@ Primary flows
 - Respect file allowlists; avoid indexing secrets or generated binaries.
 - Toggle to enable/disable RAG and choose model/provider via configuration.
 - Align with repo-first; all config lives in repo.
-- Constitution: `.specify/memory/constitution.md` governs data handling, observability, and blocking CI gates.
+ - Constitution: `constitution.md` governs data handling, observability, and blocking CI gates.
 
 ## Integration Points
 - File system watcher or build step to trigger re-index.
