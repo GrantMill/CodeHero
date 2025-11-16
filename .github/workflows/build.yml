@@ -70,8 +70,18 @@ jobs:
           COVERAGE_FILE=$(find . -type f \( -iname "coverage.cobertura.xml" -o -iname "coverage.xml" -o -iname "*.cobertura.xml" -o -iname "coverage.opencover.xml" \) -print -quit || true)
           if [ -z "$COVERAGE_FILE" ]; then echo "Coverage file not found" >&2; ls -R TestResults || true; exit 1; fi
           reportgenerator -reports:"$COVERAGE_FILE" -targetdir:"coverage-report" -reporttypes:TextSummary || true
-          # parse TextSummary for total coverage percent
-          COVERAGE_PERCENT=$(cat coverage-report/Summary.txt | grep -oP 'Coverage \(line\):\s+\K[0-9]+\.[0-9]+' | head -n1 || true)
+          # If the coverage file is Cobertura XML, compute percent directly (more reliable)
+          if echo "$COVERAGE_FILE" | grep -qiE '\.xml$'; then
+            LINES_COVERED=$(grep -oP 'lines-covered="\K[0-9]+' "$COVERAGE_FILE" | head -n1 || true)
+            LINES_VALID=$(grep -oP 'lines-valid="\K[0-9]+' "$COVERAGE_FILE" | head -n1 || true)
+            if [ -n "$LINES_COVERED" ] && [ -n "$LINES_VALID" ] && [ "$LINES_VALID" -gt 0 ]; then
+              COVERAGE_PERCENT=$(awk "BEGIN {printf \"%.1f\", ($LINES_COVERED/$LINES_VALID)*100}")
+            fi
+          fi
+          # fallback: parse TextSummary if we still don't have a percent
+          if [ -z "$COVERAGE_PERCENT" ]; then
+            COVERAGE_PERCENT=$(cat coverage-report/Summary.txt 2>/dev/null | grep -oP 'Coverage \(line\):\s+\K[0-9]+\.[0-9]+' | head -n1 || true)
+          fi
           if [ -z "$COVERAGE_PERCENT" ]; then echo "Could not determine coverage percent" >&2; exit 1; fi
           echo "Coverage%: $COVERAGE_PERCENT"
           THRESHOLD=75
