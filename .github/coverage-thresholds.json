@@ -1,5 +1,5 @@
 {
-  "default": 20,
+  "default": 5,
   "CodeHero.Web": 40,
   "CodeHero.ApiService": 40,
   "CodeHero.Indexer": 30,
