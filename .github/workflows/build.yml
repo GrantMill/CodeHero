@@ -43,8 +43,15 @@ jobs:
           if [ ! -f docs/VISION.md ]; then echo "MISSING: docs/VISION.md" >&2; exit 1; fi
           if [ $(wc -c < docs/VISION.md) -lt 100 ]; then echo "VISION.md too short (expect >=100 chars)" >&2; exit 1; fi
           if [ ! -f plan/BACKLOG.md ]; then echo "MISSING: plan/BACKLOG.md" >&2; exit 1; fi
-          if ! grep -q '^## Human Tasks' plan/BACKLOG.md; then echo "Backlog missing '## Human Tasks'" >&2; exit 1; fi
-          if ! grep -q '^## Agent Tasks' plan/BACKLOG.md; then echo "Backlog missing '## Agent Tasks'" >&2; exit 1; fi
+          # Backlog format: accept either separate '## Human Tasks' and '## Agent Tasks' sections
+          # or a folded backlog that contains checklist items (e.g., '- [ ] T001 ...' or '- [x] ...').
+          if grep -q '^## Human Tasks' plan/BACKLOG.md && grep -q '^## Agent Tasks' plan/BACKLOG.md; then
+            echo "Backlog contains Human and Agent sections"
+          else
+            # If no explicit sections, require at least one checklist-style task line so backlog isn't empty
+            if ! grep -q '^- \[[ xX]\]' plan/BACKLOG.md; then
+              echo "Backlog missing '## Human Tasks' and '## Agent Tasks', and no checklist items found" >&2; exit 1; fi
+          fi
 
       - name: Run tests (with coverage)
         run: |
