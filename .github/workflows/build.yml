@@ -35,10 +35,39 @@ jobs:
         run: dotnet restore CodeHero.sln
 
       - name: Build
-        run: dotnet build CodeHero.sln --no-restore --configuration Release
+        run: dotnet build CodeHero.sln --no-restore --configuration Release /p:TreatWarningsAsErrors=true
 
-      - name: Run tests
-        run: dotnet test CodeHero.sln --no-build --configuration Release --verbosity normal --logger "trx;LogFileName=test-results.trx" --filter "TestCategory!=Integration"
+      - name: Validate docs and backlog
+        run: |
+          set -e
+          if [ ! -f docs/VISION.md ]; then echo "MISSING: docs/VISION.md" >&2; exit 1; fi
+          if [ $(wc -c < docs/VISION.md) -lt 100 ]; then echo "VISION.md too short (expect >=100 chars)" >&2; exit 1; fi
+          if [ ! -f plan/BACKLOG.md ]; then echo "MISSING: plan/BACKLOG.md" >&2; exit 1; fi
+          if ! grep -q '^## Human Tasks' plan/BACKLOG.md; then echo "Backlog missing '## Human Tasks'" >&2; exit 1; fi
+          if ! grep -q '^## Agent Tasks' plan/BACKLOG.md; then echo "Backlog missing '## Agent Tasks'" >&2; exit 1; fi
+
+      - name: Run tests (with coverage)
+        run: |
+          dotnet test CodeHero.sln --no-build --configuration Release --verbosity normal --logger "trx;LogFileName=test-results.trx" --filter "TestCategory!=Integration" --collect:"XPlat Code Coverage"
+
+      - name: Report coverage and enforce threshold
+        run: |
+          set -e
+          # install reportgenerator as a dotnet tool
+          dotnet tool restore || true
+          dotnet tool install --global dotnet-reportgenerator-globaltool --version 5.0.0 || true
+          export PATH="$PATH:$HOME/.dotnet/tools"
+          # find coverage files
+          COVERAGE_FILE=$(ls **/coverage.cobertura.xml 2>/dev/null | head -n 1 || true)
+          if [ -z "$COVERAGE_FILE" ]; then echo "Coverage file not found" >&2; exit 1; fi
+          reportgenerator -reports:"$COVERAGE_FILE" -targetdir:"coverage-report" -reporttypes:TextSummary || true
+          # parse TextSummary for total coverage percent
+          COVERAGE_PERCENT=$(cat coverage-report/Summary.txt | grep -oP 'Coverage \(line\):\s+\K[0-9]+\.[0-9]+' | head -n1 || true)
+          if [ -z "$COVERAGE_PERCENT" ]; then echo "Could not determine coverage percent" >&2; exit 1; fi
+          echo "Coverage%: $COVERAGE_PERCENT"
+          THRESHOLD=75
+          COVERAGE_INT=${COVERAGE_PERCENT%%.*}
+          if [ "$COVERAGE_INT" -lt "$THRESHOLD" ]; then echo "Coverage $COVERAGE_PERCENT% is below threshold of $THRESHOLD%" >&2; exit 1; fi
 
       - name: Upload test results
         if: always()
