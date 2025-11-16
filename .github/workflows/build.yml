@@ -88,6 +88,71 @@ jobs:
           COVERAGE_INT=${COVERAGE_PERCENT%%.*}
           if [ "$COVERAGE_INT" -lt "$THRESHOLD" ]; then echo "Coverage $COVERAGE_PERCENT% is below threshold of $THRESHOLD%" >&2; exit 1; fi
 
+            # If a per-package thresholds file exists, validate per-package coverage
+            if [ -f .github/coverage-thresholds.json ]; then
+            echo "Per-package thresholds file found: .github/coverage-thresholds.json"
+            # Use Python to parse Cobertura XML and the thresholds JSON for robust checks
+            python3 - <<'PY' "$COVERAGE_FILE"
+      import sys, os, json
+      from xml.etree import ElementTree as ET
+
+      cov = sys.argv[1]
+      try:
+        tree = ET.parse(cov)
+      except Exception as e:
+        print(f"Failed to parse coverage XML: {e}", file=sys.stderr)
+        sys.exit(2)
+
+      thresholds = {}
+      with open('.github/coverage-thresholds.json', 'r') as fh:
+        try:
+          thresholds = json.load(fh)
+        except Exception as e:
+          print(f"Failed to parse thresholds JSON: {e}", file=sys.stderr)
+          sys.exit(2)
+
+      root = tree.getroot()
+      packages = []
+      for pkg in root.findall('.//package'):
+        name = pkg.get('name')
+        lr = pkg.get('line-rate')
+        perc = float(lr) * 100.0 if lr is not None else 0.0
+        packages.append((name, perc))
+
+      print('Per-package coverage:')
+      for name, perc in packages:
+        print(f" - {name}: {perc:.1f}%")
+
+      fail = False
+      msgs = []
+      default_th = int(os.environ.get('THRESHOLD', '75'))
+      for name, perc in packages:
+        # exact match in thresholds JSON, else use 'default' key if present, else fallback to THRESHOLD env
+        if name in thresholds:
+          th = int(thresholds[name])
+        elif 'default' in thresholds:
+          th = int(thresholds['default'])
+        else:
+          th = default_th
+        if perc + 0.001 < th:
+          fail = True
+          msgs.append(f"{name} coverage {perc:.1f}% < threshold {th}%")
+
+      if fail:
+        print('\nPer-package threshold violations:', file=sys.stderr)
+        for m in msgs:
+          print(m, file=sys.stderr)
+        sys.exit(2)
+      else:
+        print('\nAll per-package thresholds satisfied')
+        sys.exit(0)
+      PY
+            RC=$?
+            if [ $RC -ne 0 ]; then echo "Per-package coverage checks failed" >&2; exit $RC; fi
+            else
+            echo "No per-package thresholds file; using global threshold check above."
+            fi
+
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
