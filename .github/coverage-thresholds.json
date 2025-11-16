@@ -1,7 +1,9 @@
 {
   "default": 5,
-  "CodeHero.Web": 40,
-  "CodeHero.ApiService": 40,
+  "CodeHero.Web": 5,
+  "CodeHero.ApiService": 11,
   "CodeHero.Indexer": 30,
-  "CodeHero.McpServer": 30
+  "CodeHero.McpServer": 30,
+  "CodeHero.ServiceDefaults": 0,
+  "CodeHero.AppHost": 0
 }
