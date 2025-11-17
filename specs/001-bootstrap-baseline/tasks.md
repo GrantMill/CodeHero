@@ -17,3 +17,5 @@ Notes
 - Each task should be a small PR that references `REQ-000` in the PR description when relevant.
 - Keep changes minimal and focused: do not alter unrelated backlog items or other specs.
 - After tasks are merged, schedule follow-ups to add coverage collection/reporting and to migrate per-package checks from warn-only to blocking as packages meet targets.
+
+- Coverage note: Coverage thresholds are temporarily set below the Constitution requirements and per-package checks are currently warn-only; this temporary exception is documented in `docs/issues/001-temp-coverage-exception.md` and governs the ramp plan.
