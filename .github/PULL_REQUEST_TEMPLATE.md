@@ -1,3 +1,19 @@
+<!-- PR template to encourage traceability and checklist for baseline CI -->
+## Summary
+
+Related REQ(s):
+
+Provide a short description of the change and link any related requirement IDs (e.g., `REQ-000`, `REQ-003`).
+
+## Checklist
+- [ ] CI green (build/tests) — verify `build.yml` checks pass
+- [ ] Related REQ(s) referenced in this PR description
+- [ ] Change aligns with `constitution.md` (quality gates, dependency policy)
+- [ ] Requirements referenced in code/tests/docs where appropriate
+- [ ] Docs updated if public behavior changes (add or update `docs/` files)
+
+Optional notes for reviewers:
+- Any special instructions or context to help reviewers
 <!--
 Fill out this template for code & doc changes. Link one or more REQ IDs when applicable.
 -->
