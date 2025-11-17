@@ -25,6 +25,21 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate PR traceability (REQ reference when specs/requirements change)
+        if: github.event_name == 'pull_request'
+        run: |
+          set -euo pipefail
+          # Fetch base branch ref so we can compute changed files
+          BASE_REF=${{ github.event.pull_request.base.ref }}
+          git fetch origin "$BASE_REF" --depth=1 || true
+          git fetch --no-tags --prune origin || true
+          git diff --name-only origin/$BASE_REF...HEAD > changed_files.txt || true
+          # Extract PR body from event payload
+          jq -r .pull_request.body "$GITHUB_EVENT_PATH" > pr_body.txt || true
+          python3 .github/scripts/validate_req_reference.py pr_body.txt changed_files.txt
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
@@ -35,10 +50,32 @@ jobs:
         run: dotnet restore CodeHero.sln
 
       - name: Build
-        run: dotnet build CodeHero.sln --no-restore --configuration Release
+        run: dotnet build CodeHero.sln --no-restore --configuration Release /p:TreatWarningsAsErrors=true
 
-      - name: Run tests
-        run: dotnet test CodeHero.sln --no-build --configuration Release --verbosity normal --logger "trx;LogFileName=test-results.trx" --filter "TestCategory!=Integration"
+      - name: Validate docs and backlog
+        run: |
+          set -e
+          if [ ! -f docs/VISION.md ]; then echo "MISSING: docs/VISION.md" >&2; exit 1; fi
+          if [ $(wc -c < docs/VISION.md) -lt 100 ]; then echo "VISION.md too short (expect >=100 chars)" >&2; exit 1; fi
+          if [ ! -f plan/BACKLOG.md ]; then echo "MISSING: plan/BACKLOG.md" >&2; exit 1; fi
+          # Backlog format: accept either separate '## Human Tasks' and '## Agent Tasks' sections
+          # or a folded backlog that contains checklist items (e.g., '- [ ] T001 ...' or '- [x] ...').
+          if grep -q '^## Human Tasks' plan/BACKLOG.md && grep -q '^## Agent Tasks' plan/BACKLOG.md; then
+            echo "Backlog contains Human and Agent sections"
+          else
+            # If no explicit sections, require at least one checklist-style task line so backlog isn't empty
+            if ! grep -q '^- \[[ xX]\]' plan/BACKLOG.md; then
+              echo "Backlog missing '## Human Tasks' and '## Agent Tasks', and no checklist items found" >&2; exit 1; fi
+          fi
+
+      - name: Run tests (with coverage)
+        run: |
+          # Ensure results are written to a known directory so we can find coverage artifacts
+          mkdir -p TestResults
+          dotnet test CodeHero.sln --no-build --configuration Release --verbosity normal --logger "trx;LogFileName=test-results.trx" --results-directory TestResults --filter "TestCategory!=Integration" --collect:"XPlat Code Coverage"
+
+      - name: Report coverage and enforce threshold
+        run: bash .github/scripts/report_coverage.sh
 
       - name: Upload test results
         if: always()

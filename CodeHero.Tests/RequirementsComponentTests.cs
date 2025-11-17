@@ -16,7 +16,7 @@ public class RequirementsComponentTests
         public string ContentRootPath { get; set; } = Directory.GetCurrentDirectory();
         public string EnvironmentName { get; set; } = "Development";
         public IFileProvider WebRootFileProvider { get; set; } = new PhysicalFileProvider(Directory.GetCurrentDirectory());
-        public string? WebRootPath { get; set; } = null;
+        public string WebRootPath { get; set; } = string.Empty;
     }
 
     private static FileStore CreateStore(string root, string fileName, string content)

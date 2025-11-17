@@ -135,53 +135,15 @@
     "contentHash": "0C2A880B41A269F83072EFED1C77CAE1EE9A07846EA24D610514B9BD55C3D4CC"
   },
   {
-    "id": "3CF412773EB1BEEB42C2152012E67409A21D08DB13CC205E58393A327FC52CE3",
-    "relativePath": "tasks.md",
-    "title": "",
-    "headings": [],
-    "links": [],
-    "tags": [
-      "REQ-003"
-    ],
-    "lastModified": "2025-11-17T16:03:07.2874635Z",
-    "size": 5957,
-    "contentHash": "C16B87F44340316A245597EBD06B112FE8F230F0FA0C1953C7B6DAD516A2EC43"
-  },
-  {
-    "id": "E4F2C908B47A111BBB2EC0D649FA0C0E24AF34A85A08C00B1A2B76901F7F2A3F",
-    "relativePath": "validate.md",
-    "title": "",
-    "headings": [],
-    "links": [],
-    "tags": [
-      "REQ-003",
-      "REQ-001"
-    ],
-    "lastModified": "2025-11-17T16:03:07.2791637Z",
-    "size": 8405,
-    "contentHash": "353466D047D8CE794D9B964C1262924D268A280375411A1F0C447E41E715FC10"
-  },
-  {
-    "id": "BD8ADFC874A87A18E1C485AFB74C0142867F2DEC8FAEE862AE816B9A4B8DFBDB",
-    "relativePath": "TestResults/GrantMill_GMSLAPTOP01_2025-11-16_18_57_56/In/GMSLAPTOP01/coverage.cobertura.xml",
+    "id": "EAEF55C6770F561A9136C950D2367A4562B933A645229144A05351D4BBFE43F2",
+    "relativePath": "tools/ci/verify-baseline.ps1",
     "title": "",
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-16T18:57:57.9241155Z",
-    "size": 992826,
-    "contentHash": "1AE8B2464DFD29D841B017DCB2D2B0AF62CD3BABEEFDEB7646D61278ADC05004"
-  },
-  {
-    "id": "1AAB0EC420CD8CA2BFA14045CC028A9BA91755CE5A08FE3182C946A9EE7C3666",
-    "relativePath": "TestResults/4d35f7d7-1cc0-4137-8acf-e817cef0ef23/coverage.cobertura.xml",
-    "title": "",
-    "headings": [],
-    "links": [],
-    "tags": [],
-    "lastModified": "2025-11-16T18:57:57.9241155Z",
-    "size": 992826,
-    "contentHash": "1AE8B2464DFD29D841B017DCB2D2B0AF62CD3BABEEFDEB7646D61278ADC05004"
+    "lastModified": "2025-11-16T13:49:41.2137548Z",
+    "size": 856,
+    "contentHash": "DBE34DC968C5F2CB9D063F328D32E65824E44A5298A3AA2CEC8052816E3066A9"
   },
   {
     "id": "455190E7D11289BBA161179DF7597FE0E8BD3E9A0D0185DECF282320724B6437",
@@ -317,7 +279,7 @@
     "tags": [
       "REQ-000"
     ],
-    "lastModified": "2025-11-17T15:45:45.1351697Z",
+    "lastModified": "2025-11-16T11:33:47.6699709Z",
     "size": 8388,
     "contentHash": "FDB7D8642E6ADA7468279B763272DEC2C09A52AE1FD409E755DED93F1247ED61"
   },
@@ -334,7 +296,7 @@
     ],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-17T15:45:45.1331602Z",
+    "lastModified": "2025-11-16T11:33:47.6692467Z",
     "size": 1148,
     "contentHash": "CEC37AA387A25F3A537EFA761FAF864E9C13145D366B948670E285218522DC5E"
   },
@@ -507,13 +469,15 @@
   {
     "id": "7530A4938BBB6358BFD3A67A0E6C7BED35D9816DB7BED398BD29F57C9F767D67",
     "relativePath": "docs/VISION.md",
-    "title": "",
-    "headings": [],
+    "title": "CodeHero vision",
+    "headings": [
+      "CodeHero vision"
+    ],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-17T15:21:04.5162276Z",
-    "size": 1166,
-    "contentHash": "A57A684CB09C03575404F26BE2DBF4AD49CB7FF876B12A0727BE15F886EE0829"
+    "lastModified": "2025-11-16T13:49:41.2137548Z",
+    "size": 1178,
+    "contentHash": "10E3B89CA8AD5FCA589223C6671AE75E06BB165F5D106A115A1FD9BFB3EAD334"
   },
   {
     "id": "1C70D6B000BCA1B8C2ADEA160386F0171166F7C36144177B6268BBDEB1D7CA8C",
@@ -832,7 +796,7 @@
       "REQ-007",
       "REQ-008"
     ],
-    "lastModified": "2025-11-17T15:21:04.5142269Z",
+    "lastModified": "2025-11-14T13:59:36.8431034Z",
     "size": 75266,
     "contentHash": "3B8596C5FD532FAAD530A69849EFB61F409B32A320FAB26B1E2D4EBB148F6A1B"
   },
@@ -887,7 +851,7 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-17T15:21:04.5110211Z",
+    "lastModified": "2025-11-14T17:21:53.377618Z",
     "size": 29265,
     "contentHash": "AA8331B6E1A53C2E1CAC5D447DB44073EB2697B404680CA3431562D73976EA5F"
   },
@@ -1412,9 +1376,9 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-17T17:18:30.7293668Z",
-    "size": 8327,
-    "contentHash": "EE44817F7F59BA05F55536758AFDEE5DB38D3057CAA9DCD0B41791D878C2C214"
+    "lastModified": "2025-11-14T16:23:47.9687817Z",
+    "size": 7853,
+    "contentHash": "0EE55CE77A93B9C2273D8726E78F157092FEC79B99504A6899BBDEE44125A61E"
   },
   {
     "id": "6978BA896BA7D54CB0FBF812294B94AD9259F339E54838D40317E7FBA03D66CD",
@@ -1724,20 +1688,9 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-17T15:21:04.5037063Z",
+    "lastModified": "2025-11-14T17:00:32.0545526Z",
     "size": 1540,
     "contentHash": "A0C99CEC868367A7F998DAC4EBB8B3055511F40452251DB0BCE316479514985F"
-  },
-  {
-    "id": "3144D5396BA20BEC6C65D96A43B6404315F76D9379DB24524EFE228403D916ED",
-    "relativePath": "CodeHero.Tests/EmbeddingProviderTests.cs",
-    "title": "",
-    "headings": [],
-    "links": [],
-    "tags": [],
-    "lastModified": "2025-11-17T17:25:06.7651703Z",
-    "size": 2801,
-    "contentHash": "5FFED67161A866E15BA7A9A7317B620D63DD5D7F7C0BD1814C8AC581B12F3498"
   },
   {
     "id": "1DBEA4845A714B8C3CF360363CC04981406011C71803ED45A68B673FECA8EC7D",
@@ -1886,7 +1839,7 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-17T15:21:04.5006932Z",
+    "lastModified": "2025-11-14T17:21:34.9188052Z",
     "size": 15446,
     "contentHash": "FFFDAC75378CBA24096EA589A6C21DA1C214FEF868615070D360CC2DEED56862"
   },
@@ -2160,26 +2113,15 @@
     "contentHash": "B60F4E8541F95D296683984C6A0826F6DF65D1062F2D5A35D4FC94D73D1D728B"
   },
   {
-    "id": "94899104CFA4907697F449D73083FE0CA465FC0EC68AF5FEEBE3AD9FBF0857DD",
-    "relativePath": "CodeHero.ApiService/InternalsVisibleTo.cs",
-    "title": "",
-    "headings": [],
-    "links": [],
-    "tags": [],
-    "lastModified": "2025-11-17T17:24:55.1458151Z",
-    "size": 92,
-    "contentHash": "8E2F6D9B63B1626B26255EDF0825AFE4B0DE973EFC45E3A4CC64A2A4C126943F"
-  },
-  {
     "id": "2EC2D26C5A2E1EEA7700ACEF47511C9451AF0E07A474E64A24F9A22443B9839C",
     "relativePath": "CodeHero.ApiService/Program.cs",
     "title": "",
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-17T17:18:30.6727374Z",
-    "size": 16525,
-    "contentHash": "20EF3E0ECFECCA3A18147FCCB43B72D531FDC30446452C6AC4BA002B00BADED1"
+    "lastModified": "2025-11-14T17:15:46.0632225Z",
+    "size": 15697,
+    "contentHash": "FA44474C456184BBF68A9FD278C9A05D2A48ABD148A37FEA4B432D75C98792F8"
   },
   {
     "id": "083AA9CA9E8E86D224C695073AFC510CE7BCDE5F61334205028D7EF93BBD2CDA",
@@ -2270,37 +2212,15 @@
     "contentHash": "8FE1A64687BDB89175678A6EED0D7177B0D56A43D23883B631A8A8BAB39502CC"
   },
   {
-    "id": "E2FBC5EFD790BF41271DBA5F4354ABD22014EC79D6A4D1948F19AA859560E245",
-    "relativePath": "CodeHero.ApiService/Services/Rag/FoundryEmbeddingProvider.cs",
-    "title": "",
-    "headings": [],
-    "links": [],
-    "tags": [],
-    "lastModified": "2025-11-17T17:18:30.6727374Z",
-    "size": 2691,
-    "contentHash": "F4972487D9E7DC9774A3202149F11EAE47DDB91716567430788BE9B411C7E471"
-  },
-  {
     "id": "1A9D391AEC1E36861B01C19AC84511E10FACD852576B42D4D80B005F01D90045",
     "relativePath": "CodeHero.ApiService/Services/Rag/HybridSearchService.cs",
     "title": "",
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-17T17:18:30.6727374Z",
-    "size": 8141,
-    "contentHash": "EFC793DFC3E0CF68D45370393A49CEB9A4E6C631EFB5B26B3049E1789B83425D"
-  },
-  {
-    "id": "62513965483F3F444F031E8A5FD29BB42244E23F5D0451B8A53E4C524B9C17C3",
-    "relativePath": "CodeHero.ApiService/Services/Rag/IEmbeddingProvider.cs",
-    "title": "",
-    "headings": [],
-    "links": [],
-    "tags": [],
-    "lastModified": "2025-11-17T17:18:30.6727374Z",
-    "size": 548,
-    "contentHash": "228AFEA65F19F6106715432B2922F791263F6BDA45E99869A6D5E15E0E7169B8"
+    "lastModified": "2025-11-14T16:23:19.5565129Z",
+    "size": 10056,
+    "contentHash": "0F8361861B14B6CDD7DEFCCE41213A8F1F43EB5D7B2C27CFF34BF16F1893CF53"
   },
   {
     "id": "EB6DF08293C9002F623F902A63559417D43F045B561381E685EBF4298B5FDBBF",
@@ -2448,28 +2368,6 @@
     "lastModified": "2025-11-14T15:40:41.4108094Z",
     "size": 728,
     "contentHash": "247DEA5DCBF73A3EC5D0BB9CCB3D2A079D10572E9B9C19E5524F19B678170239"
-  },
-  {
-    "id": "B945E649AD9FFA81EF0626EEBEB69835D7620C8792EE03CBE0D38440AF8FB7BE",
-    "relativePath": "artifacts/run-19432867654/TestResults/_runnervmg1sw1_2025-11-17_14_23_08/In/runnervmg1sw1/coverage.cobertura.xml",
-    "title": "",
-    "headings": [],
-    "links": [],
-    "tags": [],
-    "lastModified": "2025-11-17T14:31:59.7133833Z",
-    "size": 974500,
-    "contentHash": "B5810C6AEF5C8BCBFA8810D47FB977F341E1C306E7703A2F035875D0A2CD7863"
-  },
-  {
-    "id": "51F39C48F474E177CF075A63A233A79457FA00438C22A561F75C7CD03DAF7B16",
-    "relativePath": "artifacts/run-19432867654/TestResults/e76a2ed7-90f2-41eb-9f71-905d27787650/coverage.cobertura.xml",
-    "title": "",
-    "headings": [],
-    "links": [],
-    "tags": [],
-    "lastModified": "2025-11-17T14:31:59.7191799Z",
-    "size": 974500,
-    "contentHash": "B5810C6AEF5C8BCBFA8810D47FB977F341E1C306E7703A2F035875D0A2CD7863"
   },
   {
     "id": "A5DE3E5871FFCC383A2294845BD3DF25D3EEFF6C29AD46E3A396577C413BF357",
@@ -2795,9 +2693,22 @@
     "tags": [
       "REQ-123"
     ],
-    "lastModified": "2025-11-17T15:45:45.1316779Z",
+    "lastModified": "2025-11-16T09:56:10.5405675Z",
     "size": 18848,
     "contentHash": "C957B3683622973CB8173024A7DCC398644B6B2107750D86B0F867B8A90911B9"
+  },
+  {
+    "id": "B2496E80299B8C3150B1944450BD81C622E04E13D15C411D291DB0927D75FD6B",
+    "relativePath": ".github/PULL_REQUEST_TEMPLATE.md",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [
+      "REQ-000"
+    ],
+    "lastModified": "2025-11-16T13:49:41.2137548Z",
+    "size": 516,
+    "contentHash": "AFBA368F1E0A9929DCED80CCCD5BABEC947685434A72F08D812D694B74AA9CBD"
   },
   {
     "id": "5C3FA597431EDA03AC3339AE6BF7F05E1A50D6FC7333679EC38E21B337CB6721",
@@ -2806,9 +2717,9 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-17T15:21:04.4986072Z",
-    "size": 3549,
-    "contentHash": "C5D70D04F94B29E3A4DC2ABE812180A43D32627EDF4C91F37CDAE735D3B5A860"
+    "lastModified": "2025-11-16T13:49:41.2137548Z",
+    "size": 5481,
+    "contentHash": "4DF4B73605F53F2ED6F3EDEC636FAE6EBC6E1497928D5586521C63B2BDC99599"
   },
   {
     "id": "2A25DED5E6C5233C75962616DD5FC78907DB9B4AA208AE063D6BB0F272646356",
@@ -2842,19 +2753,6 @@
     "lastModified": "2025-11-16T11:33:47.6654189Z",
     "size": 548,
     "contentHash": "6B5C7F3F022AA661715BD094B2C99CEEBE66551416E66E826333E855FC97CB30"
-  },
-  {
-    "id": "733EC0648261BF1A9D9F6B5E2BB4A168409913DABE16EE07D46045DA0012692C",
-    "relativePath": ".github/scripts/inspect_artifact.ps1",
-    "title": "Inspect downloaded CI artifact contents and summarize key files",
-    "headings": [
-      "Inspect downloaded CI artifact contents and summarize key files"
-    ],
-    "links": [],
-    "tags": [],
-    "lastModified": "2025-11-17T14:55:51.9760326Z",
-    "size": 1651,
-    "contentHash": "C4007F48329C9641268E6A5D315623308CD66D6AFFAE72A8DB05C4A7D40FECEE"
   },
   {
     "id": "109E37DEB183C91FB9CC545A633BDB26E9356836981C93317AE86BE3A131DAE7",

@@ -393,7 +393,7 @@ if (enableSpeechApi)
 #else
  var text = await reader.ReadToEndAsync();
 #endif
-            byte[] audio = await speech.SynthesizeAsync(text, voice, ct: cts.Token);
+            byte[]? audio = await speech.SynthesizeAsync(text, voice, ct: cts.Token);
             respBytes = audio?.LongLength ?? 0;
             sw.Stop();
             log.LogInformation("TTS completed. Status={Status} DurationMs={DurationMs} ReqBytes={ReqBytes} RespBytes={RespBytes} Voice={Voice}", status, sw.ElapsedMilliseconds, reqBytes, respBytes, voice);
@@ -401,6 +401,14 @@ if (enableSpeechApi)
             SpeechTelemetry.TtsResponseBytes.Record(respBytes);
             SpeechTelemetry.TtsDurationMs.Record(sw.Elapsed.TotalMilliseconds);
             diag.UpdateTts(status, reqBytes, respBytes, sw.Elapsed.TotalMilliseconds);
+
+            if (audio is null || audio.Length == 0)
+            {
+                log.LogWarning("TTS produced no audio (null or empty). Returning error to client.");
+                SpeechTelemetry.TtsErrors.Add(1);
+                return Results.Problem("TTS produced no audio", statusCode: StatusCodes.Status500InternalServerError);
+            }
+
             return Results.File(audio, "audio/wav");
         }
         catch (OperationCanceledException)
