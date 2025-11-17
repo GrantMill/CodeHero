@@ -25,6 +25,21 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate PR traceability (REQ reference when specs/requirements change)
+        if: github.event_name == 'pull_request'
+        run: |
+          set -euo pipefail
+          # Fetch base branch ref so we can compute changed files
+          BASE_REF=${{ github.event.pull_request.base.ref }}
+          git fetch origin "$BASE_REF" --depth=1 || true
+          git fetch --no-tags --prune origin || true
+          git diff --name-only origin/$BASE_REF...HEAD > changed_files.txt || true
+          # Extract PR body from event payload
+          jq -r .pull_request.body "$GITHUB_EVENT_PATH" > pr_body.txt || true
+          python3 .github/scripts/validate_req_reference.py pr_body.txt changed_files.txt
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
