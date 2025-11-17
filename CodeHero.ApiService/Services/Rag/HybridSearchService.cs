@@ -49,7 +49,8 @@ namespace CodeHero.ApiService.Services.Rag;
 /// </remarks>
 public sealed class HybridSearchService : IHybridSearchService
 {
-    private readonly SearchClient _searchClient;
+    private readonly SearchClient? _searchClient;
+    private readonly System.Func<SearchRequest, System.Threading.CancellationToken, System.Threading.Tasks.Task<SearchResponse>>? _searchFunc;
     private readonly IEmbeddingProvider _embedder;
     private readonly ILogger<HybridSearchService> _log;
     private readonly string _vectorField = "contentVector";
@@ -70,6 +71,14 @@ public sealed class HybridSearchService : IHybridSearchService
         _log = log;
     }
 
+    // Internal constructor used by tests to provide a fake search function without requiring a real SearchClient.
+    internal HybridSearchService(System.Func<SearchRequest, System.Threading.CancellationToken, System.Threading.Tasks.Task<SearchResponse>> searchFunc, IEmbeddingProvider embedder, ILogger<HybridSearchService> log)
+    {
+        _searchFunc = searchFunc;
+        _embedder = embedder;
+        _log = log;
+    }
+
     /// <summary>
     /// Executes a hybrid search using an embedded vector for semantic similarity and keyword fallback.
     /// </summary>
@@ -79,6 +88,12 @@ public sealed class HybridSearchService : IHybridSearchService
     public async Task<SearchResponse> SearchAsync(SearchRequest req, CancellationToken ct = default)
     {
         var vector = await _embedder.GetEmbeddingAsync(req.StandaloneQuestion, ct) ?? Array.Empty<float>();
+
+        // If embedding is unavailable or empty, short-circuit and return an empty result set.
+        if (vector.Length == 0)
+        {
+            return new SearchResponse(new List<SearchHit>());
+        }
 
         var options = new SearchOptions
         {
@@ -91,6 +106,12 @@ public sealed class HybridSearchService : IHybridSearchService
         };
         options.Select.Add(_textField);
         options.Select.Add(_sourceMeta);
+
+        // If a test-provided search function exists, use it to obtain deterministic results.
+        if (_searchFunc is not null)
+        {
+            return await _searchFunc(req, ct);
+        }
 
         var response = await _searchClient.SearchAsync<SearchDocument>(req.StandaloneQuestion, options, ct);
         var hits = new List<SearchHit>();
