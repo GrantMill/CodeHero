@@ -15,7 +15,7 @@ public class FileStoreTests
         public string ContentRootPath { get; set; } = Directory.GetCurrentDirectory();
         public string EnvironmentName { get; set; } = "Development";
         public IFileProvider WebRootFileProvider { get; set; } = new PhysicalFileProvider(Directory.GetCurrentDirectory());
-        public string? WebRootPath { get; set; } = null;
+        public string WebRootPath { get; set; } = string.Empty;
     }
 
     private static FileStore CreateStore(string root)
@@ -56,7 +56,6 @@ public class FileStoreTests
     }
 
     [TestMethod]
-    [ExpectedException(typeof(InvalidOperationException))]
     public void Guard_Blocks_Path_Traversal()
     {
         var temp = Directory.CreateTempSubdirectory();
@@ -64,8 +63,8 @@ public class FileStoreTests
         {
             Directory.CreateDirectory(Path.Combine(temp.FullName, "req"));
             var store = CreateStore(temp.FullName);
-            // Attempt to escape directory
-            store.WriteText(StoreRoot.Requirements, "..\\evil.md", "bad", ".md");
+            // Attempt to escape directory - expect InvalidOperationException
+            Assert.ThrowsExactly<InvalidOperationException>(() => store.WriteText(StoreRoot.Requirements, "..\\evil.md", "bad", ".md"));
         }
         finally
         {
