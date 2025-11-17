@@ -1,0 +1,20 @@
+# Ignore local and build artifacts from Docker context
+.git
+.gitignore
+.vscode
+.vs
+.idea
+bin/
+obj/
+artifacts/
+node_modules/
+dist/
+build/
+*.log
+.env
+.env.*
+*.db
+*.tar
+Dockerfile*
+README.md
+**/Dockerfile

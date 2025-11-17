@@ -112,12 +112,12 @@ public sealed class RagAnswerService : IRagAnswerService
 
         var endpoint = _cfg["AzureAI:Foundry:Endpoint"] ?? string.Empty;
         var key = _cfg["AzureAI:Foundry:Key"] ?? string.Empty;
-        var deployment = _cfg["AzureAI:Foundry:PhiDeployment"] ?? "Phi-4";
+        var deployment = _cfg["AzureAI:Foundry:PhiDeployment"] ?? string.Empty;
         var apiVersion = _cfg["AzureAI:Foundry:ApiVersion"] ?? "2024-08-01-preview";
 
-        if (string.IsNullOrWhiteSpace(endpoint) || string.IsNullOrWhiteSpace(key))
+        if (string.IsNullOrWhiteSpace(endpoint) || string.IsNullOrWhiteSpace(key) || string.IsNullOrWhiteSpace(deployment))
         {
-            _log.LogWarning("Answer missing endpoint/key; returning fallback.");
+            _log.LogWarning("Answer missing endpoint/key/deployment; returning fallback.");
             return new AnswerResponse("Configuration missing for AOAI/Foundry.", null, "low");
         }
 

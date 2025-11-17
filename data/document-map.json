@@ -13,6 +13,42 @@
     "contentHash": "1C31F8DCAF36820E78EC5B77B1AC81A670B58FAFE49616DFA1B4E69984E992D3"
   },
   {
+    "id": "60B2051148B1E6B2B42C432810D75B0B38F344999A9A730979C57DB734D51030",
+    "relativePath": "constitution.md",
+    "title": "CodeHero Constitution",
+    "headings": [
+      "CodeHero Constitution",
+      "Core Principles",
+      "I. Test-First and Quality Gates (NON-NEGOTIABLE)",
+      "II. Dependency Governance and Supply Chain Security (NON-NEGOTIABLE)",
+      "III. Library-First, Modular Architecture",
+      "IV. Observability by Default",
+      "V. Versioning and Breaking Changes",
+      "VI. Simplicity and Readability",
+      "Additional Constraints and Standards",
+      "Hierarchy of Truth",
+      "Repository Contract and Agent Boundaries",
+      "Source Code Edits and Constraints",
+      "Human Responsibilities vs Agent Prohibitions",
+      "Automation Scripts Policy",
+      "AI/Foundry Configuration and Safety",
+      "AI Output Quality and Guardrails",
+      "Health, Telemetry, and Defaults",
+      "Blazor UI Non-Negotiables",
+      "CI/CD and Branch Protection",
+      "CI Blocking Conditions",
+      "Development Workflow and Gates",
+      "Authority and Conflict Resolution",
+      "Spec Kit",
+      "Compatibility Note"
+    ],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-16T11:33:47.6686524Z",
+    "size": 7978,
+    "contentHash": "A01948E2B00641F1B9AC8D8A2E69DAF3B9BE593E60DF2013AB47B82F1C51FE82"
+  },
+  {
     "id": "B18744307DE265C8855964080E23AFC3F1D0C3B7AB5351D8CD2611D0C10F93F7",
     "relativePath": "Initial Context.md",
     "title": "/pipelines/ci.yaml",
@@ -61,6 +97,19 @@
     "contentHash": "19200A6A9407E592065A5A504C0EEFE58ADF102C9AC5AA2151BD6F257FAA7A9C"
   },
   {
+    "id": "0BBE5BC4573BCF1CAA8BA13B58EFE7C468BB397DDFE2F5A83F9C76BA92CEC5B4",
+    "relativePath": "plan.md",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [
+      "REQ-003"
+    ],
+    "lastModified": "2025-11-17T16:03:07.2874635Z",
+    "size": 10128,
+    "contentHash": "81332E7493D8C2F0E7EEB7395942127759137026EF8480C9FFC0F685F2143131"
+  },
+  {
     "id": "94B40B284384BFC13F719E2C2E5D7F2222FE04E9DEF64E6874642EF4FF9FDC66",
     "relativePath": "Program.cs",
     "title": "",
@@ -76,13 +125,218 @@
     "relativePath": "README.md",
     "title": "CodeHero",
     "headings": [
-      "CodeHero"
+      "CodeHero",
+      "Spec Kit Usage"
     ],
     "links": [],
     "tags": [],
-    "lastModified": "2025-10-22T13:08:33.8427295Z",
-    "size": 4633,
-    "contentHash": "E32746311589AFE3EFA272B2C576911B48466DC478F87D87E4DEF44F9D656A36"
+    "lastModified": "2025-11-16T11:33:47.6654189Z",
+    "size": 5347,
+    "contentHash": "0C2A880B41A269F83072EFED1C77CAE1EE9A07846EA24D610514B9BD55C3D4CC"
+  },
+  {
+    "id": "3CF412773EB1BEEB42C2152012E67409A21D08DB13CC205E58393A327FC52CE3",
+    "relativePath": "tasks.md",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [
+      "REQ-003"
+    ],
+    "lastModified": "2025-11-17T16:03:07.2874635Z",
+    "size": 5957,
+    "contentHash": "C16B87F44340316A245597EBD06B112FE8F230F0FA0C1953C7B6DAD516A2EC43"
+  },
+  {
+    "id": "E4F2C908B47A111BBB2EC0D649FA0C0E24AF34A85A08C00B1A2B76901F7F2A3F",
+    "relativePath": "validate.md",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [
+      "REQ-003",
+      "REQ-001"
+    ],
+    "lastModified": "2025-11-17T16:03:07.2791637Z",
+    "size": 8405,
+    "contentHash": "353466D047D8CE794D9B964C1262924D268A280375411A1F0C447E41E715FC10"
+  },
+  {
+    "id": "BD8ADFC874A87A18E1C485AFB74C0142867F2DEC8FAEE862AE816B9A4B8DFBDB",
+    "relativePath": "TestResults/GrantMill_GMSLAPTOP01_2025-11-16_18_57_56/In/GMSLAPTOP01/coverage.cobertura.xml",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-16T18:57:57.9241155Z",
+    "size": 992826,
+    "contentHash": "1AE8B2464DFD29D841B017DCB2D2B0AF62CD3BABEEFDEB7646D61278ADC05004"
+  },
+  {
+    "id": "1AAB0EC420CD8CA2BFA14045CC028A9BA91755CE5A08FE3182C946A9EE7C3666",
+    "relativePath": "TestResults/4d35f7d7-1cc0-4137-8acf-e817cef0ef23/coverage.cobertura.xml",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-16T18:57:57.9241155Z",
+    "size": 992826,
+    "contentHash": "1AE8B2464DFD29D841B017DCB2D2B0AF62CD3BABEEFDEB7646D61278ADC05004"
+  },
+  {
+    "id": "455190E7D11289BBA161179DF7597FE0E8BD3E9A0D0185DECF282320724B6437",
+    "relativePath": "specs/004-rag-over-repo/spec.md",
+    "title": "RAG over Repo (Docs, Diagrams, Code)",
+    "headings": [
+      "RAG over Repo (Docs, Diagrams, Code)",
+      "Summary",
+      "Goals",
+      "Non-Goals",
+      "User Personas and Primary User Flows",
+      "Domain and Technical Constraints",
+      "Integration Points",
+      "Observability and Resilience Requirements",
+      "Security, Privacy, and Data Handling Requirements",
+      "Acceptance Criteria",
+      "Success Criteria",
+      "Key Failure Modes",
+      "Risks and Open Questions"
+    ],
+    "links": [],
+    "tags": [
+      "REQ-003"
+    ],
+    "lastModified": "2025-11-16T11:33:47.6704777Z",
+    "size": 3875,
+    "contentHash": "D0AB8F08B15E67811F978D93A4722BB03E1A8A2386DE942071468C00F95682BB"
+  },
+  {
+    "id": "014781A5AFFC5C90DF5DF7EF052F755FE52A951F51F9FE2424F87258206DB449",
+    "relativePath": "specs/004-rag-over-repo/checklists/requirements.md",
+    "title": "Specification Quality Checklist: RAG over Repo (Docs, Diagrams, Code)",
+    "headings": [
+      "Specification Quality Checklist: RAG over Repo (Docs, Diagrams, Code)",
+      "Content Quality",
+      "Requirement Completeness",
+      "Feature Readiness",
+      "Notes"
+    ],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-16T11:18:27.6431884Z",
+    "size": 1166,
+    "contentHash": "D40B7D9DDE81651F0ABFC97F29F9DBDC657D685E082C789AB6C5991F194F14B3"
+  },
+  {
+    "id": "A573FB714B26C52EDBE6185008F08D4540520857C869556B9FCB170F5B945DEE",
+    "relativePath": "specs/003-orchestrator-llm/spec.md",
+    "title": "Orchestrator LLM (Generalist with Tool Use)",
+    "headings": [
+      "Orchestrator LLM (Generalist with Tool Use)",
+      "Summary",
+      "Goals",
+      "Non-Goals",
+      "User Personas and Primary User Flows",
+      "Domain and Technical Constraints",
+      "Integration Points",
+      "Observability and Resilience Requirements",
+      "Security, Privacy, and Data Handling Requirements",
+      "Acceptance Criteria",
+      "Success Criteria",
+      "Key Failure Modes",
+      "Risks and Open Questions"
+    ],
+    "links": [],
+    "tags": [
+      "REQ-002"
+    ],
+    "lastModified": "2025-11-16T11:33:47.6704777Z",
+    "size": 4221,
+    "contentHash": "4C923570FE72E953CF331D588D2CE7C44B6CFE840EE9F8979AE065D0693F4BA6"
+  },
+  {
+    "id": "8FD212AB08FE1AD097709064D9FA5C7A46191E029C8D3C59DC4FE10BBE3B6CA3",
+    "relativePath": "specs/002-scribe-add-requirements/spec.md",
+    "title": "Agentic Scribe: Conversational Requirements Capture",
+    "headings": [
+      "Agentic Scribe: Conversational Requirements Capture",
+      "Summary",
+      "Goals",
+      "Non-Goals",
+      "User Personas and Primary User Flows",
+      "Domain and Technical Constraints",
+      "Integration Points",
+      "Observability and Resilience Requirements",
+      "Security, Privacy, and Data Handling Requirements",
+      "Acceptance Criteria",
+      "Success Criteria",
+      "Key Failure Modes",
+      "Risks and Open Questions"
+    ],
+    "links": [],
+    "tags": [
+      "REQ-001"
+    ],
+    "lastModified": "2025-11-16T11:33:47.6704777Z",
+    "size": 4211,
+    "contentHash": "D2DBC4A707CC8B8EC3E74B5F1F4A412A0A80ED9D2BF56E67318215AEB13F6F7C"
+  },
+  {
+    "id": "7121D85A5EB3675741F23FE140AD1158F0DB2BAF0992ECFEC0D5277B01734AE5",
+    "relativePath": "specs/001-bootstrap-baseline/spec.md",
+    "title": "Bootstrap Baseline",
+    "headings": [
+      "Bootstrap Baseline",
+      "Summary",
+      "Goals",
+      "Non-Goals",
+      "User Personas and Primary User Flows",
+      "Domain and Technical Constraints",
+      "Integration Points",
+      "Observability and Resilience Requirements",
+      "Security, Privacy, and Data Handling Requirements",
+      "Acceptance Criteria",
+      "Success Criteria",
+      "Key Failure Modes",
+      "Risks and Open Questions",
+      "Bootstrap Baseline",
+      "Summary",
+      "Goals",
+      "Non-Goals",
+      "User Personas and Primary User Flows",
+      "Domain and Technical Constraints",
+      "Integration Points",
+      "Observability and Resilience Requirements",
+      "Security, Privacy, and Data Handling Requirements",
+      "Acceptance Criteria",
+      "Success Criteria",
+      "Key Failure Modes",
+      "Risks and Open Questions"
+    ],
+    "links": [],
+    "tags": [
+      "REQ-000"
+    ],
+    "lastModified": "2025-11-17T15:45:45.1351697Z",
+    "size": 8388,
+    "contentHash": "FDB7D8642E6ADA7468279B763272DEC2C09A52AE1FD409E755DED93F1247ED61"
+  },
+  {
+    "id": "BD9CE64786371E3DF31CA6E3D86F6F0A3CFEE3716F5AB3C24D24D33599D4BF86",
+    "relativePath": "specs/001-bootstrap-baseline/checklists/requirements.md",
+    "title": "Specification Quality Checklist: Bootstrap Baseline",
+    "headings": [
+      "Specification Quality Checklist: Bootstrap Baseline",
+      "Content Quality",
+      "Requirement Completeness",
+      "Feature Readiness",
+      "Notes"
+    ],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-17T15:45:45.1331602Z",
+    "size": 1148,
+    "contentHash": "CEC37AA387A25F3A537EFA761FAF864E9C13145D366B948670E285218522DC5E"
   },
   {
     "id": "91EE147E534816733B0738B57B706E5D6B94E0F3DCE53BC7403C7B526AB596DD",
@@ -152,9 +406,9 @@
       "REQ-004",
       "REQ-003"
     ],
-    "lastModified": "2025-11-07T11:01:46.8356865Z",
-    "size": 7825,
-    "contentHash": "C8550B9F71BA708DC7D043FF42D0FD7340650D5D77DBEBC63F411C79E967FC5A"
+    "lastModified": "2025-11-15T13:36:18.3794878Z",
+    "size": 8378,
+    "contentHash": "5D649BFDFE2D1BF7E4700A6DD7B6A1A59EB1E645662CA4CCA5A0BBBF417CC1D2"
   },
   {
     "id": "F2FA20F035EAAF4C54A11F4A4006A9D59D02FB2FB9BAE8183BAC2799890EEB78",
@@ -216,7 +470,7 @@
     ],
     "links": [],
     "tags": [],
-    "lastModified": "2025-10-18T10:03:17.2525862Z",
+    "lastModified": "2025-11-17T15:21:04.5152285Z",
     "size": 824,
     "contentHash": "64329716B9F50B58C9323A642677EC186EEF7F7D5E34E0A37D76FDAE7D1D52FB"
   },
@@ -257,7 +511,7 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-10-17T14:18:44.7214358Z",
+    "lastModified": "2025-11-17T15:21:04.5162276Z",
     "size": 1166,
     "contentHash": "A57A684CB09C03575404F26BE2DBF4AD49CB7FF876B12A0727BE15F886EE0829"
   },
@@ -270,9 +524,9 @@
     "tags": [
       "REQ-000"
     ],
-    "lastModified": "2025-10-22T15:27:01.4754357Z",
-    "size": 465,
-    "contentHash": "75E0C53A57F4116A772661CB558972AB7CD4A03595809A618343C452FDB38883"
+    "lastModified": "2025-11-17T15:03:53.2828089Z",
+    "size": 468,
+    "contentHash": "0FD2BB62EC967B2EE411483D83652E8494AA746356A88409D0DD93B5423F8540"
   },
   {
     "id": "454B5AADA1C338AF27E7737390E41F7E9D9F6A412FB743B63B8A7931C1840391",
@@ -283,9 +537,9 @@
     "tags": [
       "REQ-001"
     ],
-    "lastModified": "2025-10-24T13:15:07.4234543Z",
+    "lastModified": "2025-11-15T08:17:23.1904526Z",
     "size": 427,
-    "contentHash": "566D3F8A0B701D3BFE2F8D5203E297549E11327BAFBED004568A5FC149FC67D4"
+    "contentHash": "074E1998A1F4B1D9334E73EFF093DFEE8C0A064DBB9AEFD897F172A12425AE74"
   },
   {
     "id": "7C8D14B8CB46A3C9DC32F9EAC80470A9901B202C343BECB4C662E4C294822852",
@@ -311,9 +565,9 @@
     "tags": [
       "REQ-003"
     ],
-    "lastModified": "2025-10-22T14:02:10.133068Z",
-    "size": 1039,
-    "contentHash": "CF29CD8FA641E0FA50C8C45C136727DDA1DC602EB6BC659C50319C46C35448D6"
+    "lastModified": "2025-11-15T13:42:49.2148395Z",
+    "size": 1028,
+    "contentHash": "BA466AE25069E2AFCCC1C8791791FFACA74BB9BBAA214166ED5712119E57F0CD"
   },
   {
     "id": "047DB449CD5BF6603C5FD2AF3ADA2F63DE90BE356AECF310AC571F640130A69F",
@@ -578,9 +832,9 @@
       "REQ-007",
       "REQ-008"
     ],
-    "lastModified": "2025-11-14T09:03:55.1859657Z",
-    "size": 76072,
-    "contentHash": "4FD22A8169DBC397D6616BBB80A6B2EFF938611928B13382B3A7C0EC53F8D860"
+    "lastModified": "2025-11-17T15:21:04.5142269Z",
+    "size": 75266,
+    "contentHash": "3B8596C5FD532FAAD530A69849EFB61F409B32A320FAB26B1E2D4EBB148F6A1B"
   },
   {
     "id": "4ADF198200E115C5823766ED487764919CFACBA4B79D9390FD1E71C5C4FFB291",
@@ -622,9 +876,9 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-11T15:00:04.9418851Z",
+    "lastModified": "2025-11-14T16:59:33.175549Z",
     "size": 783,
-    "contentHash": "C3F3876C2BB9E98474F50AECFB025DDFF7D76E236825731355264A6F4C15ADAB"
+    "contentHash": "5CB4D3C572FFE79E905D11321D6D870E913268D2A7310CC7A54414AD090D1D89"
   },
   {
     "id": "397618D44E909E8A60395D3F3FDCFC9E7E9DE6987C147A4DE3B7B64189F745A8",
@@ -633,9 +887,9 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-13T18:42:35.852411Z",
-    "size": 29262,
-    "contentHash": "E48FED6C7FED8EEDEEF5915EC9B5BED3F3E55431CE6D2FED83FD9741EA22B4BF"
+    "lastModified": "2025-11-17T15:21:04.5110211Z",
+    "size": 29265,
+    "contentHash": "AA8331B6E1A53C2E1CAC5D447DB44073EB2697B404680CA3431562D73976EA5F"
   },
   {
     "id": "781B4D93852AB6CA7BA43242E46B138F69CDE647CDB28357EDFB8DDF8DACB7C6",
@@ -644,7 +898,7 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-11T14:23:44.6352918Z",
+    "lastModified": "2025-11-14T16:03:56.9768684Z",
     "size": 4132,
     "contentHash": "43D78A63A8CE2D89130516FDB4F64E0B3CB39B44B5B55DE328BEBBFC0DD3C6C4"
   },
@@ -658,7 +912,7 @@
       "relatedTarget"
     ],
     "tags": [],
-    "lastModified": "2025-10-24T15:00:57.9170788Z",
+    "lastModified": "2025-11-14T16:19:45.9114024Z",
     "size": 261481,
     "contentHash": "98EB344D566920A048BBB4F8CA047047F287C6154A27DC6968AA6968E326E871"
   },
@@ -686,7 +940,7 @@
       "relatedTarget"
     ],
     "tags": [],
-    "lastModified": "2025-10-24T15:01:00.7271007Z",
+    "lastModified": "2025-11-14T16:19:45.9159402Z",
     "size": 171299,
     "contentHash": "98B12BF5C54FBE5B830DCE4EF6E7A47C15EF7E940593A63776755D7DF5E559DC"
   },
@@ -714,7 +968,7 @@
       "relatedTarget"
     ],
     "tags": [],
-    "lastModified": "2025-10-24T15:00:54.7034375Z",
+    "lastModified": "2025-11-14T16:19:45.9198289Z",
     "size": 189385,
     "contentHash": "50D1F5FFAA5C6E93A7E6AFD8BA39AB7B9A90F074EF738C5B886510768F0EC190"
   },
@@ -739,7 +993,7 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-11T14:22:16.686991Z",
+    "lastModified": "2025-11-14T16:02:49.9878892Z",
     "size": 85673,
     "contentHash": "D3BDF185760A1D0BB7B1EC53D423A84432A9115D333B8F97D814818ED8307246"
   },
@@ -761,7 +1015,7 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-11T14:22:26.7665028Z",
+    "lastModified": "2025-11-14T16:03:00.6637719Z",
     "size": 85746,
     "contentHash": "5612DEA0CA26DF67884AF1135ADF28C8606C041837F300BE93CA0B0ECAD7B6A3"
   },
@@ -783,7 +1037,7 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-11T14:22:29.8096111Z",
+    "lastModified": "2025-11-14T16:03:05.6493545Z",
     "size": 13487,
     "contentHash": "90E9EBCDA8419306AEECE5CE78BFB9AB8253E04C58D22343705BA8D2FDA92ED5"
   },
@@ -805,7 +1059,7 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-11T14:22:34.5185431Z",
+    "lastModified": "2025-11-14T16:03:13.9104797Z",
     "size": 13481,
     "contentHash": "EBE3843195601CDC7B80903C74BB64459EA54227D494BB94C945F0A5A8F226B5"
   },
@@ -827,7 +1081,7 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-11T14:22:53.4675822Z",
+    "lastModified": "2025-11-14T16:03:26.8532505Z",
     "size": 125198,
     "contentHash": "417BC1BF37534BEA7ED99ECB25D89D7EFCD2FB67AC40D6B7CF2259EF2816DBD4"
   },
@@ -849,7 +1103,7 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-11T14:22:59.1881747Z",
+    "lastModified": "2025-11-14T16:03:32.1709718Z",
     "size": 125055,
     "contentHash": "CC0B3978AF372C74353FD62E41C7E873A2CF106A35FD3ECE9BAB6EAF9BF5A497"
   },
@@ -871,7 +1125,7 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-11T14:22:01.416533Z",
+    "lastModified": "2025-11-14T16:02:35.1445897Z",
     "size": 324124,
     "contentHash": "F87140D7F11721E23CD55432AB59041BE9955ECF23F4D3311945D0632A10840C"
   },
@@ -893,7 +1147,7 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-11T14:22:11.3178529Z",
+    "lastModified": "2025-11-14T16:02:39.9458711Z",
     "size": 323325,
     "contentHash": "EC39AE69EB0028D572BA9A7179B7638E277C65474A867C95AA863A740C82A7D0"
   },
@@ -926,9 +1180,9 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-06T16:46:50.9873786Z",
-    "size": 239,
-    "contentHash": "AA6764866C809A8AA48A0E017536A37152EBED66B6D343F1CAA80958BC86053E"
+    "lastModified": "2025-11-14T16:02:24.2176558Z",
+    "size": 240,
+    "contentHash": "D2F522B6B0BC5F34CFAD3E2F0A69A88B611A3971A8F9733014FB80FE792D782D"
   },
   {
     "id": "8CA6B7B1C31CF9E2502DABDC6328C0E553FCA458C9B1C7B20CA4DBC42BF1C8AB",
@@ -970,9 +1224,9 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-13T18:40:00.0778719Z",
-    "size": 3729,
-    "contentHash": "021E28BBEC91418DA5887D68EEA94E250B3212BA41CF81E8D184D419D2561384"
+    "lastModified": "2025-11-14T16:22:30.6330694Z",
+    "size": 4118,
+    "contentHash": "52773F4B808B9DF514BE42105F5C8E3BA14697E6717BAB93A683A7AB1ACED9F6"
   },
   {
     "id": "65BA246E3622690F261360F729AD9504277DFB3CAA5596438B1638BDE8205D25",
@@ -1049,9 +1303,9 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-13T18:38:45.7835058Z",
-    "size": 191,
-    "contentHash": "3E75BB50C16D094F6C9AB4B542763FF5EA5CEA0D4B6AFA741A3AF4568EAAEFB4"
+    "lastModified": "2025-11-14T16:21:51.5772791Z",
+    "size": 926,
+    "contentHash": "6937A671EB6146DAC53013F815E49586D4A8CA15C7F4DC17A10B92C3F6B0895E"
   },
   {
     "id": "C249F675C5D05ED1D8E3D03704EAE379289BFB5DF00FF46E312407BBB573F3B8",
@@ -1123,9 +1377,9 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-13T18:41:34.3212323Z",
-    "size": 332,
-    "contentHash": "B0A124377AFC77F7FD8DC6C41EB30BCD27DB096076BF812FA064D0B6BD77A517"
+    "lastModified": "2025-11-14T16:22:48.5145007Z",
+    "size": 499,
+    "contentHash": "12092D2AE36543C15A7AE4E18C60E32800BB50154AA040F37871D0FA9130086F"
   },
   {
     "id": "35215B3B508D9399B23FA9B9F2C3EED6F2298D4917FA2CD01520F163B245C419",
@@ -1158,9 +1412,9 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-13T11:46:13.1867439Z",
-    "size": 6979,
-    "contentHash": "DA78C9A34031CF4817D4D46BE018B3A4FB8457033E5621DE55348F660DF06E66"
+    "lastModified": "2025-11-17T17:18:30.7293668Z",
+    "size": 8327,
+    "contentHash": "EE44817F7F59BA05F55536758AFDEE5DB38D3057CAA9DCD0B41791D878C2C214"
   },
   {
     "id": "6978BA896BA7D54CB0FBF812294B94AD9259F339E54838D40317E7FBA03D66CD",
@@ -1336,7 +1590,7 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-11T14:24:21.3319241Z",
+    "lastModified": "2025-11-14T16:04:13.4700224Z",
     "size": 1502,
     "contentHash": "CB159EA8E6F43DF4BAB02885AC1FA7C391CB909FD8BC5A791FD367915D6A652A"
   },
@@ -1426,7 +1680,7 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-11T14:23:54.318863Z",
+    "lastModified": "2025-11-14T16:04:00.5448312Z",
     "size": 2246,
     "contentHash": "4CC8A7E27A3A1D09546964DF17E5424E16975EBD537A5ACA10EC040616593FF6"
   },
@@ -1448,7 +1702,7 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-11T14:24:02.2855439Z",
+    "lastModified": "2025-11-14T16:04:05.4979995Z",
     "size": 2376,
     "contentHash": "DA938208CE4A6D5BB7691C0A19FB7926B8C904685EC0FA50FFC821783465A231"
   },
@@ -1459,9 +1713,9 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-11T14:18:24.7869547Z",
-    "size": 3525,
-    "contentHash": "C5326A3B28CC32338EB17D25ADBCFF6F15A6A26AC1AF1EE84B23C27D3BF2ED63"
+    "lastModified": "2025-11-14T15:40:41.4455586Z",
+    "size": 3595,
+    "contentHash": "CA24D8D2613FF367AD31E1184BBCC26760B28CBE4A6161FC63B91DF9CCCDE12D"
   },
   {
     "id": "93ABBC1B060949E723E98DF842A7213F1D02FD27221390B714F4EAF0BD5D1336",
@@ -1470,9 +1724,20 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-06T10:49:23.9517534Z",
-    "size": 1472,
-    "contentHash": "82FADBA98B82D04E953BA139A14044EDA9135C5B4922E1CDA0297F66A2168343"
+    "lastModified": "2025-11-17T15:21:04.5037063Z",
+    "size": 1540,
+    "contentHash": "A0C99CEC868367A7F998DAC4EBB8B3055511F40452251DB0BCE316479514985F"
+  },
+  {
+    "id": "3144D5396BA20BEC6C65D96A43B6404315F76D9379DB24524EFE228403D916ED",
+    "relativePath": "CodeHero.Tests/EmbeddingProviderTests.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-17T17:25:06.7651703Z",
+    "size": 2801,
+    "contentHash": "5FFED67161A866E15BA7A9A7317B620D63DD5D7F7C0BD1814C8AC581B12F3498"
   },
   {
     "id": "1DBEA4845A714B8C3CF360363CC04981406011C71803ED45A68B673FECA8EC7D",
@@ -1481,7 +1746,7 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-05T17:27:34.3056062Z",
+    "lastModified": "2025-11-17T15:21:04.5057066Z",
     "size": 4158,
     "contentHash": "620743F008DA1DB3C5022BFC90F94E7B133A95369422D118FD565A89E316AB8B"
   },
@@ -1533,7 +1798,7 @@
     "tags": [
       "REQ-000"
     ],
-    "lastModified": "2025-11-05T17:27:34.3056062Z",
+    "lastModified": "2025-11-17T15:21:04.506705Z",
     "size": 2862,
     "contentHash": "E4AA60F3BB4314A8AB0676FCD2146EBA62C825515A1BC281C77A6F651D018DF8"
   },
@@ -1621,9 +1886,9 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-11T14:15:08.3578561Z",
-    "size": 19487,
-    "contentHash": "FB30DAE7E7A30F4AECD0919CB007BB1A3A0D9E209A306291ECABB8B1B5A986C5"
+    "lastModified": "2025-11-17T15:21:04.5006932Z",
+    "size": 15446,
+    "contentHash": "FFFDAC75378CBA24096EA589A6C21DA1C214FEF868615070D360CC2DEED56862"
   },
   {
     "id": "FB081F679907632F9546E95D212A316E11B74FA19C03DB8032307D6F0A4B7465",
@@ -1676,9 +1941,9 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-05T17:27:34.3045089Z",
-    "size": 566,
-    "contentHash": "078BDB8D6324E591E753BD73C06421ADAF3B3A7F802CDAF533832D57C9C3F017"
+    "lastModified": "2025-11-14T17:23:28.8773786Z",
+    "size": 581,
+    "contentHash": "75D5380E0DABB01C8853ABD7D97DA10D2658AFCE581D0F5650E206E11020925B"
   },
   {
     "id": "87262753F35780FF484F9B8561C38D9D90A4C30A10C5D5893D2A1EAC0FAC110B",
@@ -1687,9 +1952,9 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-05T17:27:34.3021055Z",
-    "size": 747,
-    "contentHash": "4BB31537EE4788ECFBA5279F091CEDBA7E6AC8137431EDE00F27B679688FC102"
+    "lastModified": "2025-11-14T16:59:46.276282Z",
+    "size": 751,
+    "contentHash": "FFDA0BC98F13FF7495B1CA5461C17267E51DE53BC137C97D17A95F405E1D0C40"
   },
   {
     "id": "92E9E7DC39990297137363EC729A476F52D4A6903141CDE02AC48959300E0A8F",
@@ -1879,9 +2144,9 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-12T15:54:11.8703543Z",
-    "size": 844,
-    "contentHash": "7F2958888699B1788825FBA79E18F8BC37BF15B6543EB73D5C9EBEB0E3ECE58F"
+    "lastModified": "2025-11-14T17:10:42.6145091Z",
+    "size": 829,
+    "contentHash": "42C324144A3AD07DF9C17E5C750BA3B9C706B133DB3C71D2D7E539FB2F578A0F"
   },
   {
     "id": "0E471C7189BBEF84497678BFEB36242DDA4EAEF7A2B3EF48087062F7BC25F5D8",
@@ -1890,9 +2155,20 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-12T15:56:55.8344882Z",
-    "size": 1698,
-    "contentHash": "BE52B326540D2E73E37B0A493454D20CCAF507272260912B682F61466BA18A6E"
+    "lastModified": "2025-11-14T15:50:28.1099796Z",
+    "size": 1672,
+    "contentHash": "B60F4E8541F95D296683984C6A0826F6DF65D1062F2D5A35D4FC94D73D1D728B"
+  },
+  {
+    "id": "94899104CFA4907697F449D73083FE0CA465FC0EC68AF5FEEBE3AD9FBF0857DD",
+    "relativePath": "CodeHero.ApiService/InternalsVisibleTo.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-17T17:24:55.1458151Z",
+    "size": 92,
+    "contentHash": "8E2F6D9B63B1626B26255EDF0825AFE4B0DE973EFC45E3A4CC64A2A4C126943F"
   },
   {
     "id": "2EC2D26C5A2E1EEA7700ACEF47511C9451AF0E07A474E64A24F9A22443B9839C",
@@ -1901,9 +2177,9 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-14T13:24:55.2769175Z",
-    "size": 15715,
-    "contentHash": "D4421C24C3FD34F54553ADB01F3AEFB95FF90A7112971B9C7007AEAFB076F6BF"
+    "lastModified": "2025-11-17T17:18:30.6727374Z",
+    "size": 16525,
+    "contentHash": "20EF3E0ECFECCA3A18147FCCB43B72D531FDC30446452C6AC4BA002B00BADED1"
   },
   {
     "id": "083AA9CA9E8E86D224C695073AFC510CE7BCDE5F61334205028D7EF93BBD2CDA",
@@ -1912,9 +2188,9 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-13T11:59:17.6055846Z",
-    "size": 7646,
-    "contentHash": "3FE9736C66DE1EC748F5B57E6F350043B9E9E3ECCCFBE72E1C9DEF275E44EBB0"
+    "lastModified": "2025-11-14T17:24:38.6736245Z",
+    "size": 7802,
+    "contentHash": "1269F86A822881D73C08FD7DD94CE52084B82E74AD9E12D380F35169A1201B77"
   },
   {
     "id": "FDAFFCD7BFC06441475DFB5DF0456000A8DFF277301C2C4826D648BA3EAA0E3F",
@@ -1923,9 +2199,9 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-12T15:21:52.8278278Z",
-    "size": 951,
-    "contentHash": "89697689F6AE372770A534A6BFF0D1DA511AE5D7E162CDF9DEDE244092A88BDB"
+    "lastModified": "2025-11-14T15:49:42.4677751Z",
+    "size": 923,
+    "contentHash": "C5119E0882F83C3591DB65E36B0D27639CA6B49C9D504942484928A856397F2F"
   },
   {
     "id": "4ED30978358FB3A868D68662867B2A2D7266A58717C04AF98E849CC42209D22D",
@@ -1945,9 +2221,9 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-11T14:35:39.3183408Z",
-    "size": 20421,
-    "contentHash": "2EA4184E0D3DE742D204D5BC42619E1B037E698217B1B07E508A3809D2A84140"
+    "lastModified": "2025-11-14T15:40:41.4350085Z",
+    "size": 20885,
+    "contentHash": "0E4DB8739F1064695C799C789694F8E0C281A6ADF23DCC3CEB7212450D9E6DD9"
   },
   {
     "id": "2B7A97768F4455C5B1DCE9C9F398F18648195049C9FCCACED11DD2E24899AA6D",
@@ -1978,9 +2254,9 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-11T14:10:20.9857933Z",
-    "size": 970,
-    "contentHash": "B2402C30C66CD862542B03DEFF2ADE1243AA7945254CB6C2A3C37CF50C83B138"
+    "lastModified": "2025-11-14T15:40:41.4370271Z",
+    "size": 1001,
+    "contentHash": "833DC9AB41F4591ABDACE200D1D07FF4A440D24768B94959F00003DAED227B5B"
   },
   {
     "id": "E63302B8842AA6A45C0FE0578D507142082D6C2B40336CFD9A8C7D94B611BE6F",
@@ -1989,9 +2265,20 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-11T14:35:36.9590147Z",
-    "size": 336,
-    "contentHash": "20ED981B6301146EF94B1AF98D437BDBED10E652E67D0EDA6659EECADF0FADAC"
+    "lastModified": "2025-11-14T16:23:00.5461575Z",
+    "size": 567,
+    "contentHash": "8FE1A64687BDB89175678A6EED0D7177B0D56A43D23883B631A8A8BAB39502CC"
+  },
+  {
+    "id": "E2FBC5EFD790BF41271DBA5F4354ABD22014EC79D6A4D1948F19AA859560E245",
+    "relativePath": "CodeHero.ApiService/Services/Rag/FoundryEmbeddingProvider.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-17T17:18:30.6727374Z",
+    "size": 2691,
+    "contentHash": "F4972487D9E7DC9774A3202149F11EAE47DDB91716567430788BE9B411C7E471"
   },
   {
     "id": "1A9D391AEC1E36861B01C19AC84511E10FACD852576B42D4D80B005F01D90045",
@@ -2000,9 +2287,20 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-14T13:22:15.6508382Z",
-    "size": 9587,
-    "contentHash": "AD6DD5C456583AEE4255FA443CA617286453D32E46EEBA743B09C0D5931F1672"
+    "lastModified": "2025-11-17T17:18:30.6727374Z",
+    "size": 8141,
+    "contentHash": "EFC793DFC3E0CF68D45370393A49CEB9A4E6C631EFB5B26B3049E1789B83425D"
+  },
+  {
+    "id": "62513965483F3F444F031E8A5FD29BB42244E23F5D0451B8A53E4C524B9C17C3",
+    "relativePath": "CodeHero.ApiService/Services/Rag/IEmbeddingProvider.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-17T17:18:30.6727374Z",
+    "size": 548,
+    "contentHash": "228AFEA65F19F6106715432B2922F791263F6BDA45E99869A6D5E15E0E7169B8"
   },
   {
     "id": "EB6DF08293C9002F623F902A63559417D43F045B561381E685EBF4298B5FDBBF",
@@ -2011,9 +2309,9 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-14T13:22:23.4096277Z",
-    "size": 6129,
-    "contentHash": "85B29AC04B2256A1DA59A5E4F6A20F00A7E60363BD1AA0A78980E3A3358983D0"
+    "lastModified": "2025-11-14T17:08:55.603934Z",
+    "size": 6131,
+    "contentHash": "840F60606B7C2B7B5267C0AF22BC0904528C8AB76D728F3D09C1C5ADFBC0C605"
   },
   {
     "id": "7901A6FC7366D2582237DF1F2B4D29CF85EC7E29EF0E373E01A2E2A7E579972C",
@@ -2022,9 +2320,9 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-11T14:35:38.6446636Z",
-    "size": 214,
-    "contentHash": "9E7E7F619BEB716FBA23A606F6926D2C9049B2FEC8FCFE7ED4749485CAF12192"
+    "lastModified": "2025-11-14T16:22:06.5009561Z",
+    "size": 821,
+    "contentHash": "D4CEDFA419BC3760C0257621F13F8F5B936993B542DE60B1E968ECD626C4BB56"
   },
   {
     "id": "4EFE81FCFB5D44CA973AA1FC743606F8E0BD46EDD0C7F5A7D9A3D9C40035FCE4",
@@ -2036,6 +2334,17 @@
     "lastModified": "2025-11-11T14:35:37.4174952Z",
     "size": 221,
     "contentHash": "DE0CFA77E78FC58AFD3D0AB387C4C0D5F82ACEB0FFCF290675CDFF00CD20639D"
+  },
+  {
+    "id": "153332C1444A0058B4A366BCF29F5918D188ABC5DB5284A0C7FE4A822FF0E9BF",
+    "relativePath": "CodeHero.ApiService/Services/Rag/NoopEmbeddingProvider.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-17T17:18:30.6727374Z",
+    "size": 255,
+    "contentHash": "4A11CE1A5F50E400947B85DE2B14A409C59B523B6EB14FA5AB683461C77EBFC2"
   },
   {
     "id": "A6D50BEC08944C5F073497046CE5BFED825309903AD27FECF04E395DE46EB57D",
@@ -2070,9 +2379,9 @@
     "tags": [
       "REQ-001"
     ],
-    "lastModified": "2025-11-14T13:16:40.6554606Z",
-    "size": 10920,
-    "contentHash": "C1092328B0C89A98C18B58C38896C26C98EFF00F311A805FDE745A8B85AD635B"
+    "lastModified": "2025-11-17T17:18:30.6727374Z",
+    "size": 10977,
+    "contentHash": "355B868E22FB8B24D0B5BD528F2F2573767E6904EAF8AB7EE59496B8973176DB"
   },
   {
     "id": "4276372E10E074894E5F248B0DD37E6F871630055658EE6ED331EF33E2A2B1E3",
@@ -2092,9 +2401,9 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-11T14:06:08.3013366Z",
-    "size": 373,
-    "contentHash": "E51B6A57337782FEC338CC1085F458CC58C9DAE79F45A474F7752334A54F60A7"
+    "lastModified": "2025-11-14T15:40:41.4322126Z",
+    "size": 383,
+    "contentHash": "23024E6FB7EBACDB44C94A6FA8F2EBC9B43DF7436FE218BF084F6D6293F78839"
   },
   {
     "id": "B6F37857598586251137987E8B588604183ACDEE9F6355498043FE136590534A",
@@ -2103,9 +2412,9 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-11T14:05:31.6856961Z",
-    "size": 867,
-    "contentHash": "99BCBFA9E4778FBD3800D039B0C04547FFF8DC34696C6ED74357952C3A83D90D"
+    "lastModified": "2025-11-14T15:40:41.4286547Z",
+    "size": 891,
+    "contentHash": "F00C54B3A1F2180E864743F49186C5663AF7119423F7321C227E93FC6B419612"
   },
   {
     "id": "6B86855DB1DAFF7D06B05E2DD81837A966A41A95C918DA33555B1E12E1733D63",
@@ -2114,9 +2423,9 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-11T14:05:10.0979793Z",
-    "size": 910,
-    "contentHash": "493D3881A78DBC2AB124919A01163D7A8237C14242EFCC6BB3407CDFB40824B4"
+    "lastModified": "2025-11-14T15:40:41.4258575Z",
+    "size": 940,
+    "contentHash": "362D49BC89EE007FF6452A6BB30DC5EB9C0909F1CE29622B6603045BA04D4742"
   },
   {
     "id": "B9E53281F8DFD3601CAC54F1E8787D2744E51B3E7005DC1111DCFC1821A754E2",
@@ -2136,9 +2445,359 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-06T10:43:38.0840038Z",
-    "size": 712,
-    "contentHash": "588AFC1FE4FD66DD9F6725BE7CA426C747C28581E49864575EA5743D1ECBA979"
+    "lastModified": "2025-11-14T15:40:41.4108094Z",
+    "size": 728,
+    "contentHash": "247DEA5DCBF73A3EC5D0BB9CCB3D2A079D10572E9B9C19E5524F19B678170239"
+  },
+  {
+    "id": "B945E649AD9FFA81EF0626EEBEB69835D7620C8792EE03CBE0D38440AF8FB7BE",
+    "relativePath": "artifacts/run-19432867654/TestResults/_runnervmg1sw1_2025-11-17_14_23_08/In/runnervmg1sw1/coverage.cobertura.xml",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-17T14:31:59.7133833Z",
+    "size": 974500,
+    "contentHash": "B5810C6AEF5C8BCBFA8810D47FB977F341E1C306E7703A2F035875D0A2CD7863"
+  },
+  {
+    "id": "51F39C48F474E177CF075A63A233A79457FA00438C22A561F75C7CD03DAF7B16",
+    "relativePath": "artifacts/run-19432867654/TestResults/e76a2ed7-90f2-41eb-9f71-905d27787650/coverage.cobertura.xml",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-17T14:31:59.7191799Z",
+    "size": 974500,
+    "contentHash": "B5810C6AEF5C8BCBFA8810D47FB977F341E1C306E7703A2F035875D0A2CD7863"
+  },
+  {
+    "id": "A5DE3E5871FFCC383A2294845BD3DF25D3EEFF6C29AD46E3A396577C413BF357",
+    "relativePath": ".vscode/settings.json",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-16T09:56:10.5481063Z",
+    "size": 365,
+    "contentHash": "E8259C256F15884E43E77C2B471AD4EADF5135463F609B1B190F5475EB344D4F"
+  },
+  {
+    "id": "580ACDF8106F9EE8938BC37505DBD6F479C1389889FA6EF07A6894F0985050AB",
+    "relativePath": ".specify/templates/agent-file-template.md",
+    "title": "[PROJECT NAME] Development Guidelines",
+    "headings": [
+      "[PROJECT NAME] Development Guidelines",
+      "Active Technologies",
+      "Project Structure",
+      "Commands",
+      "Code Style",
+      "Recent Changes"
+    ],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-16T09:56:10.5444225Z",
+    "size": 492,
+    "contentHash": "6637A90F130DC6E4AB3A6E36563BE4C7DB8EED7A0F450F08BB1C96EFFE667EBB"
+  },
+  {
+    "id": "735D00967584C5FDFD7352D0528D5A3F22C451F12B971D3561FFAADF86D9365D",
+    "relativePath": ".specify/templates/checklist-template.md",
+    "title": "[CHECKLIST TYPE] Checklist: [FEATURE NAME]",
+    "headings": [
+      "[CHECKLIST TYPE] Checklist: [FEATURE NAME]",
+      "[Category 1]",
+      "[Category 2]",
+      "Notes"
+    ],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-16T09:56:10.5444225Z",
+    "size": 1352,
+    "contentHash": "78D0FF5F1330578B274AE2B0BD53B7ED86D7C3DE66DBBBA1184AC0CABCC3DBB4"
+  },
+  {
+    "id": "ACCFD2EB19A2DC49A924D5A0A2F638A751F0EEF1D1F4AB71335DE9F4E63CC357",
+    "relativePath": ".specify/templates/plan-template.md",
+    "title": "Implementation Plan: [FEATURE]",
+    "headings": [
+      "Implementation Plan: [FEATURE]",
+      "Summary",
+      "Technical Context",
+      "Constitution Check",
+      "Project Structure",
+      "Documentation (this feature)",
+      "Source Code (repository root)",
+      "[REMOVE IF UNUSED] Option 1: Single project (DEFAULT)",
+      "[REMOVE IF UNUSED] Option 2: Web application (when \u0022frontend\u0022 \u002B \u0022backend\u0022 detected)",
+      "[REMOVE IF UNUSED] Option 3: Mobile \u002B API (when \u0022iOS/Android\u0022 detected)",
+      "Complexity Tracking"
+    ],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-16T09:56:10.5454329Z",
+    "size": 3775,
+    "contentHash": "5B16CB50DDF42DB91333AEFB02717E0C2B9A74AE1C1022305030D5C8D6B31AB3"
+  },
+  {
+    "id": "FE9283F971260269401E2F4A6E9505FA25D9C1FEFD68D57E9604F64E5A3AB0A1",
+    "relativePath": ".specify/templates/spec-template.md",
+    "title": "Feature Specification: [FEATURE NAME]",
+    "headings": [
+      "Feature Specification: [FEATURE NAME]",
+      "User Scenarios \u0026 Testing *(mandatory)*",
+      "User Story 1 - [Brief Title] (Priority: P1)",
+      "User Story 2 - [Brief Title] (Priority: P2)",
+      "User Story 3 - [Brief Title] (Priority: P3)",
+      "Edge Cases",
+      "Requirements *(mandatory)*",
+      "Functional Requirements",
+      "Key Entities *(include if feature involves data)*",
+      "Success Criteria *(mandatory)*",
+      "Measurable Outcomes"
+    ],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-16T09:56:10.5460485Z",
+    "size": 4075,
+    "contentHash": "BDB3CB6D7562F9429C00373D221F3D8A377D2AB4132AFDAED36D39D83E6F2F63"
+  },
+  {
+    "id": "56152AD2DE4C68E0527F11093EEF614E1E4C1796A1F18E863561F8CFF3590DF3",
+    "relativePath": ".specify/templates/tasks-template.md",
+    "title": "Tasks: [FEATURE NAME]",
+    "headings": [
+      "Tasks: [FEATURE NAME]",
+      "Format: \u0060[ID] [P?] [Story] Description\u0060",
+      "Path Conventions",
+      "Phase 1: Setup (Shared Infrastructure)",
+      "Phase 2: Foundational (Blocking Prerequisites)",
+      "Phase 3: User Story 1 - [Title] (Priority: P1) \uD83C\uDFAF MVP",
+      "Tests for User Story 1 (OPTIONAL - only if tests requested) \u26A0\uFE0F",
+      "Implementation for User Story 1",
+      "Phase 4: User Story 2 - [Title] (Priority: P2)",
+      "Tests for User Story 2 (OPTIONAL - only if tests requested) \u26A0\uFE0F",
+      "Implementation for User Story 2",
+      "Phase 5: User Story 3 - [Title] (Priority: P3)",
+      "Tests for User Story 3 (OPTIONAL - only if tests requested) \u26A0\uFE0F",
+      "Implementation for User Story 3",
+      "Phase N: Polish \u0026 Cross-Cutting Concerns",
+      "Dependencies \u0026 Execution Order",
+      "Phase Dependencies",
+      "User Story Dependencies",
+      "Within Each User Story",
+      "Parallel Opportunities",
+      "Parallel Example: User Story 1",
+      "Launch all tests for User Story 1 together (if tests requested):",
+      "Launch all models for User Story 1 together:",
+      "Implementation Strategy",
+      "MVP First (User Story 1 Only)",
+      "Incremental Delivery",
+      "Parallel Team Strategy",
+      "Notes"
+    ],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-16T09:56:10.547494Z",
+    "size": 9428,
+    "contentHash": "B01E10F0393B94A880F611BEA908D97E3CBBD3BA5CB8BD34470A6AB42BC1F112"
+  },
+  {
+    "id": "9A633F4251CD983441B920BCE337A9B516A88C35A99AB231410ABF4A0C1EC688",
+    "relativePath": ".specify/scripts/bash/check-prerequisites.sh",
+    "title": "Consolidated prerequisite checking script",
+    "headings": [
+      "Consolidated prerequisite checking script",
+      "# This script provides unified prerequisite checking for Spec-Driven Development workflow.",
+      "It replaces the functionality previously spread across multiple scripts.",
+      "# Usage: ./check-prerequisites.sh [OPTIONS]",
+      "# OPTIONS:",
+      "--json              Output in JSON format",
+      "--require-tasks     Require tasks.md to exist (for implementation phase)",
+      "--include-tasks     Include tasks.md in AVAILABLE_DOCS list",
+      "--paths-only        Only output path variables (no validation)",
+      "--help, -h          Show help message",
+      "# OUTPUTS:",
+      "JSON mode: {\u0022FEATURE_DIR\u0022:\u0022...\u0022, \u0022AVAILABLE_DOCS\u0022:[\u0022...\u0022]}",
+      "Text mode: FEATURE_DIR:... \\n AVAILABLE_DOCS: \\n \u2713/\u2717 file.md",
+      "Paths only: REPO_ROOT: ... \\n BRANCH: ... \\n FEATURE_DIR: ... etc.",
+      "Parse command line arguments",
+      "Source common functions",
+      "Get feature paths and validate branch",
+      "If paths-only mode, output paths and exit (support JSON \u002B paths-only combined)",
+      "Validate required directories and files",
+      "Check for tasks.md if required",
+      "Build list of available documents",
+      "Always check these optional docs",
+      "Check contracts directory (only if it exists and has files)",
+      "Include tasks.md if requested and it exists",
+      "Output results"
+    ],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-16T09:56:10.5405675Z",
+    "size": 5151,
+    "contentHash": "FE3222A25F4D8F9F67CE150A2B97C15CEFBBCC87CEC4E8B03F14DA720684B774"
+  },
+  {
+    "id": "F20A18731FB4EF3A5A87A6BE743C9CF25F4ED1CC20C81E6BD1E5F323682C4FE7",
+    "relativePath": ".specify/scripts/bash/common.sh",
+    "title": "Common functions and variables for all scripts",
+    "headings": [
+      "Common functions and variables for all scripts",
+      "Get repository root, with fallback for non-git repositories",
+      "Get current branch, with fallback for non-git repositories",
+      "Check if we have git available",
+      "Find feature directory by numeric prefix instead of exact branch match",
+      "This allows multiple branches to work on the same spec (e.g., 004-fix-bug, 004-add-feature)"
+    ],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-16T09:56:10.541898Z",
+    "size": 5057,
+    "contentHash": "0CBD636FF16FDC6DCFF6DA0BCF8A2DFC22FF68B85C7DC519C29E8A4559C7DC0E"
+  },
+  {
+    "id": "F8B889C43230AF9FE35DC880CD00249EB337D39CD260C1B0E0735C7FBCBCEFDE",
+    "relativePath": ".specify/scripts/bash/create-new-feature.sh",
+    "title": "Function to find the repository root by searching for existing project markers",
+    "headings": [
+      "Function to find the repository root by searching for existing project markers",
+      "Function to get highest number from specs directory",
+      "Function to get highest number from git branches",
+      "Function to check existing branches (local and remote) and return next available number",
+      "Function to clean and format a branch name",
+      "Resolve repository root. Prefer git information when available, but fall back",
+      "to searching for repository markers so the workflow still functions in repositories that",
+      "were initialised with --no-git.",
+      "Function to generate branch name with stop word filtering and length filtering",
+      "Generate branch name",
+      "Determine branch number",
+      "GitHub enforces a 244-byte limit on branch names",
+      "Validate and truncate if necessary",
+      "Set the SPECIFY_FEATURE environment variable for the current session"
+    ],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-16T09:56:10.541898Z",
+    "size": 10918,
+    "contentHash": "1A464C14B7D9A0026245FC71410F62650B1682D83F6CFB5393F243952A7BAF2E"
+  },
+  {
+    "id": "1354B1B51AE2A318CE640003837FB602993AB8ACADA9E7971458A207B45845C8",
+    "relativePath": ".specify/scripts/bash/setup-plan.sh",
+    "title": "Parse command line arguments",
+    "headings": [
+      "Parse command line arguments",
+      "Get script directory and load common functions",
+      "Get all paths and variables from common functions",
+      "Check if we\u0027re on a proper feature branch (only for git repos)",
+      "Ensure the feature directory exists",
+      "Copy plan template if it exists",
+      "Output results"
+    ],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-16T09:56:10.541898Z",
+    "size": 1688,
+    "contentHash": "A63802E8AF065B7EA952B11B038F61A431285F9D8AE34B442FD4912DEF2BF166"
+  },
+  {
+    "id": "C28BA24F8C28DA34D646B5A7988F138C908718C5C21B33636D4629C6F2CE4122",
+    "relativePath": ".specify/scripts/bash/update-agent-context.sh",
+    "title": "Update agent context files with information from plan.md",
+    "headings": [
+      "Update agent context files with information from plan.md",
+      "# This script maintains AI agent context files by parsing feature specifications",
+      "and updating agent-specific configuration files with project information.",
+      "# MAIN FUNCTIONS:",
+      "1. Environment Validation",
+      "- Verifies git repository structure and branch information",
+      "- Checks for required plan.md files and templates",
+      "- Validates file permissions and accessibility",
+      "# 2. Plan Data Extraction",
+      "- Parses plan.md files to extract project metadata",
+      "- Identifies language/version, frameworks, databases, and project types",
+      "- Handles missing or incomplete specification data gracefully",
+      "# 3. Agent File Management",
+      "- Creates new agent context files from templates when needed",
+      "- Updates existing agent files with new project information",
+      "- Preserves manual additions and custom configurations",
+      "- Supports multiple AI agent formats and directory structures",
+      "# 4. Content Generation",
+      "- Generates language-specific build/test commands",
+      "- Creates appropriate project directory structures",
+      "- Updates technology stacks and recent changes sections",
+      "- Maintains consistent formatting and timestamps",
+      "# 5. Multi-Agent Support",
+      "- Handles agent-specific file paths and naming conventions",
+      "- Supports: Claude, Gemini, Copilot, Cursor, Qwen, opencode, Codex, Windsurf, Kilo Code, Auggie CLI, Roo Code, CodeBuddy CLI, Amp, SHAI, or Amazon Q Developer CLI",
+      "- Can update single agents or all existing agent files",
+      "- Creates default Claude file if no agent files exist",
+      "# Usage: ./update-agent-context.sh [agent_type]",
+      "Agent types: claude|gemini|copilot|cursor-agent|qwen|opencode|codex|windsurf|kilocode|auggie|shai|q",
+      "Leave empty to update all existing agent files",
+      "Enable strict error handling",
+      "Configuration and Global Variables",
+      "Get script directory and load common functions",
+      "Get all paths and variables from common functions",
+      "Agent-specific file paths",
+      "Template file",
+      "Global variables for parsed plan data",
+      "Utility Functions",
+      "Cleanup function for temporary files",
+      "Set up cleanup trap",
+      "Validation Functions",
+      "Plan Parsing Functions",
+      "Template and Content Generation Functions",
+      "Main Agent File Update Function",
+      "Agent Selection and Processing",
+      "Main Execution",
+      "Execute main function if script is run directly"
+    ],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-16T09:56:10.5431732Z",
+    "size": 25825,
+    "contentHash": "F123DF14C07E441D8CEBA035D5B220701869A13C777C0801776E9018B0C18F94"
+  },
+  {
+    "id": "68DA6D0A6818EE87101F0E2220E30CFA038E7DEEB68C2A35344636DB6D6DA2BC",
+    "relativePath": ".specify/memory/constitution.md",
+    "title": "CodeHero Constitution",
+    "headings": [
+      "CodeHero Constitution",
+      "Core Principles",
+      "I. Test-First and Quality Gates (NON-NEGOTIABLE)",
+      "II. Dependency Governance and Supply Chain Security (NON-NEGOTIABLE)",
+      "III. Library-First, Modular Architecture",
+      "IV. Observability by Default",
+      "V. Versioning and Breaking Changes",
+      "VI. Simplicity and Readability",
+      "Additional Constraints and Standards",
+      "Hierarchy of truth",
+      "Repository Contract and Agent Boundaries (from current codebase)",
+      "Source code edits and constraints",
+      "Human responsibilities versus agent prohibitions",
+      "Automation scripts and execution policy",
+      "Source code edits and constraints",
+      "AI/Foundry Configuration and Safety",
+      "AI output quality and guardrails",
+      "Health, Telemetry, and Defaults",
+      "Blazor UI Non-Negotiables",
+      "CI/CD and Branch Protection (codified from repo practices)",
+      "CI Blocking Conditions",
+      "Development Workflow, Reviews, and Gates",
+      "Authority: REQ, Spec, and the Constitution \u2014 Precedence \u0026 Conflict Resolution",
+      "Compatibility Note"
+    ],
+    "links": [],
+    "tags": [
+      "REQ-123"
+    ],
+    "lastModified": "2025-11-17T15:45:45.1316779Z",
+    "size": 18848,
+    "contentHash": "C957B3683622973CB8173024A7DCC398644B6B2107750D86B0F867B8A90911B9"
   },
   {
     "id": "5C3FA597431EDA03AC3339AE6BF7F05E1A50D6FC7333679EC38E21B337CB6721",
@@ -2147,7 +2806,7 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-10-18T14:58:13.4195239Z",
+    "lastModified": "2025-11-17T15:21:04.4986072Z",
     "size": 3549,
     "contentHash": "C5D70D04F94B29E3A4DC2ABE812180A43D32627EDF4C91F37CDAE735D3B5A860"
   },
@@ -2172,5 +2831,291 @@
     "lastModified": "2025-10-30T12:26:13.3673369Z",
     "size": 9117,
     "contentHash": "116926423134C53F04A9BB632341A91549B8E651BFB5C1D8917272717C117BE6"
+  },
+  {
+    "id": "C60DC030F196F756855145E7808979896FE7B394A2EEFF45BF8D99BA108CB374",
+    "relativePath": ".github/workflows/spec-kit.yml",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-16T11:33:47.6654189Z",
+    "size": 548,
+    "contentHash": "6B5C7F3F022AA661715BD094B2C99CEEBE66551416E66E826333E855FC97CB30"
+  },
+  {
+    "id": "733EC0648261BF1A9D9F6B5E2BB4A168409913DABE16EE07D46045DA0012692C",
+    "relativePath": ".github/scripts/inspect_artifact.ps1",
+    "title": "Inspect downloaded CI artifact contents and summarize key files",
+    "headings": [
+      "Inspect downloaded CI artifact contents and summarize key files"
+    ],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-17T14:55:51.9760326Z",
+    "size": 1651,
+    "contentHash": "C4007F48329C9641268E6A5D315623308CD66D6AFFAE72A8DB05C4A7D40FECEE"
+  },
+  {
+    "id": "109E37DEB183C91FB9CC545A633BDB26E9356836981C93317AE86BE3A131DAE7",
+    "relativePath": ".github/prompts/speckit.analyze.prompt.md",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-16T09:56:10.5338402Z",
+    "size": 34,
+    "contentHash": "E1F1EB473A72599125271065ECF56369370956820617051A75C1CFBC05D89F1D"
+  },
+  {
+    "id": "E59B16A1E4836551D0E142689F18DCD7FCAF65694692EA604FDCE2EB6E260A95",
+    "relativePath": ".github/prompts/speckit.checklist.prompt.md",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-16T09:56:10.5343907Z",
+    "size": 36,
+    "contentHash": "F6424A7B31B6BC0D4DF3030A8DA13441110E31F96462A1F8C2309A06E0E92964"
+  },
+  {
+    "id": "DA8E6C5718642A22935B40C8347556FC1A424B5974A32BF01B38D8EC9C2EF745",
+    "relativePath": ".github/prompts/speckit.clarify.prompt.md",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-16T09:56:10.5343907Z",
+    "size": 34,
+    "contentHash": "215A54D91424F1398E043F56637EFAA5A2E2B76874E49AD501ABD27681868317"
+  },
+  {
+    "id": "F405D802406B3CBC25175B47C386206201E54E47E8BA70CBEFC16533DF71EB51",
+    "relativePath": ".github/prompts/speckit.constitution.prompt.md",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-16T09:56:10.5343907Z",
+    "size": 39,
+    "contentHash": "22DB90323C538E7123FACF54AA08441CD1CD8083EEC17CC85CCD99CB8BCE9F44"
+  },
+  {
+    "id": "7B6D2F4EE09F36745AEA2A46B8FBA85D1C7686CD3FE442276F08B103432A1D2F",
+    "relativePath": ".github/prompts/speckit.implement.prompt.md",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-16T09:56:10.5356711Z",
+    "size": 36,
+    "contentHash": "04A7A14009C4D60892CA5697A55945391063CEFD98A20B0AE7F8C2B0D981A087"
+  },
+  {
+    "id": "E272FC289D974DAF9A4375C300E72EF2984D1025A21C30F5A6C2E4EC0B98D06E",
+    "relativePath": ".github/prompts/speckit.plan.prompt.md",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-16T09:56:10.5356711Z",
+    "size": 31,
+    "contentHash": "0CFB48D15FB53CE3E85B03AB43595BBA53978766A4F369C653B9B7CF091844CC"
+  },
+  {
+    "id": "B0DDBB84A6616B769E234585B639C5F20DEDB2A13C00DAF8160B6B052EB08006",
+    "relativePath": ".github/prompts/speckit.specify.prompt.md",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-16T09:56:10.5356711Z",
+    "size": 34,
+    "contentHash": "69E42A0D47265F6ED96C6FB0235CB5BEF093F34065C1BDEDDB85F4383F65455F"
+  },
+  {
+    "id": "AA0B70E9834FE8CC9D9D97FB7867902AFC3B8BF74A006045999C13A83C1D1CE1",
+    "relativePath": ".github/prompts/speckit.tasks.prompt.md",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-16T09:56:10.5374243Z",
+    "size": 32,
+    "contentHash": "E80CC4106A3EAF93DBB6EDE464B903D499EBDFABA58A64C442569DCEFD2D979B"
+  },
+  {
+    "id": "7E2E41F732EDF8F26B7316406A7EF11550E7A5E3976D2D85F1EEC82DE3B995B4",
+    "relativePath": ".github/prompts/speckit.taskstoissues.prompt.md",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-16T09:56:10.5374243Z",
+    "size": 40,
+    "contentHash": "925BF3B4977F4F8EC3181ED5AFAB3E4642622F23C3BC77B4853A89904D0E6829"
+  },
+  {
+    "id": "49B6E775F0BF0A39AE0E3BE926C12D6BC6B7A6F00964FE5D1CE4A89C80B94486",
+    "relativePath": ".github/agents/speckit.analyze.agent.md",
+    "title": "User Input",
+    "headings": [
+      "User Input",
+      "Goal",
+      "Operating Constraints",
+      "Execution Steps",
+      "1. Initialize Analysis Context",
+      "2. Load Artifacts (Progressive Disclosure)",
+      "3. Build Semantic Models",
+      "4. Detection Passes (Token-Efficient Analysis)",
+      "A. Duplication Detection",
+      "B. Ambiguity Detection",
+      "C. Underspecification",
+      "D. Constitution Alignment",
+      "E. Coverage Gaps",
+      "F. Inconsistency",
+      "5. Severity Assignment",
+      "6. Produce Compact Analysis Report",
+      "Specification Analysis Report",
+      "7. Provide Next Actions",
+      "8. Offer Remediation",
+      "Operating Principles",
+      "Context Efficiency",
+      "Analysis Guidelines",
+      "Context"
+    ],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-16T09:56:10.5280942Z",
+    "size": 7359,
+    "contentHash": "B88DAA33DE592003DCF14F9380D22366C8DD7EF8B96E7098B88CB9FDDEAB0750"
+  },
+  {
+    "id": "C5311A29CD57A272266ECEF5E95D63033EB4912DC9C4113344194E43FE57F2BB",
+    "relativePath": ".github/agents/speckit.checklist.agent.md",
+    "title": "Checklist Purpose: \u0022Unit Tests for English\u0022",
+    "headings": [
+      "Checklist Purpose: \u0022Unit Tests for English\u0022",
+      "User Input",
+      "Execution Steps",
+      "Example Checklist Types \u0026 Sample Items",
+      "Anti-Examples: What NOT To Do"
+    ],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-16T09:56:10.5293183Z",
+    "size": 17103,
+    "contentHash": "95A8B9D33F889DBBB062CBC557189D1F282246E13116E5EE686B34CF1D613DA6"
+  },
+  {
+    "id": "48B977FBAAF4F03C35FCBDDFBC73184E8BAACAA129C90D55986DB586A1B7FD01",
+    "relativePath": ".github/agents/speckit.clarify.agent.md",
+    "title": "User Input",
+    "headings": [
+      "User Input",
+      "Outline"
+    ],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-16T09:56:10.5293183Z",
+    "size": 11516,
+    "contentHash": "C14E52CC8B8791BEF13963DEF52904D11179C8F23A44B69223C0ACFF52981EB2"
+  },
+  {
+    "id": "665EEF379C84F9A053A1315674469EA04BD8DAE37A2E4BFA816F4A3BE338A6FF",
+    "relativePath": ".github/agents/speckit.constitution.agent.md",
+    "title": "User Input",
+    "headings": [
+      "User Input",
+      "Outline"
+    ],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-16T09:56:10.5293183Z",
+    "size": 5329,
+    "contentHash": "1AFDA712FF13A72AB4F211B306060275CC11B32BF56C3D7A0E2593BF2BCDC8EF"
+  },
+  {
+    "id": "1616867FA3870F796AE63930DFA97ED96A0738D81746EC952890CBF0C5DEA0ED",
+    "relativePath": ".github/agents/speckit.implement.agent.md",
+    "title": "User Input",
+    "headings": [
+      "User Input",
+      "Outline"
+    ],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-16T09:56:10.5293183Z",
+    "size": 7638,
+    "contentHash": "C9218022DB33BB846EB89D29AEA2B1CD05610C0563B252AF32760E15992BD423"
+  },
+  {
+    "id": "AFE2381D8CA38063EEFAFB43BD22F3EAB6F01EDCD647E9B44EAFB221D8B13CB5",
+    "relativePath": ".github/agents/speckit.plan.agent.md",
+    "title": "User Input",
+    "headings": [
+      "User Input",
+      "Outline",
+      "Phases",
+      "Phase 0: Outline \u0026 Research",
+      "Phase 1: Design \u0026 Contracts",
+      "Key rules"
+    ],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-16T09:56:10.5313757Z",
+    "size": 3210,
+    "contentHash": "70778FD9057E80F4F4D4B9B5628D8018A45474597D33095FFFD4A34F77AB80A7"
+  },
+  {
+    "id": "BEC73F5831375DF65B04C136C3F26ADE2B7D9DDB29CA7283A1E036BBB9921E13",
+    "relativePath": ".github/agents/speckit.specify.agent.md",
+    "title": "User Input",
+    "headings": [
+      "User Input",
+      "Outline",
+      "General Guidelines",
+      "Quick Guidelines",
+      "Section Requirements",
+      "For AI Generation",
+      "Success Criteria Guidelines"
+    ],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-16T09:56:10.5313757Z",
+    "size": 13109,
+    "contentHash": "035F4867D70898B6514AADAB81F54646D786B5E285F5622BD975BEA6E2336940"
+  },
+  {
+    "id": "BB727CE5F49175E94BF5983E11610E98D0F559A6B45B2B9DA88C8468E9BEDCD5",
+    "relativePath": ".github/agents/speckit.tasks.agent.md",
+    "title": "User Input",
+    "headings": [
+      "User Input",
+      "Outline",
+      "Task Generation Rules",
+      "Checklist Format (REQUIRED)",
+      "Task Organization",
+      "Phase Structure"
+    ],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-16T09:56:10.5330032Z",
+    "size": 6476,
+    "contentHash": "5A5138F0596743FCBAD9931A8F516CA98DFEFFB45897FC1A58635F4C6B8E2838"
+  },
+  {
+    "id": "825FE9324F8BC3402B00509A4A4D74443DF0CF74B30FAEF35950F922BD0406C4",
+    "relativePath": ".github/agents/speckit.taskstoissues.agent.md",
+    "title": "User Input",
+    "headings": [
+      "User Input",
+      "Outline"
+    ],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-16T09:56:10.5330032Z",
+    "size": 1095,
+    "contentHash": "7490156C308592008522974DD4990057D8F5491904D09AC8E57959223E55CAC4"
   }
 ]

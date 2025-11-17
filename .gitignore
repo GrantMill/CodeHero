@@ -361,3 +361,18 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# Universal additional ignores (safe to append)
+.DS_Store
+Thumbs.db
+*.tmp
+.vscode/
+.idea/
+.env
+.env.*
+dist/
+build/
+coverage/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
