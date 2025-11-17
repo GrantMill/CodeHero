@@ -19,3 +19,16 @@ Notes
 - After tasks are merged, schedule follow-ups to add coverage collection/reporting and to migrate per-package checks from warn-only to blocking as packages meet targets.
 
 - Coverage note: Coverage thresholds are temporarily set below the Constitution requirements and per-package checks are currently warn-only; this temporary exception is documented in `docs/issues/001-temp-coverage-exception.md` and governs the ramp plan.
+
+Validation results (update)
+- Validation run: workflow run `T009` (run number 124, run id `19432867654`) on branch `006-validate-ci-artifacts` completed successfully. Duration: ~59s (2025-11-17T14:22:17Z → 2025-11-17T14:23:16Z).
+- Artifact uploaded: `test-results` (artifact id `4589405898`) — available via Actions artifacts for the run.
+- Test summary (from TRX): total discovered 12, executed 10, passed 10, failed 0.
+- Coverage: the included Cobertura XML in the artifact did not contain line counts (lines-valid/lines-covered were zero), so the computed coverage in the artifact is 0%. CI run logs may include a separate ReportGenerator summary; see `docs/issues/001-temp-coverage-exception.md` and the CI run artifacts for details.
+
+Task status updates
+- [x] T005 Add PR template (file: `.github/PULL_REQUEST_TEMPLATE.md`) — completed.
+- [x] T006 Traceability check script (`.github/scripts/validate_req_reference.py`) wired into workflow on PRs — completed.
+- [x] T008 Contributor guidance (`docs/CONTRIBUTING-notes.md`) — completed.
+- [x] T009 Validation PR created (`006-validate-ci-artifacts`, PR #7) and CI completed successfully — completed.
+- [x] T010 Validation results recorded above; plan can be closed or continued depending on follow-ups — completed.
