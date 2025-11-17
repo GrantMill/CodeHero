@@ -2,8 +2,8 @@
 
 Checklist: sequential, small, reviewable tasks required to satisfy the Success Criteria in `specs/001-bootstrap-baseline/spec.md` (REQ-000).
 
-- [ ] T001 Verify `docs/VISION.md` content and add front-matter if needed — edit `docs/VISION.md` (ensure repo-first, human-in-the-loop, CI requirement, demo scope). [Spec: Goals; Acceptance Criteria]
-- [ ] T002 Confirm `plan/BACKLOG.md` differentiates Human vs Agent tasks and add top README comment if missing — edit `plan/BACKLOG.md`. [Spec: Goals; Acceptance Criteria]
+- [x] T001 Verify `docs/VISION.md` content and add front-matter if needed — edit `docs/VISION.md` (ensure repo-first, human-in-the-loop, CI requirement, demo scope). [Spec: Goals; Acceptance Criteria]
+- [x] T002 Confirm `plan/BACKLOG.md` differentiates Human vs Agent tasks and add top README comment if missing — edit `plan/BACKLOG.md`. [Spec: Goals; Acceptance Criteria]
 - [x] T003 Add CI workflow file to build & test PRs — create/modify `.github/workflows/bootstrap-baseline.yml` to run `dotnet restore`, `dotnet build`, `dotnet test` and upload `TestResults/**` artifacts. [Spec: Goals; Acceptance Criteria; Observability]
 - [x] T004 Ensure CI workflow runs on `pull_request` (and `push` to `feature/*`, `master`/`main`) and keep matrix to a single OS to meet timing goals — update workflow triggers and jobs in `.github/workflows/bootstrap-baseline.yml`. [Spec: Success Criteria; Observability]
 - [ ] T005 Add PR template that prompts for `Related REQ(s):` and acceptance notes — create `.github/PULL_REQUEST_TEMPLATE.md`. [Spec: Traceability; Acceptance Criteria]
@@ -20,15 +20,4 @@ Notes
 
 - Coverage note: Coverage thresholds are temporarily set below the Constitution requirements and per-package checks are currently warn-only; this temporary exception is documented in `docs/issues/001-temp-coverage-exception.md` and governs the ramp plan.
 
-Validation results (update)
-- Validation run: workflow run `T009` (run number 124, run id `19432867654`) on branch `006-validate-ci-artifacts` completed successfully. Duration: ~59s (2025-11-17T14:22:17Z → 2025-11-17T14:23:16Z).
-- Artifact uploaded: `test-results` (artifact id `4589405898`) — available via Actions artifacts for the run.
-- Test summary (from TRX): total discovered 12, executed 10, passed 10, failed 0.
-- Coverage: the included Cobertura XML in the artifact did not contain line counts (lines-valid/lines-covered were zero), so the computed coverage in the artifact is 0%. CI run logs may include a separate ReportGenerator summary; see `docs/issues/001-temp-coverage-exception.md` and the CI run artifacts for details.
-
-Task status updates
-- [x] T005 Add PR template (file: `.github/PULL_REQUEST_TEMPLATE.md`) — completed.
-- [x] T006 Traceability check script (`.github/scripts/validate_req_reference.py`) wired into workflow on PRs — completed.
-- [x] T008 Contributor guidance (`docs/CONTRIBUTING-notes.md`) — completed.
-- [x] T009 Validation PR created (`006-validate-ci-artifacts`, PR #7) and CI completed successfully — completed.
-- [x] T010 Validation results recorded above; plan can be closed or continued depending on follow-ups — completed.
+<!-- Validation summary removed per request; keep tasks and coverage note as-is. -->
