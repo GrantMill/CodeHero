@@ -61,8 +61,7 @@ public sealed class HybridSearchService : IHybridSearchService
     /// Initializes a new <see cref="HybridSearchService"/> with required dependencies.
     /// </summary>
     /// <param name="searchClient">Azure AI Search client targeting the configured index.</param>
-    /// <param name="http">HTTP client factory used for embedding calls.</param>
-    /// <param name="cfg">Configuration for embedding model and Foundry endpoint.</param>
+    /// <param name="embedder">Pluggable embedding provider used to compute embeddings for queries.</param>
     /// <param name="log">Logger for diagnostics/telemetry.</param>
     public HybridSearchService(SearchClient searchClient, IEmbeddingProvider embedder, ILogger<HybridSearchService> log)
     {
@@ -113,6 +112,12 @@ public sealed class HybridSearchService : IHybridSearchService
             return await _searchFunc(req, ct);
         }
 
+        if (_searchClient is null)
+        {
+            _log.LogError("SearchClient is not configured for HybridSearchService.");
+            throw new InvalidOperationException("Search client is not configured.");
+        }
+
         var response = await _searchClient.SearchAsync<SearchDocument>(req.StandaloneQuestion, options, ct);
         var hits = new List<SearchHit>();
         await foreach (var result in response.Value.GetResultsAsync())
@@ -125,13 +130,7 @@ public sealed class HybridSearchService : IHybridSearchService
         return new SearchResponse(hits);
     }
 
-    /// <summary>
-    /// Calls the configured Azure OpenAI embeddings endpoint to produce a vector for the provided text.
-    /// </summary>
-    /// <param name="text">Text to embed.</param>
-    /// <param name="ct">Cancellation token.</param>
-    /// <returns>An array of floats representing the embedding, or null on failure or missing configuration.</returns>
-    // Embedding is delegated to IEmbeddingProvider to allow pluggable providers and easier testing.
+    // Embeddings are delegated to `IEmbeddingProvider` so this class does not implement embedding HTTP calls.
 
     /// <summary>
     /// Extracts a source URL or path string from a <see cref="SearchDocument"/> using resilient parsing of common shapes.
