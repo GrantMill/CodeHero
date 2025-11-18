@@ -49,9 +49,9 @@ namespace CodeHero.ApiService.Services.Rag;
 /// </remarks>
 public sealed class HybridSearchService : IHybridSearchService
 {
-    private readonly SearchClient _searchClient;
-    private readonly IHttpClientFactory _http;
-    private readonly IConfiguration _cfg;
+    private readonly SearchClient? _searchClient;
+    private readonly System.Func<SearchRequest, System.Threading.CancellationToken, System.Threading.Tasks.Task<SearchResponse>>? _searchFunc;
+    private readonly IEmbeddingProvider _embedder;
     private readonly ILogger<HybridSearchService> _log;
     private readonly string _vectorField = "contentVector";
     private readonly string _textField = "content";
@@ -61,14 +61,20 @@ public sealed class HybridSearchService : IHybridSearchService
     /// Initializes a new <see cref="HybridSearchService"/> with required dependencies.
     /// </summary>
     /// <param name="searchClient">Azure AI Search client targeting the configured index.</param>
-    /// <param name="http">HTTP client factory used for embedding calls.</param>
-    /// <param name="cfg">Configuration for embedding model and Foundry endpoint.</param>
+    /// <param name="embedder">Pluggable embedding provider used to compute embeddings for queries.</param>
     /// <param name="log">Logger for diagnostics/telemetry.</param>
-    public HybridSearchService(SearchClient searchClient, IHttpClientFactory http, IConfiguration cfg, ILogger<HybridSearchService> log)
+    public HybridSearchService(SearchClient searchClient, IEmbeddingProvider embedder, ILogger<HybridSearchService> log)
     {
         _searchClient = searchClient;
-        _http = http;
-        _cfg = cfg;
+        _embedder = embedder;
+        _log = log;
+    }
+
+    // Internal constructor used by tests to provide a fake search function without requiring a real SearchClient.
+    internal HybridSearchService(System.Func<SearchRequest, System.Threading.CancellationToken, System.Threading.Tasks.Task<SearchResponse>> searchFunc, IEmbeddingProvider embedder, ILogger<HybridSearchService> log)
+    {
+        _searchFunc = searchFunc;
+        _embedder = embedder;
         _log = log;
     }
 
@@ -80,7 +86,13 @@ public sealed class HybridSearchService : IHybridSearchService
     /// <returns>A <see cref="SearchResponse"/> containing scored hits.</returns>
     public async Task<SearchResponse> SearchAsync(SearchRequest req, CancellationToken ct = default)
     {
-        var vector = await EmbedAsync(req.StandaloneQuestion, ct) ?? Array.Empty<float>();
+        var vector = await _embedder.GetEmbeddingAsync(req.StandaloneQuestion, ct) ?? Array.Empty<float>();
+
+        // If embedding is unavailable or empty, short-circuit and return an empty result set.
+        if (vector.Length == 0)
+        {
+            return new SearchResponse(new List<SearchHit>());
+        }
 
         var options = new SearchOptions
         {
@@ -94,6 +106,18 @@ public sealed class HybridSearchService : IHybridSearchService
         options.Select.Add(_textField);
         options.Select.Add(_sourceMeta);
 
+        // If a test-provided search function exists, use it to obtain deterministic results.
+        if (_searchFunc is not null)
+        {
+            return await _searchFunc(req, ct);
+        }
+
+        if (_searchClient is null)
+        {
+            _log.LogError("SearchClient is not configured for HybridSearchService.");
+            throw new InvalidOperationException("Search client is not configured.");
+        }
+
         var response = await _searchClient.SearchAsync<SearchDocument>(req.StandaloneQuestion, options, ct);
         var hits = new List<SearchHit>();
         await foreach (var result in response.Value.GetResultsAsync())
@@ -106,48 +130,7 @@ public sealed class HybridSearchService : IHybridSearchService
         return new SearchResponse(hits);
     }
 
-    /// <summary>
-    /// Calls the configured Azure OpenAI embeddings endpoint to produce a vector for the provided text.
-    /// </summary>
-    /// <param name="text">Text to embed.</param>
-    /// <param name="ct">Cancellation token.</param>
-    /// <returns>An array of floats representing the embedding, or null on failure or missing configuration.</returns>
-    private async Task<float[]?> EmbedAsync(string text, CancellationToken ct)
-    {
-        var endpoint = _cfg["AzureAI:Foundry:Endpoint"] ?? string.Empty;
-        var key = _cfg["AzureAI:Foundry:Key"] ?? string.Empty;
-        var deployment = _cfg["AzureAI:Foundry:EmbeddingModel"] ?? string.Empty;
-        var apiVersion = _cfg["AzureAI:Foundry:ApiVersion"] ?? "2024-08-01-preview";
-        if (string.IsNullOrWhiteSpace(endpoint) || string.IsNullOrWhiteSpace(key) || string.IsNullOrWhiteSpace(deployment))
-            return null;
-
-        var url = endpoint.TrimEnd('/') + $"/openai/deployments/{deployment}/embeddings?api-version={apiVersion}";
-        var client = _http.CreateClient("foundry");
-        client.DefaultRequestHeaders.Remove("api-key");
-        client.DefaultRequestHeaders.Add("api-key", key);
-        client.DefaultRequestHeaders.Accept.Clear();
-        client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-        var payload = new { input = text };
-        try
-        {
-            using var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
-            using var resp = await client.PostAsync(url, content, ct);
-            var body = await resp.Content.ReadAsStringAsync(ct);
-            if (!resp.IsSuccessStatusCode)
-            {
-                _log.LogWarning("Embedding failed status={Status} snippet={Snippet}", (int)resp.StatusCode, body.Length > 200 ? body.Substring(0, 200) : body);
-                return null;
-            }
-            using var doc = JsonDocument.Parse(body);
-            var arr = doc.RootElement.GetProperty("data")[0].GetProperty("embedding").EnumerateArray().Select(e => (float)e.GetDouble()).ToArray();
-            return arr;
-        }
-        catch (Exception ex)
-        {
-            _log.LogError(ex, "Embedding exception");
-            return null;
-        }
-    }
+    // Embeddings are delegated to `IEmbeddingProvider` so this class does not implement embedding HTTP calls.
 
     /// <summary>
     /// Extracts a source URL or path string from a <see cref="SearchDocument"/> using resilient parsing of common shapes.

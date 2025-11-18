@@ -97,6 +97,19 @@
     "contentHash": "19200A6A9407E592065A5A504C0EEFE58ADF102C9AC5AA2151BD6F257FAA7A9C"
   },
   {
+    "id": "0BBE5BC4573BCF1CAA8BA13B58EFE7C468BB397DDFE2F5A83F9C76BA92CEC5B4",
+    "relativePath": "plan.md",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [
+      "REQ-003"
+    ],
+    "lastModified": "2025-11-17T16:03:07.2874635Z",
+    "size": 10128,
+    "contentHash": "81332E7493D8C2F0E7EEB7395942127759137026EF8480C9FFC0F685F2143131"
+  },
+  {
     "id": "94B40B284384BFC13F719E2C2E5D7F2222FE04E9DEF64E6874642EF4FF9FDC66",
     "relativePath": "Program.cs",
     "title": "",
@@ -419,7 +432,7 @@
     ],
     "links": [],
     "tags": [],
-    "lastModified": "2025-10-18T10:03:17.2525862Z",
+    "lastModified": "2025-11-17T15:21:04.5152285Z",
     "size": 824,
     "contentHash": "64329716B9F50B58C9323A642677EC186EEF7F7D5E34E0A37D76FDAE7D1D52FB"
   },
@@ -475,9 +488,9 @@
     "tags": [
       "REQ-000"
     ],
-    "lastModified": "2025-10-22T15:27:01.4754357Z",
-    "size": 465,
-    "contentHash": "75E0C53A57F4116A772661CB558972AB7CD4A03595809A618343C452FDB38883"
+    "lastModified": "2025-11-17T15:03:53.2828089Z",
+    "size": 468,
+    "contentHash": "0FD2BB62EC967B2EE411483D83652E8494AA746356A88409D0DD93B5423F8540"
   },
   {
     "id": "454B5AADA1C338AF27E7737390E41F7E9D9F6A412FB743B63B8A7931C1840391",
@@ -1686,7 +1699,7 @@
     "headings": [],
     "links": [],
     "tags": [],
-    "lastModified": "2025-11-05T17:27:34.3056062Z",
+    "lastModified": "2025-11-17T15:21:04.5057066Z",
     "size": 4158,
     "contentHash": "620743F008DA1DB3C5022BFC90F94E7B133A95369422D118FD565A89E316AB8B"
   },
@@ -1738,7 +1751,7 @@
     "tags": [
       "REQ-000"
     ],
-    "lastModified": "2025-11-05T17:27:34.3056062Z",
+    "lastModified": "2025-11-17T15:21:04.506705Z",
     "size": 2862,
     "contentHash": "E4AA60F3BB4314A8AB0676FCD2146EBA62C825515A1BC281C77A6F651D018DF8"
   },
@@ -2243,6 +2256,17 @@
     "contentHash": "DE0CFA77E78FC58AFD3D0AB387C4C0D5F82ACEB0FFCF290675CDFF00CD20639D"
   },
   {
+    "id": "153332C1444A0058B4A366BCF29F5918D188ABC5DB5284A0C7FE4A822FF0E9BF",
+    "relativePath": "CodeHero.ApiService/Services/Rag/NoopEmbeddingProvider.cs",
+    "title": "",
+    "headings": [],
+    "links": [],
+    "tags": [],
+    "lastModified": "2025-11-17T17:18:30.6727374Z",
+    "size": 255,
+    "contentHash": "4A11CE1A5F50E400947B85DE2B14A409C59B523B6EB14FA5AB683461C77EBFC2"
+  },
+  {
     "id": "A6D50BEC08944C5F073497046CE5BFED825309903AD27FECF04E395DE46EB57D",
     "relativePath": "CodeHero.ApiService/Services/Rag/PromptContextBuilder.cs",
     "title": "",
@@ -2275,9 +2299,9 @@
     "tags": [
       "REQ-001"
     ],
-    "lastModified": "2025-11-14T13:16:40.6554606Z",
-    "size": 10920,
-    "contentHash": "C1092328B0C89A98C18B58C38896C26C98EFF00F311A805FDE745A8B85AD635B"
+    "lastModified": "2025-11-17T17:18:30.6727374Z",
+    "size": 10977,
+    "contentHash": "355B868E22FB8B24D0B5BD528F2F2573767E6904EAF8AB7EE59496B8973176DB"
   },
   {
     "id": "4276372E10E074894E5F248B0DD37E6F871630055658EE6ED331EF33E2A2B1E3",

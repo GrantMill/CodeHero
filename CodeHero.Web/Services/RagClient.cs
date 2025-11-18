@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.Configuration;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
@@ -11,6 +12,7 @@ namespace CodeHero.Web.Services;
 public sealed class RagClient
 {
     private readonly HttpClient _http;
+    private readonly bool _ragEnabled;
 
     /// <summary>
     /// Most recent diagnostic response returned by <see cref="AskDiagnosticAsync"/>.
@@ -22,7 +24,7 @@ public sealed class RagClient
     /// <summary>
     /// Initializes a new instance of <see cref="RagClient"/> with a typed <see cref="HttpClient"/> and <see cref="NavigationManager"/>.
     /// </summary>
-    public RagClient(HttpClient http, NavigationManager nav)
+    public RagClient(HttpClient http, NavigationManager nav, IConfiguration cfg)
     {
         _http = http;
         // Ensure BaseAddress so relative '/api/..' URIs succeed
@@ -31,6 +33,7 @@ public sealed class RagClient
             // nav.BaseUri is absolute (e.g., https://localhost:5001/)
             _http.BaseAddress = new Uri(nav.BaseUri, UriKind.Absolute);
         }
+        _ragEnabled = cfg.GetValue<bool?>("Rag:Enabled") ?? true;
     }
 
     /// <summary>
@@ -129,28 +132,37 @@ public sealed class RagClient
             return diagClar;
         }
 
-        // 2) Search
-        try
-        {
-            using var searchReq = new HttpRequestMessage(HttpMethod.Post, "api/search/hybrid")
-            {
-                Content = JsonContent.Create(new SearchRequest(rephraseRaw, TopK: 2))
-            };
-            searchReq.Headers.Remove("X-Correlation-Id");
-            searchReq.Headers.Add("X-Correlation-Id", corr);
-
-            using var searchResp = await client.SendAsync(searchReq, ct);
-            searchStatus = (int)searchResp.StatusCode;
-            searchRaw = await searchResp.Content.ReadAsStringAsync(ct);
-        }
-        catch (Exception ex)
-        {
-            searchRaw = ex.ToString();
-            searchStatus = 0;
-        }
-
+        // 2) Search (skipped when RAG disabled)
         SearchResponse? searchParsed = null;
-        try { searchParsed = JsonSerializer.Deserialize<SearchResponse>(searchRaw, new JsonSerializerOptions(JsonSerializerDefaults.Web)); } catch { }
+        if (_ragEnabled)
+        {
+            try
+            {
+                using var searchReq = new HttpRequestMessage(HttpMethod.Post, "api/search/hybrid")
+                {
+                    Content = JsonContent.Create(new SearchRequest(rephraseRaw, TopK: 2))
+                };
+                searchReq.Headers.Remove("X-Correlation-Id");
+                searchReq.Headers.Add("X-Correlation-Id", corr);
+
+                using var searchResp = await client.SendAsync(searchReq, ct);
+                searchStatus = (int)searchResp.StatusCode;
+                searchRaw = await searchResp.Content.ReadAsStringAsync(ct);
+            }
+            catch (Exception ex)
+            {
+                searchRaw = ex.ToString();
+                searchStatus = 0;
+            }
+
+            try { searchParsed = JsonSerializer.Deserialize<SearchResponse>(searchRaw, new JsonSerializerOptions(JsonSerializerDefaults.Web)); } catch { }
+        }
+        else
+        {
+            searchRaw = string.Empty;
+            searchStatus = 204; // no content
+            searchParsed = null;
+        }
 
         // 3) Answer
         var answerRequestObj = new AnswerRequest(chatInput, history, searchParsed?.Results ?? Array.Empty<SearchHit>());

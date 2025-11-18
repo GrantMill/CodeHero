@@ -23,7 +23,7 @@
     <PackageReference Include="Azure.Search.Documents" Version="11.7.0" />
     <PackageReference Include="Azure.Core" Version="1.50.0" />
     <!-- Data collector for XPlat Code Coverage -->
-    <PackageReference Include="coverlet.collector" Version="4.0.0" />
+    <PackageReference Include="coverlet.collector" Version="6.0.0" />
     <!-- Explicit stable override to avoid pulling pre-release vulnerable package transitively -->
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="10.0.0" />
   </ItemGroup>

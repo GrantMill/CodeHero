@@ -82,13 +82,35 @@ builder.Services.Configure<Microsoft.Extensions.Http.HttpClientFactoryOptions>("
     }
 }
 
+// Embedding provider registration: prefer Foundry when configured, otherwise a no-op provider
+{
+    var cfg = builder.Configuration;
+    var foundryEndpoint = cfg["AzureAI:Foundry:Endpoint"];
+    var foundryKey = cfg["AzureAI:Foundry:Key"];
+    var foundryEmbedding = cfg["AzureAI:Foundry:EmbeddingModel"];
+    if (!string.IsNullOrWhiteSpace(foundryEndpoint) && !string.IsNullOrWhiteSpace(foundryKey) && !string.IsNullOrWhiteSpace(foundryEmbedding))
+    {
+        builder.Services.AddSingleton<IEmbeddingProvider, FoundryEmbeddingProvider>();
+    }
+    else
+    {
+        builder.Services.AddSingleton<IEmbeddingProvider, NoopEmbeddingProvider>();
+    }
+}
+
 builder.Services.AddScoped<IQuestionRephraser, QuestionRephraser>();
 builder.Services.AddScoped<IHybridSearchService>(sp =>
 {
+    var cfg = sp.GetRequiredService<IConfiguration>();
+    var ragEnabled = cfg.GetValue<bool?>("Rag:Enabled") ?? true;
+    if (!ragEnabled)
+        return new FakeHybridSearchService();
+
     var sc = sp.GetService<SearchClient>();
     if (sc is null)
         return new FakeHybridSearchService();
-    return new HybridSearchService(sc, sp.GetRequiredService<IHttpClientFactory>(), sp.GetRequiredService<IConfiguration>(), sp.GetRequiredService<ILogger<HybridSearchService>>());
+
+    return new HybridSearchService(sc, sp.GetRequiredService<IEmbeddingProvider>(), sp.GetRequiredService<ILogger<HybridSearchService>>());
 });
 builder.Services.AddScoped<IRagAnswerService, RagAnswerService>();
 
